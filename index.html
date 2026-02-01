@@ -1,395 +1,165 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Loop Timer</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Game Night Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-work: #FF6B6B;      /* Red: Work */
-            --bg-rest: #4ECDC4;      /* Teal: Rest */
-            --bg-warmup: #F7B731;    /* Yellow: Warmup */
-            --bg-done: #6AB04C;      /* Green: Finished */
-            --bg-idle: #2C3E50;      /* Dark Blue: Setup */
-            --text-color: #ffffff;
-            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+      @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Lato:wght@400;700&display=swap");
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      /* App Shell Setup */
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        overflow: hidden; /* Lock body scroll */
+        background-color: #1c1917;
+        background-image: radial-gradient(
+          circle at center,
+          #292524 0%,
+          #1c1917 100%
+        );
+        font-family: "Lato", sans-serif;
+        color: #d6d3d1;
+      }
 
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: var(--font-main);
-            background-color: var(--bg-idle);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.4s ease;
-        }
+      h1,
+      h2,
+      .fantasy-font {
+        font-family: "Cinzel", serif;
+      }
 
-        /* --- THE DISPLAY --- */
-        #timer-display {
-            font-size: 18vw;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin: 10px 0;
-        }
+      /* Scrollbar Styling for the grid area */
+      .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: #292524;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: #57534e;
+        border-radius: 3px;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: #78716c;
+      }
 
-        #status-label {
-            font-size: 2rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-            text-align: center;
-        }
-
-        #loop-counter {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        /* --- THE CONTROLS (Hidden when running) --- */
-        .controls-container {
-            width: 100%;
-            max-width: 380px;
-            background: rgba(0,0,0,0.2);
-            padding: 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .controls-container.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.95);
-            position: absolute;
-            z-index: -1;
-        }
-
-        .section-title {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-            margin-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 4px;
-        }
-
-        .time-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .input-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .input-wrapper label {
-            font-size: 0.7rem;
-            opacity: 0.6;
-            margin-bottom: 4px;
-        }
-
-        input[type="number"] {
-            width: 100%;
-            padding: 12px 5px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            text-align: center;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            font-weight: 600;
-        }
-        
-        input[type="number"]:focus {
-            background: rgba(255,255,255,0.3);
-            outline: none;
-        }
-
-        /* The Big Button */
-        #action-btn {
-            background-color: white;
-            color: var(--bg-idle);
-            border: none;
-            padding: 18px;
-            font-size: 1.3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 300px;
-            margin-top: 25px;
-            transition: transform 0.1s;
-        }
-        #action-btn:active { transform: scale(0.96); }
-
-        body.running #action-btn {
-            background-color: transparent;
-            color: white;
-            border: 2px solid rgba(255,255,255,0.6);
-            margin-top: 0; /* Move up when controls vanish */
-        }
-
+      /* Card Hover Effects */
+      .game-card {
+        transition: all 0.2s ease-out;
+        border: 1px solid #44403c;
+      }
+      .game-card:hover {
+        transform: translateY(-2px);
+        border-color: #f59e0b;
+        background-color: #292524;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      }
+      .game-card:active {
+        transform: scale(0.98);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body class="flex flex-col">
+    <header
+      class="h-[10dvh] min-h-[60px] flex items-center justify-center bg-stone-900 border-b-4 border-amber-700 shadow-xl z-20 shrink-0">
+      <h1
+        class="text-amber-500 font-bold tracking-widest uppercase drop-shadow-md"
+        style="font-size: min(6vw, 4vh)">
+        Tabletop Tools
+      </h1>
+    </header>
 
-    <div id="status-label">SETUP</div>
-    <div id="loop-counter">&nbsp;</div>
-    <div id="timer-display">00:00:00</div>
-
-    <div class="controls-container" id="settings">
+    <main class="flex-grow overflow-y-auto custom-scroll p-4 sm:p-8">
+      <div class="max-w-6xl mx-auto">
         
-        <div class="section-title">Work Duration</div>
-        <div class="time-row">
-            <div class="input-wrapper"><label>Hrs</label><input type="number" id="w-h" placeholder="0"></div>
-            <div class="input-wrapper"><label>Min</label><input type="number" id="w-m" placeholder="0"></div>
-            <div class="input-wrapper"><label>Sec</label><input type="number" id="w-s" value="30"></div>
-        </div>
-
-        <div class="section-title">Rest Duration</div>
-        <div class="time-row">
-            <div class="input-wrapper"><label>Hrs</label><input type="number" id="r-h" placeholder="0"></div>
-            <div class="input-wrapper"><label>Min</label><input type="number" id="r-m" placeholder="0"></div>
-            <div class="input-wrapper"><label>Sec</label><input type="number" id="r-s" value="10"></div>
-        </div>
-
-        <div class="time-row">
-            <div class="input-wrapper" style="flex: 1.5;">
-                <label>Countdown (Sec)</label>
-                <input type="number" id="warmup-input" value="5">
+        <div class="mb-8 relative max-w-md mx-auto">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
             </div>
-            <div class="input-wrapper" style="flex: 1.5;">
-                <label>Loops (0=∞)</label>
-                <input type="number" id="loops-input" placeholder="∞">
-            </div>
+            
+            <input 
+                type="text" 
+                id="gameSearch" 
+                placeholder="Find..." 
+                class="block w-full pl-10 pr-3 py-3 border border-stone-600 rounded-xl leading-5 bg-stone-800 text-stone-200 placeholder-stone-500 focus:outline-none focus:bg-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 sm:text-sm transition-colors shadow-lg"
+            >
         </div>
-    </div>
 
-    <button id="action-btn">START TIMER</button>
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <a
+            href="breathing.html"
+            class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+            <div
+              class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
+
+            <div class="w-full h-48 bg-stone-900 relative">
+              <img
+                src=""
+                alt="breathing"
+                class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+            </div>
+
+            <div
+              class="p-4 flex-grow flex items-center justify-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2
+                class="fantasy-font text-lg font-bold text-stone-200 group-hover:text-amber-500 transition-colors">
+                breathing
+              </h2>
+            </div>
+          </a>
+
+          <a
+            href="timer.html"
+            class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+            <div
+              class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
+
+            <div class="w-full h-48 bg-stone-900 relative">
+              <img
+                src=""
+                alt="timer"
+                class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+            </div>
+
+            <div
+              class="p-4 flex-grow flex items-center justify-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2
+                class="fantasy-font text-lg font-bold text-stone-200 group-hover:text-amber-500 transition-colors">
+                Timer
+              </h2>
+            </div>
+          </a>
+        </div>
+      </div>
+    </main>
 
     <script>
-        // --- LOGIC ---
-        let timerInterval = null;
-        let state = 'IDLE'; // IDLE, WARMUP, WORK, REST, FINISHED
-        let timeLeft = 0;
-        let currentLoop = 1;
-        let totalLoops = 0; // 0 means infinite
+        document.getElementById('gameSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.game-card');
 
-        // DOM Elements
-        const display = document.getElementById('timer-display');
-        const statusLabel = document.getElementById('status-label');
-        const loopDisplay = document.getElementById('loop-counter');
-        const btn = document.getElementById('action-btn');
-        const settings = document.getElementById('settings');
-        const body = document.body;
-
-        // Audio Context
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function getSeconds(prefix) {
-            const h = parseInt(document.getElementById(prefix + '-h').value) || 0;
-            const m = parseInt(document.getElementById(prefix + '-m').value) || 0;
-            const s = parseInt(document.getElementById(prefix + '-s').value) || 0;
-            return (h * 3600) + (m * 60) + s;
-        }
-
-        function formatTime(totalSeconds) {
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = totalSeconds % 60;
-
-            if (h > 0) {
-                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            }
-            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            const now = audioCtx.currentTime;
-
-            if (type === 'work') {
-                // High pitch double beep
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.setValueAtTime(0, now + 0.1);
-                osc.frequency.setValueAtTime(800, now + 0.2);
-                gain.gain.setValueAtTime(0.5, now);
-                osc.start(now);
-                osc.stop(now + 0.4);
-            } else if (type === 'rest') {
-                // Lower pitch
-                osc.frequency.setValueAtTime(400, now);
-                gain.gain.setValueAtTime(0.5, now);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            } else if (type === 'finish') {
-                // Happy chord
-                osc.frequency.setValueAtTime(523.25, now); // C
-                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); // E
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
-                osc.start(now);
-                osc.stop(now + 1);
-            }
-
-            if (navigator.vibrate) navigator.vibrate(type === 'work' ? [100, 50, 100] : 200);
-        }
-
-        function updateUI() {
-            display.innerText = formatTime(timeLeft);
-            
-            let loopText = totalLoops > 0 ? `ROUND ${currentLoop} / ${totalLoops}` : `ROUND ${currentLoop}`;
-            
-            if (state === 'IDLE') {
-                body.style.backgroundColor = 'var(--bg-idle)';
-                statusLabel.innerText = "SETUP";
-                loopDisplay.innerText = "Set your intervals";
-            } else if (state === 'WARMUP') {
-                body.style.backgroundColor = 'var(--bg-warmup)';
-                statusLabel.innerText = "GET READY";
-                loopDisplay.innerText = "Starting in...";
-            } else if (state === 'WORK') {
-                body.style.backgroundColor = 'var(--bg-work)';
-                statusLabel.innerText = "WORK";
-                loopDisplay.innerText = loopText;
-            } else if (state === 'REST') {
-                body.style.backgroundColor = 'var(--bg-rest)';
-                statusLabel.innerText = "REST";
-                loopDisplay.innerText = loopText;
-            } else if (state === 'FINISHED') {
-                body.style.backgroundColor = 'var(--bg-done)';
-                statusLabel.innerText = "DONE!";
-                loopDisplay.innerText = "Great job.";
-            }
-        }
-
-        function switchPhase() {
-            if (state === 'WARMUP') {
-                state = 'WORK';
-                timeLeft = getSeconds('w');
-                playSound('work');
-            } else if (state === 'WORK') {
-                // Check if we are done with loops
-                if (totalLoops > 0 && currentLoop >= totalLoops && getSeconds('r') === 0) {
-                     finish();
-                     return;
-                }
+            cards.forEach(card => {
+                // Find the title inside the card
+                const title = card.querySelector('h2').innerText.toLowerCase();
                 
-                // Go to rest
-                const restTime = getSeconds('r');
-                if (restTime > 0) {
-                    state = 'REST';
-                    timeLeft = restTime;
-                    playSound('rest');
+                // Check if title includes the search term
+                if(title.includes(searchTerm)) {
+                    card.classList.remove('hidden');
+                    card.classList.add('flex'); // Keep the flex layout
                 } else {
-                    // No rest time set? Go straight to next loop or finish
-                    nextLoop();
+                    card.classList.add('hidden');
+                    card.classList.remove('flex');
                 }
-            } else if (state === 'REST') {
-                nextLoop();
-            }
-            updateUI();
-        }
-
-        function nextLoop() {
-            if (totalLoops > 0 && currentLoop >= totalLoops) {
-                finish();
-            } else {
-                currentLoop++;
-                state = 'WORK';
-                timeLeft = getSeconds('w');
-                playSound('work');
-                updateUI();
-            }
-        }
-
-        function finish() {
-            state = 'FINISHED';
-            clearInterval(timerInterval);
-            playSound('finish');
-            btn.innerText = "RESET";
-            body.classList.remove('running');
-            updateUI();
-        }
-
-        function tick() {
-            if (timeLeft > 0) {
-                timeLeft--;
-                updateUI();
-            } else {
-                switchPhase();
-            }
-        }
-
-        function stop() {
-            clearInterval(timerInterval);
-            state = 'IDLE';
-            body.classList.remove('running');
-            settings.classList.remove('hidden');
-            btn.innerText = "START TIMER";
-            updateUI();
-        }
-
-        function start() {
-            // Validation
-            const workSecs = getSeconds('w');
-            if (workSecs === 0) return alert("Please set a Work time.");
-
-            // Init values
-            totalLoops = parseInt(document.getElementById('loops-input').value) || 0;
-            const warmupSecs = parseInt(document.getElementById('warmup-input').value) || 0;
-            currentLoop = 1;
-
-            // Start Logic
-            body.classList.add('running');
-            settings.classList.add('hidden');
-            btn.innerText = "STOP";
-
-            if (warmupSecs > 0) {
-                state = 'WARMUP';
-                timeLeft = warmupSecs;
-            } else {
-                state = 'WORK';
-                timeLeft = workSecs;
-                playSound('work');
-            }
-
-            updateUI();
-            timerInterval = setInterval(tick, 1000);
-        }
-
-        btn.addEventListener('click', () => {
-            if (state === 'IDLE' || state === 'FINISHED') {
-                start();
-            } else {
-                stop();
-            }
+            });
         });
-
     </script>
-</body>
+  </body>
 </html>
