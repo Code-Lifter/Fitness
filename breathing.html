@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Wim Master Flow</title>
+    <title>Adaptive Breathwork v2</title>
     <style>
         :root {
             --c-inhale: #4ECDC4;
             --c-hold: #F7B731;
             --c-exhale: #FF6B6B;
             --c-wait: #2C3E50;
+            --c-test: #a29bfe; 
             --bg: #111;
             --panel: #222;
             --text: #fff;
             --btn-bg: #E1B12C;
-            --btn-text: #fff;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -45,12 +45,12 @@
         }
 
         .mode-btn {
-            padding: 8px 20px;
+            padding: 8px 16px;
             border-radius: 25px;
             border: none;
             background: transparent;
             color: #888;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
             transition: 0.3s;
@@ -145,16 +145,8 @@
             box-shadow: 0 10px 40px rgba(225, 177, 44, 0.3);
         }
 
-        #action-btn.active {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        #action-btn.secondary {
-            background-color: var(--c-inhale);
-            box-shadow: 0 10px 40px rgba(78, 205, 196, 0.3);
-        }
+        #action-btn.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        #action-btn.secondary { background-color: var(--c-inhale); box-shadow: 0 10px 40px rgba(78, 205, 196, 0.3); }
 
         /* --- SETTINGS PANEL --- */
         .controls {
@@ -170,12 +162,20 @@
         }
         .controls.hidden { opacity: 0; transform: translateY(50px); pointer-events: none; }
 
-        #controls-standard, #controls-power { display: none; }
+        #controls-standard, #controls-power, #controls-test { display: none; }
+        
+        /* Visibility Toggles */
         .show-std #controls-standard { display: block; }
         .show-pwr #controls-power { display: block; }
+        .show-test #controls-test { display: block; }
 
         .presets { display: flex; gap: 8px; margin-bottom: 20px; }
         .chip { flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: none; color: #aaa; border-radius: 12px; font-size: 0.8rem; cursor: pointer; }
+        
+        /* New Adaptive Buttons */
+        .chip.awake { background: linear-gradient(135deg, #fdcb6e, #e17055); color: white; font-weight: bold; border: 1px solid #e17055; }
+        .chip.sleep { background: linear-gradient(135deg, #74b9ff, #0984e3); color: white; font-weight: bold; border: 1px solid #0984e3; }
+
         .input-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
         .input-col { display: flex; flex-direction: column; align-items: center; }
         .input-col label { font-size: 0.6rem; opacity: 0.5; margin-bottom: 4px; }
@@ -205,6 +205,7 @@
     <div class="mode-switch">
         <button class="mode-btn active" id="btn-std" onclick="switchMode('standard')">RHYTHM</button>
         <button class="mode-btn" id="btn-pwr" onclick="switchMode('power')">WIM HOF</button>
+        <button class="mode-btn" id="btn-test" onclick="switchMode('test')">CO2 TEST</button>
     </div>
 
     <div id="exit-btn" onclick="stopAll()">EXIT</div>
@@ -226,8 +227,8 @@
         <div id="controls-standard">
             <div class="presets">
                 <button class="chip" onclick="fillStd(4,4,4,4)">Box</button>
-                <button class="chip" onclick="fillStd(4,7,8,0)">Relax</button>
-                <button class="chip" onclick="fillStd(5,0,5,0)">Cohere</button>
+                <button class="chip awake" onclick="applyAdaptive('awake')">⚡ AWAKE</button>
+                <button class="chip sleep" onclick="applyAdaptive('sleep')">🌙 SLEEP</button>
             </div>
             <div class="input-grid">
                 <div class="input-col"><label>IN</label><input type="number" id="t-in" value="4"></div>
@@ -245,6 +246,16 @@
             </div>
             <button class="panel-btn" style="background-color: var(--c-hold); color: white;" onclick="initPower()">START SESSION</button>
         </div>
+
+        <div id="controls-test">
+            <div style="text-align:center; color:#888; font-size:0.9rem; margin-bottom:20px; line-height: 1.5;">
+                <strong>CO2 Tolerance Test</strong><br>
+                Take 3 deep breaths, then exhale slowly.<br>
+                Start timer when you begin the slow exhale.<br>
+                Stop when you need to swallow or breathe.
+            </div>
+            <button class="panel-btn" style="background-color: var(--c-test); color: white;" onclick="initTest()">START TEST</button>
+        </div>
     </div>
 
 <script>
@@ -257,6 +268,9 @@
         let currentMode = 'standard';
         let powerRound = 0;
         const totalPowerRounds = 3;
+        
+        // --- ADAPTIVE DATA ---
+        let co2Score = 0; // Store user score here
 
         // --- DOM ELEMENTS ---
         const body = document.body;
@@ -273,9 +287,7 @@
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
         }
 
         function playTone(type) {
@@ -317,11 +329,10 @@
             }
         }
 
-        // --- HELPER: ROBUST BUTTON SETTER ---
         function setBtn(text, onClickFunc, isSecondary = false) {
             actionBtn.innerText = text;
             actionBtn.onclick = (e) => {
-                e.preventDefault(); // Stop double-firing
+                e.preventDefault(); 
                 e.stopPropagation();
                 onClickFunc();
             };
@@ -342,7 +353,13 @@
             currentMode = mode;
             document.getElementById('btn-std').classList.toggle('active', mode === 'standard');
             document.getElementById('btn-pwr').classList.toggle('active', mode === 'power');
-            body.className = mode === 'standard' ? 'show-std' : 'show-pwr';
+            document.getElementById('btn-test').classList.toggle('active', mode === 'test');
+            
+            body.className = '';
+            if(mode === 'standard') body.classList.add('show-std');
+            if(mode === 'power') body.classList.add('show-pwr');
+            if(mode === 'test') body.classList.add('show-test');
+            
             resetVisuals();
         }
 
@@ -351,8 +368,14 @@
             lung.style.backgroundColor = 'var(--c-wait)';
             lung.style.transform = 'scale(1)';
             hideBtn();
-            mainLbl.innerText = "READY";
-            subLbl.innerText = "";
+            
+            if (currentMode === 'standard' && co2Score > 0) {
+                 mainLbl.innerText = "READY";
+                 subLbl.innerText = "Score: " + co2Score + "s";
+            } else {
+                 mainLbl.innerText = "READY";
+                 subLbl.innerText = "";
+            }
             roundInd.innerText = "";
         }
 
@@ -368,13 +391,60 @@
             }
         }
 
-        // --- STANDARD MODE ---
+        // --- STANDARD MODE (AND ADAPTIVE LOGIC) ---
 
         function fillStd(i, h1, o, h2) {
             document.getElementById('t-in').value = i;
             document.getElementById('t-h1').value = h1;
             document.getElementById('t-out').value = o;
             document.getElementById('t-h2').value = h2;
+        }
+
+        // === THE BRAIN: ADAPTIVE ALGORITHM ===
+        function applyAdaptive(goal) {
+            if (co2Score === 0) {
+                alert("Please run the CO2 TEST first to get your score!");
+                return;
+            }
+
+            // === AWAKE LOGIC (Up-Regulate) ===
+            if (goal === 'awake') {
+                if (co2Score < 20) {
+                    // Low Tolerance: Just breathe faster, no holds (Safety)
+                    // 3s In / 3s Out
+                    fillStd(3, 0, 3, 0);
+                    subLbl.innerText = "Awake L1";
+                } else if (co2Score >= 20 && co2Score < 45) {
+                    // Normal: Power Breath
+                    // 5s In / 0 Hold / 2s Out (Fast exhale dumps CO2)
+                    fillStd(5, 0, 2, 0);
+                    subLbl.innerText = "Awake L2";
+                } else {
+                    // Elite: Super Ventilation
+                    // 6s In / 4s Hold / 2s Out (Intense)
+                    fillStd(6, 4, 2, 0);
+                    subLbl.innerText = "Awake L3";
+                }
+            } 
+            
+            // === SLEEP LOGIC (Down-Regulate) ===
+            else if (goal === 'sleep') {
+                if (co2Score < 20) {
+                    // Low Tolerance: Gentle exhale extension
+                    // 4s In / 6s Out
+                    fillStd(4, 0, 6, 0);
+                    subLbl.innerText = "Sleep L1";
+                } else if (co2Score >= 20 && co2Score < 45) {
+                    // Normal: Classic Relax (4-7-8)
+                    fillStd(4, 7, 8, 0);
+                    subLbl.innerText = "Sleep L2";
+                } else {
+                    // Elite: Deep Slow Breath (Apnea training)
+                    // 5s In / 10s Out / 5s Wait
+                    fillStd(5, 0, 10, 5);
+                    subLbl.innerText = "Sleep L3";
+                }
+            }
         }
 
         async function startStandard() {
@@ -421,8 +491,77 @@
             nextPhase();
         }
 
-        // --- POWER MODE (WIM HOF) ---
+        // --- CO2 TEST MODE ---
+        
+        async function initTest() {
+            await initAudio();
+            keepAwake();
+            isRunning = true;
+            controls.classList.add('hidden');
+            body.classList.add('running');
+            
+            // Step 1: Prep
+            mainLbl.innerText = "PREPARE";
+            subLbl.innerText = "3 Deep Breaths";
+            lung.style.backgroundColor = "var(--c-wait)";
+            
+            let pulses = 0;
+            lung.style.transition = "transform 2s ease-in-out";
+            
+            function pulsePrep() {
+                if(pulses >= 3) {
+                    readyForExhale();
+                    return;
+                }
+                pulses++;
+                lung.style.transform = "scale(1.8)";
+                playTone('inhale');
+                setTimeout(() => {
+                   lung.style.transform = "scale(1)";
+                   setTimeout(pulsePrep, 2000);
+                }, 2000);
+            }
+            pulsePrep();
+        }
+        
+        function readyForExhale() {
+             mainLbl.innerText = "READY?";
+             subLbl.innerText = "Exhale & Tap";
+             setBtn("START EXHALE", startTestTimer, true);
+        }
+        
+        function startTestTimer() {
+            playTone('click');
+            mainLbl.innerText = "EXHALING...";
+            lung.style.transition = "transform 60s linear";
+            lung.style.transform = "scale(0.5)";
+            lung.style.backgroundColor = "var(--c-test)";
+            
+            let startTime = Date.now();
+            mainInterval = setInterval(() => {
+                let elapsed = Math.floor((Date.now() - startTime) / 1000);
+                subLbl.innerText = elapsed;
+            }, 100);
+            setBtn("STOP (I NEED AIR)", () => endTest(startTime));
+        }
+        
+        function endTest(startTime) {
+            let elapsed = Math.floor((Date.now() - startTime) / 1000);
+            clearInterval(mainInterval);
+            co2Score = elapsed;
+            playTone('bell');
+            mainLbl.innerText = "SCORE";
+            subLbl.innerText = co2Score + "s";
+            lung.style.transition = "transform 0.5s ease";
+            lung.style.transform = "scale(1)";
+            
+            setBtn("FINISH", () => {
+                stopAll(); 
+                switchMode('standard'); 
+            });
+        }
 
+        // --- POWER MODE (Legacy) ---
         async function initPower() {
             await initAudio();
             powerRound = 0;
@@ -432,42 +571,24 @@
             body.classList.add('running');
             startPowerRound();
         }
-
         function startPowerRound() {
             clearInterval(mainInterval);
             clearTimeout(transitionTimeout);
-            
             powerRound++;
-            
-            // BUTTON: SKIP
-            setBtn("SKIP TO HOLD", () => {
-                clearInterval(mainInterval);
-                prepareRetention();
-            });
-            
+            setBtn("SKIP TO HOLD", () => { clearInterval(mainInterval); prepareRetention(); });
             roundInd.innerText = `ROUND ${powerRound} / ${totalPowerRounds}`;
             let breathCount = 0;
             const maxBreaths = 30; 
             const breathSpeed = 2600;
-
             function powerBreath() {
                 breathCount++;
-                if (breathCount > maxBreaths) {
-                    clearInterval(mainInterval);
-                    prepareRetention();
-                    return;
-                }
-                
+                if (breathCount > maxBreaths) { clearInterval(mainInterval); prepareRetention(); return; }
                 mainLbl.innerText = "BREATHE";
                 subLbl.innerText = breathCount;
-                
-                // Inhale
                 lung.style.transition = "transform 1.1s cubic-bezier(0.2, 0.5, 0.4, 1)";
                 lung.style.transform = "scale(2.2)";
                 lung.style.backgroundColor = "var(--c-inhale)";
                 playTone('inhale');
-
-                // Exhale
                 setTimeout(() => {
                     if(!isRunning) return;
                     lung.style.transition = "transform 1.3s ease-out";
@@ -475,41 +596,26 @@
                     lung.style.backgroundColor = "var(--c-exhale)";
                 }, 1200);
             }
-
             powerBreath();
             mainInterval = setInterval(powerBreath, breathSpeed);
         }
-
         function prepareRetention() {
             clearInterval(mainInterval);
             clearTimeout(transitionTimeout);
-
-            // BUTTON: I INHALED
-            // We set it immediately so it never disappears or freezes
             setBtn("I INHALED", startRecovery);
-
             mainLbl.innerText = "LET IT GO";
             subLbl.innerText = "HOLD";
             playTone('bell');
-            
             lung.style.transition = "transform 2s ease";
             lung.style.transform = "scale(0.8)";
             lung.style.backgroundColor = "#444";
-            
-            // Auto-start retention timer after 2s
-            transitionTimeout = setTimeout(() => {
-                if(isRunning) startRetention();
-            }, 2000);
+            transitionTimeout = setTimeout(() => { if(isRunning) startRetention(); }, 2000);
         }
-
         function startRetention() {
-            // Re-bind button just to be safe (fixes the "Does nothing" bug)
             setBtn("I INHALED", startRecovery);
-
             mainLbl.innerText = "RETENTION";
             let seconds = 0;
             subLbl.innerText = "00:00";
-            
             clearInterval(mainInterval);
             mainInterval = setInterval(() => {
                 seconds++;
@@ -518,56 +624,35 @@
                 subLbl.innerText = `${m}:${s}`;
             }, 1000);
         }
-
         function startRecovery() {
             clearInterval(mainInterval);
-            clearTimeout(transitionTimeout); // Kill pending retention start
+            clearTimeout(transitionTimeout);
             playTone('click');
-            
-            // BUTTON: NEXT ROUND
             setBtn("START NEXT ROUND", finishRecovery, true);
-            
             mainLbl.innerText = "RECOVERY HOLD";
             lung.style.transition = "transform 0.8s ease-out";
             lung.style.transform = "scale(2.5)";
             lung.style.backgroundColor = "var(--c-hold)";
-            
             let recTime = 15;
             subLbl.innerText = recTime;
-
             mainInterval = setInterval(() => {
-                if (recTime > 0) {
-                    recTime--;
-                    subLbl.innerText = recTime;
-                } else {
-                    clearInterval(mainInterval);
-                    playTone('bell');
-                    subLbl.innerText = "READY";
-                    // Waits for user to click "Start Next Round"
-                }
+                if (recTime > 0) { recTime--; subLbl.innerText = recTime; } 
+                else { clearInterval(mainInterval); playTone('bell'); subLbl.innerText = "READY"; }
             }, 1000);
         }
-
         function finishRecovery() {
             playTone('click');
-            if (powerRound < totalPowerRounds) {
-                startPowerRound();
-            } else {
-                finishSession();
-            }
+            if (powerRound < totalPowerRounds) startPowerRound();
+            else finishSession();
         }
-
         function finishSession() {
             clearInterval(mainInterval);
             clearTimeout(transitionTimeout);
             resetVisuals();
             mainLbl.innerText = "COMPLETE";
             subLbl.innerText = "WELL DONE";
-            
             setBtn("EXIT", stopAll);
         }
-    </script>
-
     </script>
 </body>
 </html>
