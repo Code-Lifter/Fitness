@@ -27,6 +27,9 @@
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px;
         }
+
+        /* Marker Animation */
+        .marker-transition { transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body class="min-h-screen pb-20 selection:bg-amber-500 selection:text-slate-900">
@@ -168,6 +171,7 @@
         // --- CONFIG ---
         let unit = 'cm';
         let massMultiplier = 1.0; // 100%
+        let currentMode = 'classic';
         let currentStats = { shoulders: 0, chest: 0, arm: 0, forearm: 0, waist: 0, thigh: 0, calf: 0, neck: 0 };
         
         const parts = [
@@ -191,13 +195,64 @@
         const sliderValDisplay = document.getElementById('slider-val');
 
         function init() {
-            renderCurrentStatsInputs();
+            loadState(); // LOAD SAVED DATA FIRST
+            renderCurrentStatsInputs(); // Render inputs (populates with loaded data if any)
+            updateUIForUnit(); // Fix button colors
             calculateClassic();
             calculateModern();
+            // Restore proper tab
+            switchMode(currentMode, false); 
+        }
+
+        // --- PERSISTENCE (LOCAL STORAGE) ---
+        function saveState() {
+            const state = {
+                unit: unit,
+                massMultiplier: massMultiplier,
+                currentMode: currentMode,
+                currentStats: currentStats,
+                wrist: document.getElementById('input-wrist').value,
+                ankle: document.getElementById('input-ankle').value,
+                height: document.getElementById('input-height').value,
+                weight: document.getElementById('input-weight').value
+            };
+            localStorage.setItem('physiqueArchitectData', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('physiqueArchitectData');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    
+                    // Restore Variables
+                    if(data.unit) unit = data.unit;
+                    if(data.massMultiplier) massMultiplier = parseFloat(data.massMultiplier);
+                    if(data.currentMode) currentMode = data.currentMode;
+                    if(data.currentStats) currentStats = data.currentStats;
+
+                    // Restore Inputs
+                    if(data.wrist) document.getElementById('input-wrist').value = data.wrist;
+                    if(data.ankle) document.getElementById('input-ankle').value = data.ankle;
+                    if(data.height) document.getElementById('input-height').value = data.height;
+                    if(data.weight) document.getElementById('input-weight').value = data.weight;
+
+                    // Restore Slider Visual
+                    const slider = document.getElementById('mass-slider');
+                    if (slider && data.massMultiplier) {
+                        slider.value = Math.round(data.massMultiplier * 100);
+                        sliderValDisplay.innerText = `${slider.value}%`;
+                    }
+
+                } catch (e) {
+                    console.error("Failed to load saved data", e);
+                }
+            }
         }
 
         // --- SWITCHER ---
-        function switchMode(mode) {
+        function switchMode(mode, save = true) {
+            currentMode = mode;
             if (mode === 'classic') {
                 tabClassic.classList.replace('text-slate-400', 'text-white');
                 tabClassic.classList.replace('border-transparent', 'border-slate-600');
@@ -221,6 +276,7 @@
                 panelModern.classList.remove('hidden-panel');
                 panelClassic.classList.add('hidden-panel');
             }
+            if(save) saveState();
         }
 
         // --- SLIDER LOGIC ---
@@ -228,6 +284,12 @@
             massMultiplier = val / 100;
             sliderValDisplay.innerText = `${val}%`;
             calculateClassic();
+            saveState();
+        }
+
+        // --- ROUNDING HELPER ---
+        function toNearestHalf(num) {
+            return (Math.round(num * 2) / 2).toFixed(1);
         }
 
         // --- CLASSIC LOGIC (SCALABLE) ---
@@ -235,6 +297,9 @@
             const wrist = parseFloat(document.getElementById('input-wrist').value) || 0;
             const ankle = parseFloat(document.getElementById('input-ankle').value) || 0;
             
+            // Auto-save on calculation (covers all input changes)
+            saveState();
+
             if(wrist === 0) return;
 
             // 1. Calculate Standard Ideals (100%)
@@ -271,18 +336,22 @@
                 let max = target * 1.025;
                 let current = currentStats[part.key];
 
-                renderRangeCard(container, part.label, current, target, min, max, part.sub);
+                renderRangeCard(container, part.label, current, target, part.sub);
 
                 // Report Logic
                 if (current > 0) {
+                    let currFmt = toNearestHalf(current);
+                    let targetFmt = toNearestHalf(target);
+
                     if (current < min) {
                         let diff = min - current;
-                        deficits.push({ label: part.label, diff: diff, unit: unit });
-                        reportLines.push(`[ ] ${part.label}: ${current}${unit} (Perfect: ${target.toFixed(1)} | Range: ${min.toFixed(1)}-${max.toFixed(1)}) -> Needs +${diff.toFixed(1)}${unit}`);
+                        let diffFmt = toNearestHalf(diff);
+                        deficits.push({ label: part.label, diff: diff, unit: unit, diffFmt: diffFmt });
+                        reportLines.push(`[ ] ${part.label}: ${currFmt}${unit} (Perfect: ${targetFmt}) -> Needs +${diffFmt}${unit}`);
                     } else if (current > max) {
-                        reportLines.push(`[!] ${part.label}: ${current}${unit} (Perfect: ${target.toFixed(1)} | Range: ${min.toFixed(1)}-${max.toFixed(1)}) -> Exceeds Ratio`);
+                        reportLines.push(`[!] ${part.label}: ${currFmt}${unit} (Perfect: ${targetFmt}) -> Exceeds Ratio`);
                     } else {
-                        reportLines.push(`[x] ${part.label}: ${current}${unit} -> Perfect Match`);
+                        reportLines.push(`[x] ${part.label}: ${currFmt}${unit} -> Perfect Match`);
                     }
                 }
             });
@@ -295,7 +364,7 @@
                 
                 prioritySection = "🚨 TOP 3 PRIORITIES:\n";
                 top3.forEach((d, i) => {
-                    prioritySection += `${i+1}. ${d.label} (Grow +${d.diff.toFixed(1)}${d.unit})\n`;
+                    prioritySection += `${i+1}. ${d.label} (Grow +${d.diffFmt}${d.unit})\n`;
                 });
                 prioritySection += "-----------------------------------\n";
             }
@@ -305,50 +374,86 @@
             reportOutput.value = `PHYSIQUE REPORT (Scale: ${scaleText})\n-----------------------------------\n${prioritySection}${reportLines.length > 0 ? reportLines.join('\n') : 'Enter measurements to generate report.'}`;
         }
 
-        function renderRangeCard(container, partName, current, target, min, max, subtitle) {
-            let statusHTML = `<span class="text-slate-600 text-[10px]">--</span>`;
-            let barColor = 'bg-slate-700';
-            let width = 0;
-            let mid = (min + max) / 2;
+        function renderRangeCard(container, partName, current, target, subtitle) {
+            // Logic for Status and Color
+            // View range: 0.8 to 1.2 of Target
+            
+            let statusText = "Pending";
+            let statusColor = "bg-slate-700 text-slate-400";
+            let markerPos = 0; // 0 to 100%
 
+            // Percentage of Target
+            const pctOfTarget = (current / target);
+            
+            // Map status
             if (current > 0) {
-                if (current >= min && current <= max) {
-                    statusHTML = `<span class="text-green-400 text-[10px] font-bold uppercase tracking-widest">In Range</span>`;
-                    barColor = 'bg-green-500';
-                    width = 100; 
-                } else if (current < min) {
-                    let diff = min - current;
-                    statusHTML = `<span class="text-slate-400 text-[10px]">Grow <span class="text-white font-bold">+${diff.toFixed(1)}</span></span>`;
-                    barColor = 'bg-amber-500';
-                    width = (current / mid) * 100;
+                if (pctOfTarget < 0.925) {
+                    statusText = "Lagging";
+                    statusColor = "bg-red-500/10 text-red-400 border border-red-500/20";
+                } else if (pctOfTarget < 0.975) {
+                    statusText = "Close";
+                    statusColor = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                } else if (pctOfTarget <= 1.025) {
+                    statusText = "Perfect";
+                    statusColor = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                } else if (pctOfTarget <= 1.075) {
+                    statusText = "Strong";
+                    statusColor = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
                 } else {
-                    statusHTML = `<span class="text-amber-300 text-[10px] font-bold uppercase">Over Limit</span>`;
-                    barColor = 'bg-amber-300';
-                    width = 100;
+                    statusText = "Excessive";
+                    statusColor = "bg-red-500/10 text-red-400 border border-red-500/20";
                 }
+
+                // Map marker position to bar 
+                // Bar View: 80% (0) to 120% (100)
+                // Formula: (pctOfTarget - 0.80) / 0.40 * 100
+                markerPos = ((pctOfTarget - 0.8) / 0.4) * 100;
+                
+                // Clamp
+                if (markerPos < 2) markerPos = 2;
+                if (markerPos > 98) markerPos = 98;
+            } else {
+                markerPos = 0; // Hide or reset
             }
 
             const html = `
-                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex items-center gap-4 hover:border-slate-600 transition-colors group">
-                    <div class="w-20 md:w-24 shrink-0">
-                        <div class="font-bold text-white text-sm truncate">${partName}</div>
-                        <div class="text-[9px] text-slate-500 uppercase tracking-wider group-hover:text-amber-500 transition-colors truncate">${subtitle}</div>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-end mb-1">
-                            <div class="text-xs font-bold text-slate-300">${current > 0 ? current.toFixed(1) : ''}</div>
-                            ${statusHTML}
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 hover:border-slate-600 transition-colors">
+                    
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <div class="font-bold text-white text-sm md:text-base">${partName}</div>
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider">${subtitle}</div>
                         </div>
-                        <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700 relative">
-                             <div class="absolute left-[95%] top-0 bottom-0 w-1 bg-white/10 z-0"></div>
-                            <div class="h-full ${barColor} transition-all duration-300" style="width: ${Math.min(width, 100)}%"></div>
+                        <div class="text-center">
+                             <div class="text-2xl md:text-3xl font-bold text-white leading-none mb-1">${current > 0 ? toNearestHalf(current) : '<span class="text-slate-600">-</span>'}</div>
+                             <div class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${statusColor}">${statusText}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-amber-500 font-bold text-lg md:text-xl leading-none brand-font">${toNearestHalf(target)}</div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mt-1">Target</div>
                         </div>
                     </div>
-                    <div class="w-24 md:w-28 text-right">
-                        <div class="text-amber-500 font-bold text-lg md:text-xl leading-none brand-font">${target.toFixed(1)}</div>
-                        <div class="text-[9px] text-slate-400 font-bold mt-0.5">${min.toFixed(1)} - ${max.toFixed(1)}</div>
-                        <div class="text-[9px] text-slate-600 uppercase font-bold">Ideal</div>
+
+                    <div class="relative h-5 md:h-6 mt-2 select-none">
+                        <div class="absolute inset-0 flex rounded-md overflow-hidden opacity-90">
+                            <div class="h-full bg-red-900/40 w-[31.25%] border-r border-slate-900/50"></div>
+                            <div class="h-full bg-amber-700/40 w-[12.5%] border-r border-slate-900/50"></div>
+                            <div class="h-full bg-emerald-500/40 w-[12.5%] border-r border-slate-900/50"></div>
+                            <div class="h-full bg-amber-700/40 w-[12.5%] border-r border-slate-900/50"></div>
+                            <div class="h-full bg-red-900/40 w-[31.25%]"></div>
+                        </div>
+                        
+                        <div class="absolute top-[-3px] bottom-[-3px] w-1 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] z-10 marker-transition rounded-full ${current > 0 ? '' : 'hidden'}" style="left: ${markerPos}%"></div>
                     </div>
+                    
+                    <div class="flex justify-between text-[8px] text-slate-500 mt-1.5 font-bold uppercase tracking-widest px-1 opacity-60">
+                        <span>Under</span>
+                        <span class="pl-4">Close</span>
+                        <span class="text-emerald-400">Perfect</span>
+                        <span class="pr-4">Over</span>
+                        <span>Limit</span>
+                    </div>
+
                 </div>
             `;
             container.innerHTML += html;
@@ -359,6 +464,9 @@
             let height = parseFloat(document.getElementById('input-height').value) || 0;
             let weight = parseFloat(document.getElementById('input-weight').value) || 0;
             
+            // Auto-save
+            saveState();
+
             if (height === 0) return;
 
             let heightCm = unit === 'cm' ? height : height * 2.54;
@@ -401,11 +509,14 @@
 
         // --- UTILS ---
         function renderCurrentStatsInputs() {
+            // Updated to populate values from currentStats object (which might be loaded from storage)
             currentStatsPanel.innerHTML = parts.map(p => {
+                let val = currentStats[p.key];
+                let displayVal = val > 0 ? val : ''; 
                 return `
                     <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 focus-within:border-amber-500/50 transition-colors">
                         <label class="text-[9px] text-slate-400 uppercase font-bold block mb-1 text-center truncate">${p.label}</label>
-                        <input type="number" placeholder="-" oninput="updateCurrent('${p.key}', this.value)" 
+                        <input type="number" placeholder="-" value="${displayVal}" oninput="updateCurrent('${p.key}', this.value)" 
                             class="w-full bg-slate-900 text-white text-center text-sm font-bold p-2 rounded border border-slate-700 focus:border-amber-500 outline-none transition-colors">
                     </div>
                 `;
@@ -415,6 +526,7 @@
         function updateCurrent(key, val) {
             currentStats[key] = parseFloat(val) || 0;
             calculateClassic();
+            saveState(); // Save changes
         }
 
         function toggleCurrentStats() {
@@ -428,17 +540,8 @@
             alert("Report copied!");
         }
 
-        function setUnit(newUnit) {
-            if (unit === newUnit) return;
-            const factor = newUnit === 'in' ? 0.393701 : 2.54;
-            
-            const w = document.getElementById('input-wrist');
-            const a = document.getElementById('input-ankle');
-            if(w.value) w.value = (w.value * factor).toFixed(1);
-            if(a.value) a.value = (a.value * factor).toFixed(1);
-            
-            unit = newUnit;
-            if (unit === 'in') {
+        function updateUIForUnit() {
+             if (unit === 'in') {
                 document.querySelectorAll('.unit-dist').forEach(e => e.innerText = 'in');
                 document.querySelectorAll('.unit-mass').forEach(e => e.innerText = 'lbs');
                 document.getElementById('btn-in').className = "px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95";
@@ -449,6 +552,19 @@
                 document.getElementById('btn-cm').className = "px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95";
                 document.getElementById('btn-in').className = "px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95";
             }
+        }
+
+        function setUnit(newUnit) {
+            if (unit === newUnit) return;
+            const factor = newUnit === 'in' ? 0.393701 : 2.54;
+            
+            const w = document.getElementById('input-wrist');
+            const a = document.getElementById('input-ankle');
+            if(w.value) w.value = (w.value * factor).toFixed(1);
+            if(a.value) a.value = (a.value * factor).toFixed(1);
+            
+            unit = newUnit;
+            updateUIForUnit();
             
             const inputs = currentStatsPanel.querySelectorAll('input');
             inputs.forEach((inp, i) => {
@@ -462,6 +578,7 @@
 
             calculateClassic();
             calculateModern();
+            saveState();
         }
 
         init();
