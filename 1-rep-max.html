@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PowerCalc: Safety Edition v8</title>
+    <title>PowerCalc: Safety Edition v11</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -51,24 +51,24 @@
 
     <div class="max-w-3xl mx-auto px-6 mt-6 space-y-6">
 
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
             <h2 class="text-white text-xl uppercase tracking-wide brand-font mb-4 flex items-center gap-2">
                 <span class="text-amber-500">1.</span> Calculate Stats
             </h2>
             
             <div class="grid grid-cols-2 gap-4 mb-2">
                 <div>
-                    <label class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-2">Weight Lifted</label>
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Weight Lifted</label>
                     <div class="relative">
-                        <input type="number" id="input-weight" placeholder="100" oninput="calculate()" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-amber-500 outline-none font-bold text-2xl text-center placeholder-slate-800 transition-all">
+                        <input type="number" id="input-weight" placeholder="100" oninput="calculate()" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-amber-500 outline-none font-bold text-2xl text-center placeholder-slate-800 transition-all focus:ring-1 focus:ring-amber-500/50">
                         <span id="label-unit" class="absolute right-3 top-5 text-slate-600 text-[10px] font-bold">KG</span>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-2">Reps Performed</label>
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Reps Performed</label>
                     <div class="relative">
-                        <input type="number" id="input-reps" placeholder="5" oninput="calculate()" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-amber-500 outline-none font-bold text-2xl text-center placeholder-slate-800 transition-all">
+                        <input type="number" id="input-reps" placeholder="5" oninput="calculate()" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-amber-500 outline-none font-bold text-2xl text-center placeholder-slate-800 transition-all focus:ring-1 focus:ring-amber-500/50">
                         <span class="absolute right-3 top-5 text-slate-600 text-[10px] font-bold">REPS</span>
                     </div>
                 </div>
@@ -83,11 +83,11 @@
 
         <div id="result-panel" class="hidden fade-in space-y-6">
             
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 text-center relative overflow-hidden">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 text-center relative overflow-hidden shadow-xl">
                 <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Estimated 1 Rep Max</p>
                 <div class="flex justify-center items-baseline gap-2">
-                    <span id="val-1rm" class="text-6xl font-black text-white brand-font tracking-tight">--</span>
+                    <span id="val-1rm" class="text-7xl font-black text-white brand-font tracking-tight drop-shadow-lg">--</span>
                     <span id="val-unit" class="text-xl text-slate-500 font-bold">KG</span>
                 </div>
             </div>
@@ -95,8 +95,8 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
                 <div class="p-4 bg-slate-950 border-b border-slate-800">
                     <div class="flex flex-wrap gap-4 justify-between items-center mb-4">
-                        <h3 class="text-white font-bold brand-font text-lg flex items-center gap-2">
-                            🔥 Ramp-Up Strategy
+                        <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+                            <span class="text-amber-500">2.</span> Ramp-Up Strategy
                         </h3>
                         
                         <div class="relative">
@@ -116,7 +116,7 @@
                     <div class="grid grid-cols-2 gap-3 pb-2 border-b border-slate-800/50">
                         <div>
                             <label class="block text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-1">Bar Weight</label>
-                            <select id="bar-weight" onchange="calculate()" class="w-full bg-slate-900 text-slate-300 text-xs p-2 rounded border border-slate-700 outline-none focus:border-amber-500">
+                            <select id="bar-weight" onchange="calculate()" class="w-full bg-slate-900 text-slate-300 text-xs p-2 rounded border border-slate-700 outline-none focus:border-amber-500 transition-colors">
                                 <option value="0">Machine (0)</option>
                                 <option value="10">10 (EZ/Light)</option>
                                 <option value="15">15 (Women's)</option>
@@ -127,7 +127,7 @@
                         </div>
                         <div>
                             <label class="block text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-1">Smallest Plate/Inc</label>
-                            <select id="rounding-factor" onchange="calculate()" class="w-full bg-slate-900 text-slate-300 text-xs p-2 rounded border border-slate-700 outline-none focus:border-amber-500">
+                            <select id="rounding-factor" onchange="calculate()" class="w-full bg-slate-900 text-slate-300 text-xs p-2 rounded border border-slate-700 outline-none focus:border-amber-500 transition-colors">
                                 <option value="0.5">0.5</option>
                                 <option value="1">1.0</option>
                                 <option value="1.25" selected>1.25</option>
@@ -138,26 +138,26 @@
                     </div>
                 </div>
                 
-                <div class="p-4 space-y-3" id="warmup-container">
+                <div class="p-4 space-y-4" id="warmup-container">
                     </div>
             </div>
             
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
                 <div class="p-3 bg-slate-950 border-b border-slate-800">
-                     <h3 class="text-white text-sm font-bold brand-font">Percentage Reference</h3>
+                     <h3 class="text-white text-sm font-bold brand-font tracking-wide">Percentage Reference</h3>
                 </div>
 
                 <div class="p-0">
                     <table class="w-full text-sm text-left text-slate-400">
                         <thead class="text-xs text-slate-500 uppercase bg-slate-900/50">
                             <tr>
-                                <th class="px-2 py-2 w-10 text-center">Zone</th>
-                                <th class="px-4 py-2">%</th>
-                                <th class="px-4 py-2">Load</th>
-                                <th class="px-4 py-2 text-right">Reps</th>
+                                <th class="px-2 py-3 w-10 text-center">Zone</th>
+                                <th class="px-4 py-3">%</th>
+                                <th class="px-4 py-3">Load</th>
+                                <th class="px-4 py-3 text-right">Reps</th>
                             </tr>
                         </thead>
-                        <tbody id="percentage-table-body" class="divide-y divide-slate-800"></tbody>
+                        <tbody id="percentage-table-body" class="divide-y divide-slate-800/50"></tbody>
                     </table>
                 </div>
             </div>
@@ -172,8 +172,8 @@
                 <span id="timer-display" class="text-3xl font-black text-white brand-font font-mono">00:00</span>
             </div>
             <div class="flex gap-2">
-                <button onclick="addTime(30)" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3 py-2 rounded border border-slate-700 font-bold">+30s</button>
-                <button onclick="stopTimer()" class="bg-slate-800 hover:bg-red-900/50 hover:text-red-400 text-slate-400 text-xs px-4 py-2 rounded border border-slate-700 font-bold uppercase">Stop</button>
+                <button onclick="addTime(30)" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3 py-2 rounded border border-slate-700 font-bold transition-colors">+30s</button>
+                <button onclick="stopTimer()" class="bg-slate-800 hover:bg-red-900/30 hover:border-red-500/50 hover:text-red-400 text-slate-400 text-xs px-4 py-2 rounded border border-slate-700 font-bold uppercase transition-all">Stop</button>
             </div>
         </div>
         <div class="absolute top-0 left-0 h-1 bg-amber-500 transition-all duration-1000 ease-linear" id="timer-progress" style="width: 100%"></div>
@@ -220,11 +220,11 @@
             document.getElementById('val-unit').innerText = u.toUpperCase();
             
             if (u === 'kg') {
-                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow";
-                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
+                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow font-bold";
+                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white font-medium";
             } else {
-                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow";
-                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
+                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow font-bold";
+                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white font-medium";
             }
             calculate();
         }
@@ -253,13 +253,8 @@
             resultPanel.classList.remove('hidden');
             document.getElementById('val-1rm').innerText = oneRM;
 
-            // Render Tables
-            // IMPORTANT: For the reference table, we ignore the user's plate choice (rounding)
-            // and use a standard high-precision value (0.5 for kg, 1.0 for lbs)
             const standardRounding = unit === 'kg' ? 0.5 : 1.0;
             renderTable(oneRM, standardRounding);
-            
-            // Render Ramp-Up (uses User's specific plate choice)
             renderWarmup(oneRM, targetReps, rounding);
         }
 
@@ -275,8 +270,8 @@
             let targetLoad = oneRM / (1 + targetReps / 30);
             
             const steps = [
-                { title: "Activation", pct: 0.20, reps: "15", restSec: 0, notes: "Light / Flow" },
-                { title: "Patterning", pct: 0.50, reps: "5", restSec: 60, notes: "Fast" },
+                { title: "Activation", pct: 0.20, reps: "15", restSec: 0, notes: "Light Flow" },
+                { title: "Patterning", pct: 0.50, reps: "5", restSec: 60, notes: "Fast Speed" },
                 { title: "Acclimation", pct: 0.70, reps: "3", restSec: 120, notes: "Build Up" },
                 { title: "Primer", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: 180, notes: "Heavy Feel" },
                 { title: `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: 240, notes: "TARGET SET" }
@@ -311,46 +306,60 @@
                 let borderClass = "border-slate-800";
                 let bgClass = "bg-slate-900";
                 let textClass = "text-white";
-                let btnColor = "text-slate-400 bg-slate-800 hover:text-white";
+                let btnColor = "text-slate-400 bg-slate-950/50 border-slate-700 hover:text-white hover:border-slate-500";
+                let numColor = "text-white";
+                let badgeColor = "text-slate-400 border-slate-700 bg-slate-950";
                 
                 if (step.pct === 1.0) {
-                    borderClass = "border-emerald-500/50";
-                    bgClass = "bg-emerald-500/10";
-                    textClass = "text-emerald-500 font-bold";
-                    btnColor = "text-emerald-400 bg-emerald-900/30 hover:bg-emerald-900/50";
+                    borderClass = "border-amber-500/50";
+                    bgClass = "bg-amber-500/5";
+                    textClass = "text-amber-500 font-bold";
+                    numColor = "text-amber-500";
+                    btnColor = "text-amber-400 bg-amber-900/20 border-amber-500/30 hover:bg-amber-900/40";
+                    badgeColor = "text-amber-400 border-amber-500/30 bg-amber-900/20";
                 } else if (step.pct === 0.90) {
-                     textClass = "text-amber-500";
+                     textClass = "text-amber-200";
+                     borderClass = "border-slate-700";
                 }
 
                 let restLabel = step.restSec === 0 ? "None" : (step.restSec >= 60 ? `${step.restSec/60}m` : `${step.restSec}s`);
+                
                 let timerBtn = step.restSec > 0 ? 
-                    `<button onclick="startTimer(${step.restSec})" class="mt-2 w-full text-[10px] uppercase font-bold py-1.5 rounded flex items-center justify-center gap-1 transition ${btnColor}">
-                        <span>⏱️</span> Rest: ${restLabel}
+                    `<button onclick="startTimer(${step.restSec})" class="w-full text-[10px] uppercase font-bold py-2 rounded-lg border flex items-center justify-center gap-2 transition-all ${btnColor}">
+                        <span>⏱️</span> Rest ${restLabel}
                     </button>` : 
-                    `<div class="mt-2 text-[10px] text-slate-600 uppercase font-bold text-center py-1.5">No Rest Needed</div>`;
+                    ``;
 
                 const div = document.createElement('div');
-                div.className = `p-3 rounded-xl border ${borderClass} ${bgClass}`;
+                div.className = `group relative overflow-hidden rounded-xl border ${borderClass} ${bgClass} p-5 transition-all hover:border-slate-600 hover:shadow-lg`;
                 
                 div.innerHTML = `
-                    <div class="flex justify-between items-start mb-1">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-slate-800 text-slate-400 w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-bold">${index + 1}</div>
+                    <div class="grid grid-cols-[1fr_auto] gap-4">
+                        <div class="flex flex-col justify-between gap-3">
                             <div>
-                                <div class="text-sm font-semibold ${textClass}">${step.title}</div>
-                                <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${step.notes}</div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="bg-slate-800 text-slate-500 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold border border-slate-700">${index + 1}</div>
+                                    <span class="font-bold ${textClass} text-sm uppercase tracking-wide">${step.title}</span>
+                                </div>
+                                <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 pl-7 leading-tight">${step.notes}</div>
+                            </div>
+                            
+                            <div class="pl-7 mt-1 max-w-[120px]">
+                                ${timerBtn}
                             </div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-xl font-bold text-white brand-font">${finalLoad} <span class="text-xs text-slate-500">${unit}</span></div>
-                            <div class="text-[10px] text-slate-400">${step.reps} reps</div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
-                        <div class="text-[10px] text-slate-400 font-mono font-bold">${plateText}</div>
-                        <div class="w-24">
-                            ${timerBtn}
+
+                        <div class="flex flex-col items-end justify-center gap-1">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-5xl font-black ${numColor} brand-font tracking-tight leading-none">${finalLoad}</span>
+                                <span class="text-sm font-bold text-slate-600">${unit}</span>
+                            </div>
+                            
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">${step.reps} reps</div>
+                            
+                            <div class="border rounded px-3 py-1.5 text-[10px] font-mono font-bold whitespace-nowrap shadow-sm ${badgeColor}">
+                                ${plateText}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -363,14 +372,14 @@
             tbody.innerHTML = '';
             
             const data = [
-                { pct: 100, reps: '1', zone: 'POWER', span: 4, color: 'text-amber-500', border: 'border-l-4 border-amber-500' }, 
+                { pct: 100, reps: '1', zone: 'POWER', span: 4, color: 'text-amber-500', border: 'border-l-2 border-amber-500' }, 
                 { pct: 95, reps: '2' }, 
                 { pct: 90, reps: '3-4' },
                 { pct: 85, reps: '5-6' }, 
-                { pct: 80, reps: '7-8', zone: 'GROWTH', span: 3, color: 'text-blue-400', border: 'border-l-4 border-blue-500' }, 
+                { pct: 80, reps: '7-8', zone: 'HYPERTROPHY', span: 3, color: 'text-blue-400', border: 'border-l-2 border-blue-500' }, 
                 { pct: 75, reps: '9-10' },
                 { pct: 70, reps: '11-12' }, 
-                { pct: 65, reps: '13-15', zone: 'ENDURE', span: 2, color: 'text-emerald-400', border: 'border-l-4 border-emerald-500' }, 
+                { pct: 65, reps: '13-15', zone: 'ENDURANCE', span: 2, color: 'text-emerald-400', border: 'border-l-2 border-emerald-500' }, 
                 { pct: 60, reps: '16-20' }
             ];
 
@@ -384,16 +393,16 @@
                 
                 let zoneHtml = '';
                 if (row.zone) {
-                    zoneHtml = `<td rowspan="${row.span}" class="p-0 text-center align-middle bg-slate-900/50 ${row.border}">
-                        <div class="vertical-text text-[10px] font-bold tracking-widest uppercase ${row.color}">${row.zone}</div>
+                    zoneHtml = `<td rowspan="${row.span}" class="p-0 text-center align-middle bg-slate-900/30 ${row.border}">
+                        <div class="vertical-text text-[9px] font-bold tracking-widest uppercase ${row.color} opacity-80">${row.zone}</div>
                     </td>`;
                 }
 
                 tr.innerHTML = `
                     ${zoneHtml}
-                    <td class="px-4 py-3 font-bold ${colorClass}">${row.pct}%</td>
-                    <td class="px-4 py-3 font-mono text-white text-lg">${load}</td>
-                    <td class="px-4 py-3 text-right text-xs uppercase tracking-wide text-slate-500">${row.reps}</td>
+                    <td class="px-4 py-2 font-bold ${colorClass} text-xs">${row.pct}%</td>
+                    <td class="px-4 py-2 font-mono text-white text-sm">${load}</td>
+                    <td class="px-4 py-2 text-right text-[10px] uppercase tracking-wide text-slate-500 font-bold">${row.reps}</td>
                 `;
                 tbody.appendChild(tr);
             });
