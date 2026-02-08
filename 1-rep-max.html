@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PowerCalc: Safety Edition v11</title>
+    <title>PowerCalc: Safety Edition v14</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -325,41 +325,55 @@
                 let restLabel = step.restSec === 0 ? "None" : (step.restSec >= 60 ? `${step.restSec/60}m` : `${step.restSec}s`);
                 
                 let timerBtn = step.restSec > 0 ? 
-                    `<button onclick="startTimer(${step.restSec})" class="w-full text-[10px] uppercase font-bold py-2 rounded-lg border flex items-center justify-center gap-2 transition-all ${btnColor}">
-                        <span>⏱️</span> Rest ${restLabel}
+                    `<button onclick="startTimer(${step.restSec})" class="w-full text-[10px] uppercase font-bold py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 transition-all ${btnColor}">
+                        <span>⏱️</span> ${restLabel}
                     </button>` : 
-                    ``;
+                    `<div class="w-full text-[10px] uppercase font-bold text-slate-600 py-2.5 px-4 text-center border border-transparent">No Rest</div>`;
 
                 const div = document.createElement('div');
-                div.className = `group relative overflow-hidden rounded-xl border ${borderClass} ${bgClass} p-5 transition-all hover:border-slate-600 hover:shadow-lg`;
+                div.className = `group relative overflow-hidden rounded-xl border ${borderClass} ${bgClass} p-4 transition-all hover:border-slate-600 hover:shadow-lg`;
                 
+                // Responsive Grid Layout
                 div.innerHTML = `
-                    <div class="grid grid-cols-[1fr_auto] gap-4">
-                        <div class="flex flex-col justify-between gap-3">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <div class="bg-slate-800 text-slate-500 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold border border-slate-700">${index + 1}</div>
-                                    <span class="font-bold ${textClass} text-sm uppercase tracking-wide">${step.title}</span>
-                                </div>
-                                <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 pl-7 leading-tight">${step.notes}</div>
-                            </div>
-                            
-                            <div class="pl-7 mt-1 max-w-[120px]">
-                                ${timerBtn}
-                            </div>
+                    <div class="flex flex-col gap-4">
+                        
+                        <div class="flex items-center gap-3 border-b border-white/5 pb-2">
+                             <div class="bg-slate-800 text-slate-500 w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-bold border border-slate-700">${index + 1}</div>
+                             <div>
+                                <span class="font-bold ${textClass} text-lg uppercase tracking-wide leading-none">${step.title}</span>
+                                <span class="ml-2 text-[10px] uppercase tracking-wider font-bold text-slate-500">${step.notes}</span>
+                             </div>
                         </div>
 
-                        <div class="flex flex-col items-end justify-center gap-1">
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-5xl font-black ${numColor} brand-font tracking-tight leading-none">${finalLoad}</span>
-                                <span class="text-sm font-bold text-slate-600">${unit}</span>
-                            </div>
+                        <div class="grid grid-cols-3 md:grid-cols-4 items-baseline gap-y-4 gap-x-2">
                             
-                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">${step.reps} reps</div>
-                            
-                            <div class="border rounded px-3 py-1.5 text-[10px] font-mono font-bold whitespace-nowrap shadow-sm ${badgeColor}">
-                                ${plateText}
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Load</span>
+                                <div class="flex items-baseline gap-0.5">
+                                    <span class="text-3xl font-black ${numColor} brand-font tracking-tight">${finalLoad}</span>
+                                    <span class="text-[10px] font-bold text-slate-600">${unit}</span>
+                                </div>
                             </div>
+
+                            <div class="flex flex-col pl-2 border-l border-white/5">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Reps</span>
+                                <div class="flex items-baseline gap-0.5">
+                                     <span class="text-3xl font-black text-white brand-font tracking-tight">${step.reps}</span>
+                                     <span class="text-[10px] font-bold text-slate-600">REPS</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col pl-2 border-l border-white/5">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Plate</span>
+                                <div class="text-xl font-bold text-slate-400 brand-font whitespace-nowrap overflow-hidden text-ellipsis leading-none py-1">
+                                    ${plateText}
+                                </div>
+                            </div>
+
+                            <div class="col-span-3 md:col-span-1 md:justify-self-end mt-1 md:mt-0 flex items-center h-full">
+                                ${timerBtn}
+                            </div>
+
                         </div>
                     </div>
                 `;
