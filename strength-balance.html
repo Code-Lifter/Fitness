@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structural Health & Performance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        h1, h2, h3, .brand-font { font-family: 'Teko', sans-serif; }
+        
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen pb-20 selection:bg-indigo-500 selection:text-white">
+
+    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl">🧬</span>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-wide text-white brand-font uppercase">Bio<span class="text-indigo-500">Metric</span></h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Strength & Joint Audit</p>
+                </div>
+            </div>
+             <div class="bg-slate-800 p-1 rounded-lg flex text-xs font-bold border border-slate-700">
+                <button onclick="setUnit('kg')" id="btn-kg" class="px-3 py-1.5 rounded-md transition-all bg-indigo-500 text-white shadow">KG</button>
+                <button onclick="setUnit('lbs')" id="btn-lbs" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">LBS</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-6 mt-8 space-y-8">
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+            
+            <div class="mb-8 border-b border-slate-800 pb-6">
+                 <label class="block text-indigo-400 text-xs font-bold uppercase tracking-widest mb-2">Step 1: Your Bodyweight</label>
+                 <div class="flex items-center gap-4">
+                     <input type="number" id="input-bw" placeholder="80" class="w-32 bg-slate-950 text-white p-4 rounded-xl border border-slate-800 focus:border-indigo-500 outline-none font-bold text-2xl text-center transition-all">
+                     <span class="text-sm font-bold text-slate-500 unit-label">KG</span>
+                     <p class="text-xs text-slate-500 max-w-xs">Required to calculate power-to-weight ratios.</p>
+                 </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-white text-xl uppercase tracking-wide brand-font flex items-center gap-2">
+                    <span class="text-indigo-500">2.</span> The Big 6 Lifts (1RM)
+                </h2>
+                <div class="text-[10px] text-slate-500 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                    Enter your 1 Rep Max
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-widest border-b border-slate-800 pb-2">Upper Body</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-1">Bench Press</label>
+                            <input type="number" id="input-bench" placeholder="-" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-indigo-500 outline-none font-bold text-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Bent Over Row</label>
+                            <input type="number" id="input-row" placeholder="-" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-indigo-500 outline-none font-bold text-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Overhead Press</label>
+                            <input type="number" id="input-ohp" placeholder="-" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-indigo-500 outline-none font-bold text-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Weighted Pullup</label>
+                            <input type="number" id="input-pullup" placeholder="0" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-indigo-500 outline-none font-bold text-lg transition-all">
+                            <span class="text-[9px] text-slate-600 block mt-1 leading-tight">Enter added weight only. (0 if bodyweight)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-widest border-b border-slate-800 pb-2">Lower Body</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-1">Squat</label>
+                            <input type="number" id="input-squat" placeholder="-" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-indigo-500 outline-none font-bold text-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Deadlift</label>
+                            <input type="number" id="input-deadlift" placeholder="-" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-indigo-500 outline-none font-bold text-lg transition-all">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="calculate()" class="w-full mt-8 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-900/20 uppercase tracking-widest text-sm">
+                Analyze Physique
+            </button>
+        </div>
+
+        <div id="results-panel" class="hidden space-y-10 fade-in">
+            
+            <div>
+                <h3 class="text-white font-bold brand-font text-xl mb-4 flex items-center gap-2"><span class="text-indigo-500">📊</span> Power Standards</h3>
+                <div class="grid md:grid-cols-4 gap-4" id="strength-cards">
+                    </div>
+            </div>
+
+            <div>
+                 <h3 class="text-white font-bold brand-font text-xl mb-4 flex items-center gap-2"><span class="text-emerald-500">⚖️</span> Structural Balance</h3>
+                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="text-xs text-slate-500 font-bold uppercase mb-2">Push : Pull Balance</div>
+                            <div id="ratio-push-pull" class="text-3xl font-bold text-white brand-font">--</div>
+                            <div id="status-push-pull" class="text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-slate-800 text-slate-400">--</div>
+                        </div>
+                        <div class="text-center border-l border-r border-slate-800">
+                             <div class="text-xs text-slate-500 font-bold uppercase mb-2">Overhead Stability</div>
+                            <div id="ratio-vert" class="text-3xl font-bold text-white brand-font">--</div>
+                            <div id="status-vert" class="text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-slate-800 text-slate-400">--</div>
+                        </div>
+                         <div class="text-center">
+                             <div class="text-xs text-slate-500 font-bold uppercase mb-2">Posterior Chain</div>
+                            <div id="ratio-legs" class="text-3xl font-bold text-white brand-font">--</div>
+                            <div id="status-legs" class="text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-slate-800 text-slate-400">--</div>
+                        </div>
+                    </div>
+                     <div id="coach-notes" class="mt-6 pt-6 border-t border-slate-800 text-xs text-slate-400 font-mono leading-relaxed">
+                         </div>
+                 </div>
+            </div>
+
+            <div>
+                <h3 class="text-white font-bold brand-font text-xl mb-4 flex items-center gap-2"><span class="text-amber-500">🛡️</span> Joint Armor Targets</h3>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div class="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Standards for Pain-Free Joints</span>
+                        <span class="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded border border-amber-500/20 font-bold">Based on BW</span>
+                    </div>
+                    <div class="divide-y divide-slate-800">
+                        <div class="p-4 flex justify-between items-center hover:bg-slate-800/50 transition">
+                            <div>
+                                <div class="text-white font-bold text-sm">ATG Split Squat</div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold">Knee & Hip Health</div>
+                            </div>
+                            <div class="text-right">
+                                <div id="target-split" class="text-amber-500 font-bold text-lg brand-font">--</div>
+                                <div class="text-[10px] text-slate-500">50% BW (Total Load) x 5 Reps</div>
+                            </div>
+                        </div>
+                         <div class="p-4 flex justify-between items-center hover:bg-slate-800/50 transition">
+                            <div>
+                                <div class="text-white font-bold text-sm">Tibialis Raise</div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold">Shin & Ankle Armor</div>
+                            </div>
+                            <div class="text-right">
+                                <div id="target-tib" class="text-amber-500 font-bold text-lg brand-font">--</div>
+                                <div class="text-[10px] text-slate-500">20% BW x 15 Reps</div>
+                            </div>
+                        </div>
+                         <div class="p-4 flex justify-between items-center hover:bg-slate-800/50 transition">
+                            <div>
+                                <div class="text-white font-bold text-sm">Nordic Curl</div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold">Hamstring Bulletproofing</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-amber-500 font-bold text-lg brand-font">Bodyweight</div>
+                                <div class="text-[10px] text-slate-500">Full Eccentric Control</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let unit = 'kg';
+
+        function setUnit(u) {
+            unit = u;
+            document.querySelectorAll('.unit-label').forEach(e => e.innerText = u.toUpperCase());
+            if (u === 'kg') {
+                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all bg-indigo-500 text-white shadow";
+                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
+            } else {
+                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all bg-indigo-500 text-white shadow";
+                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
+            }
+        }
+
+        function calculate() {
+            const bw = parseFloat(document.getElementById('input-bw').value);
+            if (!bw) { alert("Please enter bodyweight."); return; }
+
+            const lifts = {
+                bench: parseFloat(document.getElementById('input-bench').value) || 0,
+                row: parseFloat(document.getElementById('input-row').value) || 0,
+                ohp: parseFloat(document.getElementById('input-ohp').value) || 0,
+                pullupAdd: parseFloat(document.getElementById('input-pullup').value) || 0,
+                squat: parseFloat(document.getElementById('input-squat').value) || 0,
+                dead: parseFloat(document.getElementById('input-deadlift').value) || 0
+            };
+
+            const pullupTotal = lifts.pullupAdd > 0 ? bw + lifts.pullupAdd : 0;
+
+            document.getElementById('results-panel').classList.remove('hidden');
+
+            // 1. STRENGTH CARDS
+            renderStrengthCards(bw, lifts, pullupTotal);
+
+            // 2. RATIOS
+            renderRatios(lifts, pullupTotal);
+
+            // 3. JOINT TARGETS
+            renderJointTargets(bw);
+        }
+
+        function renderStrengthCards(bw, lifts, pullupTotal) {
+            const container = document.getElementById('strength-cards');
+            container.innerHTML = '';
+            
+            const checks = [
+                { label: 'Squat', val: lifts.squat, std: 1.5 },
+                { label: 'Bench', val: lifts.bench, std: 1.2 },
+                { label: 'Deadlift', val: lifts.dead, std: 1.8 },
+                { label: 'OHP', val: lifts.ohp, std: 0.7 }
+            ];
+
+            checks.forEach(c => {
+                if(c.val > 0) {
+                    const ratio = c.val / bw;
+                    let rank = "Beginner";
+                    let color = "text-slate-400";
+                    let barColor = "bg-slate-700";
+                    
+                    if(ratio >= c.std + 0.3) { rank = "Elite"; color = "text-amber-500"; barColor = "bg-amber-500"; }
+                    else if(ratio >= c.std) { rank = "Advanced"; color = "text-emerald-400"; barColor = "bg-emerald-500"; }
+                    else if(ratio >= c.std - 0.3) { rank = "Intermediate"; color = "text-indigo-400"; barColor = "bg-indigo-500"; }
+                    
+                    const pct = Math.min((ratio / (c.std + 0.5)) * 100, 100);
+
+                    container.innerHTML += `
+                        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-white uppercase">${c.label}</span>
+                                <span class="text-[10px] font-bold ${color}">${rank}</span>
+                            </div>
+                            <div class="text-2xl font-black text-white brand-font mb-1">${ratio.toFixed(2)}<span class="text-sm text-slate-500 font-sans font-normal">x BW</span></div>
+                            <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
+                                <div class="h-full ${barColor}" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function renderRatios(lifts, pullupTotal) {
+            let notes = [];
+
+            // Push Pull
+            if(lifts.bench && lifts.row) {
+                const r = lifts.row / lifts.bench;
+                document.getElementById('ratio-push-pull').innerText = (r * 100).toFixed(0) + '%';
+                let el = document.getElementById('status-push-pull');
+                if(r >= 0.9) { el.innerText = "Balanced"; el.className = "text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500"; }
+                else { 
+                    el.innerText = "Imbalanced"; el.className = "text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-rose-500/20 text-rose-500"; 
+                    notes.push("⚠️ <strong>Shoulder Risk:</strong> Your Row is weak relative to Bench. Prioritize pulling to prevent hunching.");
+                }
+            }
+
+            // Vertical
+            if(lifts.ohp && pullupTotal) {
+                const r = pullupTotal / lifts.ohp;
+                document.getElementById('ratio-vert').innerText = r.toFixed(1) + 'x';
+                let el = document.getElementById('status-vert');
+                // Pullup should be stronger than OHP. 
+                if(r >= 1.4) { el.innerText = "Solid"; el.className = "text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500"; }
+                else {
+                    el.innerText = "Lats Weak"; el.className = "text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-amber-500/20 text-amber-500";
+                    notes.push("⚠️ <strong>Vertical Imbalance:</strong> Your OHP is catching up to your Pull-up strength. Strengthen lats.");
+                }
+            }
+
+            // Legs
+            if(lifts.squat && lifts.dead) {
+                const r = lifts.dead / lifts.squat;
+                document.getElementById('ratio-legs').innerText = (r * 100).toFixed(0) + '%';
+                let el = document.getElementById('status-legs');
+                if(r >= 1.1) { el.innerText = "Good"; el.className = "text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500"; }
+                else {
+                     el.innerText = "Review"; el.className = "text-[10px] uppercase font-bold mt-1 inline-block px-2 py-0.5 rounded bg-amber-500/20 text-amber-500";
+                     notes.push("ℹ️ <strong>Posterior Chain:</strong> Deadlift is usually ~120% of Squat. Ensure you aren't neglecting hamstrings.");
+                }
+            }
+            
+            const notesContainer = document.getElementById('coach-notes');
+            if(notes.length > 0) notesContainer.innerHTML = notes.join('<br><br>');
+            else notesContainer.innerHTML = "<span class='text-emerald-500'>✅ All systems nominal. Excellent structural balance.</span>";
+        }
+
+        function renderJointTargets(bw) {
+            // ATG Split Squat: 50% BW
+            let splitLoad = bw * 0.5;
+            // Tib Raise: 20% BW
+            let tibLoad = bw * 0.2;
+
+            if (unit === 'kg') {
+                splitLoad = Math.round(splitLoad / 1.0) * 1; // Round to nearest kg
+                tibLoad = Math.round(tibLoad / 0.5) * 0.5;
+            } else {
+                splitLoad = Math.round(splitLoad / 5) * 5;
+                tibLoad = Math.round(tibLoad / 1) * 1;
+            }
+
+            document.getElementById('target-split').innerText = `${splitLoad} ${unit}`;
+            document.getElementById('target-tib').innerText = `${tibLoad} ${unit}`;
+        }
+    </script>
+</body>
+</html>
