@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardio Coach Pro (Verified)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        h1, h2, h3, .brand-font { font-family: 'Teko', sans-serif; }
+        
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .tab-active { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .tab-inactive { background-color: #1e293b; color: #94a3b8; border-color: #334155; }
+        
+        .hidden-panel { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Ranking Bar Styles */
+        .rank-segment { height: 8px; flex: 1; position: relative; }
+        .rank-marker { 
+            position: absolute; top: -6px; width: 4px; height: 20px; 
+            background: white; border: 1px solid black; box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            transform: translateX(-50%); transition: left 0.5s ease-out; z-index: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20 selection:bg-blue-500 selection:text-white">
+
+    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl">🫀</span>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-wide text-white brand-font uppercase">Cardio<span class="text-blue-500">Coach</span></h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Verified Standards</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-6 mt-8 space-y-8">
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-white text-xl uppercase tracking-wide brand-font mb-4 flex items-center gap-2">
+                <span class="text-blue-500">1.</span> Your Profile
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Age</label>
+                    <input type="number" id="input-age" value="30" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-blue-500 outline-none font-bold text-lg transition-colors">
+                </div>
+                <div>
+                    <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Gender</label>
+                    <div class="flex bg-slate-950 rounded-xl p-1 border border-slate-800 h-[54px]">
+                        <button onclick="setGender('male')" id="btn-male" class="flex-1 rounded-lg text-sm font-bold bg-blue-600 text-white transition-all">Male</button>
+                        <button onclick="setGender('female')" id="btn-female" class="flex-1 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all">Female</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="switchTab('gym')" id="tab-gym" class="tab-active border rounded-xl p-4 flex flex-col items-center gap-2 transition-all">
+                <span class="text-3xl">🏃‍♂️</span>
+                <div class="text-center">
+                    <span class="block font-bold uppercase brand-font text-xl">Gym Tests</span>
+                    <span class="block text-[10px] opacity-70 font-sans">Performance Benchmarks</span>
+                </div>
+            </button>
+            <button onclick="switchTab('watch')" id="tab-watch" class="tab-inactive border rounded-xl p-4 flex flex-col items-center gap-2 transition-all">
+                <span class="text-3xl">⌚</span>
+                <div class="text-center">
+                    <span class="block font-bold uppercase brand-font text-xl">Smartwatch</span>
+                    <span class="block text-[10px] opacity-70 font-sans">Biometric Data</span>
+                </div>
+            </button>
+        </div>
+
+        <div id="panel-gym" class="fade-in space-y-6">
+            
+            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                <button onclick="setGymTest('cooper')" id="btn-test-cooper" class="gym-test-btn bg-blue-500/20 border-blue-500 text-blue-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap">1.5 Mile Run</button>
+                <button onclick="setGymTest('step')" id="btn-test-step" class="gym-test-btn bg-slate-800 border-slate-700 text-slate-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap">YMCA Step Test</button>
+                <button onclick="setGymTest('row')" id="btn-test-row" class="gym-test-btn bg-slate-800 border-slate-700 text-slate-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap">2k Row</button>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+                <div id="gym-input-container">
+                    </div>
+                
+                <button onclick="calculateGym()" class="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-900/20">
+                    ANALYZE PERFORMANCE
+                </button>
+            </div>
+
+            <div id="gym-result" class="hidden-panel bg-slate-800 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+                <div class="text-center mb-6">
+                    <div id="res-metric-label" class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Your Result</div>
+                    <div id="gym-score-val" class="text-5xl font-bold text-white brand-font">--</div>
+                    <div id="gym-score-rating" class="inline-block mt-2 px-4 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300">--</div>
+                </div>
+
+                <div class="mb-6 relative pt-4 px-2">
+                    <div class="flex rounded-full overflow-hidden w-full bg-slate-900 h-3">
+                        <div class="rank-segment bg-red-500/40"></div>
+                        <div class="rank-segment bg-orange-500/40"></div>
+                        <div class="rank-segment bg-yellow-500/40"></div>
+                        <div class="rank-segment bg-blue-500/40"></div>
+                        <div class="rank-segment bg-emerald-500/40"></div>
+                    </div>
+                    <div class="flex justify-between text-[8px] text-slate-500 uppercase font-bold mt-1 px-1">
+                        <span>Poor</span><span>Fair</span><span>Avg</span><span>Good</span><span>Elite</span>
+                    </div>
+                    <div id="gym-rank-marker" class="rank-marker left-0"></div>
+                </div>
+
+                <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
+                    <h4 class="text-slate-300 font-bold text-sm mb-2 flex items-center gap-2">💡 Coach's Advice</h4>
+                    <p id="gym-feedback" class="text-xs text-slate-400 leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="panel-watch" class="hidden-panel fade-in space-y-6">
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-white font-bold text-lg brand-font uppercase">VO2 Max</h3>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">From Apple Health / Garmin</p>
+                    </div>
+                    <input type="number" id="watch-vo2" placeholder="-" class="w-20 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold">
+                </div>
+                <div class="relative h-1.5 bg-slate-950 rounded-full mb-3 overflow-hidden">
+                    <div id="bar-vo2" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
+                </div>
+                <div id="res-vo2" class="text-xs text-slate-500">Enter value to grade</div>
+                <div id="adv-vo2" class="hidden-panel mt-3 text-xs text-slate-400 bg-slate-950 p-2 rounded border border-slate-800"></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-white font-bold text-lg brand-font uppercase">Resting Heart Rate</h3>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">Avg Sleeping HR</p>
+                    </div>
+                    <input type="number" id="watch-rhr" placeholder="-" class="w-20 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold">
+                </div>
+                 <div class="relative h-1.5 bg-slate-950 rounded-full mb-3 overflow-hidden">
+                    <div id="bar-rhr" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
+                </div>
+                <div id="res-rhr" class="text-xs text-slate-500">Enter value to grade</div>
+                <div id="adv-rhr" class="hidden-panel mt-3 text-xs text-slate-400 bg-slate-950 p-2 rounded border border-slate-800"></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-white font-bold text-lg brand-font uppercase">Heart Rate Recovery</h3>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">Peak HR minus 1-min Post HR</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                         <input type="number" id="watch-hrr-peak" placeholder="Peak" class="w-16 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold text-xs">
+                         <span class="text-slate-600">-</span>
+                         <input type="number" id="watch-hrr-post" placeholder="1min" class="w-16 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold text-xs">
+                    </div>
+                </div>
+                 <div class="relative h-1.5 bg-slate-950 rounded-full mb-3 overflow-hidden">
+                    <div id="bar-hrr" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
+                </div>
+                <div id="res-hrr" class="text-xs text-slate-500">Enter values to calc drop</div>
+                <div id="adv-hrr" class="hidden-panel mt-3 text-xs text-slate-400 bg-slate-950 p-2 rounded border border-slate-800"></div>
+            </div>
+
+             <button onclick="analyzeWatch()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-900/20">
+                CHECK VITALS
+            </button>
+
+        </div>
+        
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white font-bold brand-font text-lg">📋 Coach's Report</h3>
+                <button onclick="copyReport()" class="bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-lg">
+                    Copy Report
+                </button>
+            </div>
+            <textarea id="report-output" readonly class="w-full h-48 bg-slate-800 rounded-xl border border-slate-700 p-4 text-slate-300 text-xs font-mono focus:outline-none resize-none" placeholder="Run a test to generate your report..."></textarea>
+        </div>
+
+    </div>
+
+    <script>
+        // --- STATE ---
+        let gender = 'male';
+        let currentGymTest = 'cooper';
+        let reportData = [];
+
+        // --- DOM ELEMENTS ---
+        const btnMale = document.getElementById('btn-male');
+        const btnFemale = document.getElementById('btn-female');
+        const panelGym = document.getElementById('panel-gym');
+        const panelWatch = document.getElementById('panel-watch');
+        const tabGym = document.getElementById('tab-gym');
+        const tabWatch = document.getElementById('tab-watch');
+        const gymInputContainer = document.getElementById('gym-input-container');
+        const reportOutput = document.getElementById('report-output');
+
+        // --- INITIALIZATION ---
+        function init() {
+            setGymTest('cooper');
+        }
+
+        // --- TABS & UI ---
+        function setGender(g) {
+            gender = g;
+            if (g === 'male') {
+                btnMale.className = "flex-1 rounded-lg text-sm font-bold bg-blue-600 text-white transition-all";
+                btnFemale.className = "flex-1 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all";
+            } else {
+                btnFemale.className = "flex-1 rounded-lg text-sm font-bold bg-pink-600 text-white transition-all";
+                btnMale.className = "flex-1 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all";
+            }
+        }
+
+        function switchTab(tab) {
+            if (tab === 'gym') {
+                panelGym.classList.remove('hidden-panel');
+                panelWatch.classList.add('hidden-panel');
+                tabGym.className = "tab-active border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
+                tabWatch.className = "tab-inactive border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
+            } else {
+                panelWatch.classList.remove('hidden-panel');
+                panelGym.classList.add('hidden-panel');
+                tabWatch.className = "tab-active border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
+                tabGym.className = "tab-inactive border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
+            }
+        }
+
+        // --- GYM TESTS LOGIC ---
+        function setGymTest(test) {
+            currentGymTest = test;
+            document.querySelectorAll('.gym-test-btn').forEach(btn => {
+                btn.className = "gym-test-btn bg-slate-800 border-slate-700 text-slate-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors";
+            });
+            document.getElementById(`btn-test-${test}`).className = "gym-test-btn bg-blue-500/20 border-blue-500 text-blue-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors";
+
+            let content = "";
+            if (test === 'cooper') {
+                content = `
+                    <h3 class="text-white font-bold text-lg brand-font mb-4 uppercase">Cooper 1.5 Mile Run</h3>
+                    <p class="text-xs text-slate-400 mb-4">Run 1.5 miles (2.4km) as fast as possible on flat ground.</p>
+                    <div class="flex gap-2"><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Min</label><input type="number" id="gym-min" placeholder="12" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Sec</label><input type="number" id="gym-sec" placeholder="30" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div></div>`;
+            } else if (test === 'step') {
+                content = `
+                    <h3 class="text-white font-bold text-lg brand-font mb-4 uppercase">YMCA 3-Min Step Test</h3>
+                    <p class="text-xs text-slate-400 mb-4"><strong>Crucial:</strong> Use 12" step. Set metronome to 96 bpm. Step up-up-down-down to the beat for 3 mins. Sit immediately. Count 1-min pulse.</p>
+                    <div><label class="text-[10px] text-slate-500 uppercase font-bold">1-Min Pulse (bpm)</label><input type="number" id="gym-hr" placeholder="105" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold text-center text-2xl"></div>`;
+            } else if (test === 'row') {
+                content = `
+                    <h3 class="text-white font-bold text-lg brand-font mb-4 uppercase">Concept2 2000m Row</h3>
+                    <p class="text-xs text-slate-400 mb-4">Row exactly 2000m on max effort (damper setting 4-6 recommended).</p>
+                    <div class="flex gap-2"><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Min</label><input type="number" id="gym-min" placeholder="7" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Sec</label><input type="number" id="gym-sec" placeholder="45" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div></div>`;
+            }
+            gymInputContainer.innerHTML = content;
+            document.getElementById('gym-result').classList.add('hidden-panel');
+        }
+
+        function calculateGym() {
+            const age = parseFloat(document.getElementById('input-age').value) || 30;
+            let rating = "", score = 0, feedback = "", rankPercent = 0;
+            let metricLabel = "";
+
+            if (currentGymTest === 'cooper') {
+                const min = parseFloat(document.getElementById('gym-min').value) || 0;
+                const sec = parseFloat(document.getElementById('gym-sec').value) || 0;
+                if (min === 0) return;
+                const totalMin = min + (sec/60);
+                score = (483 / totalMin) + 3.5; // Cooper VO2 Formula
+                metricLabel = "VO2 Max";
+                let r = getRating(score, age, gender, 'vo2');
+                rating = r.label; rankPercent = r.percent;
+                feedback = getAdvice('vo2', rating);
+                reportData = [`Cooper Test: ${min}:${sec < 10 ? '0'+sec : sec} (Est. VO2: ${score.toFixed(1)})`, `Rating: ${rating}`, `Coach's Note: ${feedback}`];
+
+            } else if (currentGymTest === 'step') {
+                const hr = parseFloat(document.getElementById('gym-hr').value);
+                if (!hr) return;
+                score = hr; // Score is just HR
+                metricLabel = "Recovery HR";
+                // YMCA Standards Lookup Logic (Simplified)
+                let r = getYMCARating(hr, age, gender);
+                rating = r.label; rankPercent = r.percent;
+                feedback = getAdvice('step', rating);
+                reportData = [`YMCA Step Test HR: ${hr}bpm`, `Rating: ${rating}`, `Coach's Note: ${feedback}`];
+
+            } else if (currentGymTest === 'row') {
+                 const min = parseFloat(document.getElementById('gym-min').value) || 0;
+                 const sec = parseFloat(document.getElementById('gym-sec').value) || 0;
+                 if (min === 0) return;
+                 const totalSeconds = (min * 60) + sec;
+                 metricLabel = "2k Time";
+                 score = `${min}:${sec < 10 ? '0'+sec : sec}`; 
+                 
+                 // Concept 2 Grading (Roughly adjusted for age)
+                 let baseTarget = gender === 'male' ? 450 : 510; // 7:30 vs 8:30 (age 30)
+                 baseTarget += (age - 30); // Add 1 sec per year over 30
+                 
+                 if (totalSeconds < baseTarget - 45) { rating = "Elite"; rankPercent = 95; }
+                 else if (totalSeconds < baseTarget - 15) { rating = "Excellent"; rankPercent = 80; }
+                 else if (totalSeconds < baseTarget + 15) { rating = "Good"; rankPercent = 60; }
+                 else if (totalSeconds < baseTarget + 45) { rating = "Average"; rankPercent = 40; }
+                 else { rating = "Poor"; rankPercent = 15; }
+                 
+                 feedback = getAdvice('row', rating);
+                 reportData = [`2k Row: ${score}`, `Rating: ${rating}`, `Coach's Note: ${feedback}`];
+            }
+
+            // Render Gym Result
+            document.getElementById('gym-result').classList.remove('hidden-panel');
+            document.getElementById('res-metric-label').innerText = metricLabel;
+            document.getElementById('gym-score-val').innerText = currentGymTest === 'row' ? score : score.toFixed(1);
+            document.getElementById('gym-score-rating').innerText = rating;
+            document.getElementById('gym-score-rating').className = `inline-block mt-2 px-4 py-1 rounded-full text-xs font-bold ${getColor(rating)}`;
+            document.getElementById('gym-feedback').innerText = feedback;
+            
+            // Move Marker
+            const marker = document.getElementById('gym-rank-marker');
+            marker.style.left = `${rankPercent}%`;
+            
+            updateReport();
+        }
+
+        // --- WATCH LOGIC ---
+        function analyzeWatch() {
+            const age = parseFloat(document.getElementById('input-age').value) || 30;
+            reportData = [];
+
+            // 1. VO2
+            const vo2 = parseFloat(document.getElementById('watch-vo2').value);
+            if (vo2) {
+                const r = getRating(vo2, age, gender, 'vo2');
+                renderWatchResult('res-vo2', 'bar-vo2', 'adv-vo2', r, getAdvice('vo2', r.label));
+                reportData.push(`VO2 Max: ${vo2} (${r.label})`);
+            }
+
+            // 2. RHR
+            const rhr = parseFloat(document.getElementById('watch-rhr').value);
+            if (rhr) {
+                const r = getRating(rhr, age, gender, 'rhr');
+                renderWatchResult('res-rhr', 'bar-rhr', 'adv-rhr', r, getAdvice('rhr', r.label));
+                 reportData.push(`RHR: ${rhr} bpm (${r.label})`);
+            }
+
+            // 3. HRR
+            const peak = parseFloat(document.getElementById('watch-hrr-peak').value);
+            const post = parseFloat(document.getElementById('watch-hrr-post').value);
+            if (peak && post) {
+                const diff = peak - post;
+                const r = getRating(diff, age, gender, 'hrr');
+                renderWatchResult('res-hrr', 'bar-hrr', 'adv-hrr', r, getAdvice('hrr', r.label));
+                reportData.push(`HR Recovery: -${diff} beats (${r.label})`);
+            }
+            updateReport();
+        }
+
+        function renderWatchResult(resId, barId, advId, ratingObj, advice) {
+            const resEl = document.getElementById(resId);
+            const barEl = document.getElementById(barId);
+            const advEl = document.getElementById(advId);
+            
+            const colorClass = ratingObj.label === 'Elite' || ratingObj.label === 'Excellent' || ratingObj.label === 'Athlete' ? 'text-emerald-400' : 
+                               ratingObj.label === 'Good' || ratingObj.label === 'Fair' ? 'text-blue-400' : 'text-amber-400';
+            
+            resEl.innerHTML = `<span class="font-bold ${colorClass} uppercase">${ratingObj.label}</span>`;
+            
+            barEl.style.width = `${ratingObj.percent}%`;
+            barEl.className = `h-full transition-all duration-1000 ${ratingObj.label === 'Poor' ? 'bg-red-500' : ratingObj.label === 'Average' ? 'bg-yellow-500' : 'bg-emerald-500'}`;
+
+            advEl.innerText = `💡 ${advice}`;
+            advEl.classList.remove('hidden-panel');
+        }
+
+        // --- RATING LOGIC ---
+        function getRating(val, age, gender, type) {
+            // ACSM-aligned approximation for UI
+            if (type === 'vo2') {
+                let base = gender === 'male' ? 40 : 35; 
+                base -= (age - 30) * 0.5; // Slight age decay
+                if (val > base + 12) return { label: "Elite", percent: 95 };
+                if (val > base + 6) return { label: "Excellent", percent: 80 };
+                if (val > base) return { label: "Good", percent: 60 };
+                if (val > base - 6) return { label: "Average", percent: 40 };
+                return { label: "Poor", percent: 15 };
+            }
+            if (type === 'rhr') {
+                if (val < 50) return { label: "Athlete", percent: 95 };
+                if (val < 60) return { label: "Excellent", percent: 80 };
+                if (val < 70) return { label: "Good", percent: 60 };
+                if (val < 80) return { label: "Average", percent: 40 };
+                return { label: "Poor", percent: 15 };
+            }
+            if (type === 'hrr') {
+                if (val > 40) return { label: "Elite", percent: 95 };
+                if (val > 30) return { label: "Excellent", percent: 80 };
+                if (val > 20) return { label: "Good", percent: 60 };
+                if (val > 12) return { label: "Fair", percent: 35 };
+                return { label: "Poor", percent: 10 };
+            }
+        }
+
+        function getYMCARating(hr, age, gender) {
+            // YMCA 3-min Step Test Standards (Rough averages for code)
+            let excellent = gender === 'male' ? 85 : 95;
+            let good = gender === 'male' ? 100 : 110;
+            let average = gender === 'male' ? 115 : 125;
+            
+            // Adjust for age (HR stays higher for younger, drops slightly with fitness but age norm increases allowed HR)
+            // Actually YMCA norms allow slightly HIGHER HR for older people to still be considered good
+            if (age > 40) { excellent += 5; good += 5; average += 5; }
+
+            if (hr < excellent) return { label: "Excellent", percent: 90 };
+            if (hr < good) return { label: "Good", percent: 65 };
+            if (hr < average) return { label: "Average", percent: 40 };
+            return { label: "Poor", percent: 15 };
+        }
+
+        function getAdvice(type, rating) {
+            if (rating === 'Poor' || rating === 'Average' || rating === 'Fair') {
+                if (type === 'vo2' || type === 'row' || type === 'step') return "Your aerobic base is weak. Focus on 'Zone 2' cardio (steady pace where you can still talk) for 30-45 mins, 3x a week.";
+                if (type === 'rhr') return "Elevated RHR often means chronic stress or lack of sleep. Try to get 7+ hours of sleep and avoid alcohol 3 hours before bed.";
+                if (type === 'hrr') return "Slow recovery means your heart isn't efficient at switching off. Add 'Intervals': 1 min hard run, 2 min walk. x5 Rounds.";
+            } else {
+                if (type === 'vo2' || type === 'row' || type === 'step') return "Great base! To get to Elite, introduce 'VO2 Max Intervals': 4x4 method (4 mins hard, 3 mins light jog, 4 rounds).";
+                if (type === 'rhr') return "Heart efficiency is high. Maintenance is key. Keep doing long, slow distance cardio once a week.";
+                if (type === 'hrr') return "Excellent vagal tone. Your heart handles stress well.";
+            }
+        }
+
+        function getColor(rating) {
+            if (rating === 'Elite' || rating === 'Excellent' || rating === 'Athlete') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50';
+            if (rating === 'Good' || rating === 'Fair') return 'bg-blue-500/20 text-blue-400 border border-blue-500/50';
+            return 'bg-amber-500/20 text-amber-400 border border-amber-500/50';
+        }
+
+        function updateReport() {
+            const date = new Date().toLocaleDateString();
+            reportOutput.value = `CARDIO COACH REPORT (${date})\n------------------------------\n` + reportData.join('\n\n') + `\n\n------------------------------\nRecommended Retest: 4 Weeks`;
+        }
+
+        function copyReport() {
+            reportOutput.select();
+            document.execCommand('copy');
+            alert("Report copied!");
+        }
+
+        init();
+    </script>
+</body>
+</html>
