@@ -94,46 +94,46 @@
             </div>
 
             <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
-                <div class="p-3 bg-slate-950 border-b border-slate-800">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <h3 class="text-white font-bold brand-font text-lg flex items-center gap-2 whitespace-nowrap">
+                <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <h3 class="text-white font-bold brand-font text-xl sm:text-2xl flex items-center gap-2 whitespace-nowrap">
                             <span class="text-amber-500">2.</span> Ramp-Up
                         </h3>
                         
-                        <div class="flex items-end gap-2 w-full sm:w-auto">
+                        <div class="flex items-end gap-3 w-full sm:w-auto">
                             <div class="w-full sm:w-auto">
-                                <label class="block text-slate-500 text-[8px] font-bold uppercase tracking-widest mb-1 text-center">Target</label>
+                                <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Target</label>
                                 <div class="relative">
-                                    <select id="warmup-target" onchange="calculate()" class="w-full sm:w-28 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider py-2 pl-2 pr-6 rounded-lg border border-slate-700 focus:border-amber-500 outline-none cursor-pointer appearance-none hover:bg-slate-800 transition">
+                                    <select id="warmup-target" onchange="calculate()" class="w-full sm:w-32 bg-slate-900 text-white font-bold text-sm uppercase tracking-wider py-3 pl-3 pr-8 rounded-lg border border-slate-700 focus:border-amber-500 outline-none cursor-pointer appearance-none hover:bg-slate-800 transition">
                                         <option value="1">1RM</option>
                                         <option value="3">3RM</option>
                                         <option value="5" selected>5RM</option>
                                         <option value="8">8RM</option>
                                         <option value="10">10RM</option>
                                     </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-                                        <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="w-full sm:w-20">
-                                <label class="block text-slate-500 text-[8px] font-bold uppercase tracking-widest mb-1 text-center">Bar</label>
-                                <input type="number" id="bar-weight" value="20" oninput="calculate()" class="w-full bg-slate-900 text-center text-white text-xs font-bold p-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors placeholder-slate-600">
+                            <div class="w-full sm:w-24">
+                                <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Bar</label>
+                                <input type="number" id="bar-weight" value="20" oninput="calculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold py-3 px-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors placeholder-slate-600">
                             </div>
 
-                            <div class="w-full sm:w-20">
-                                <label class="block text-slate-500 text-[8px] font-bold uppercase tracking-widest mb-1 text-center">Inc</label>
+                            <div class="w-full sm:w-24">
+                                <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Inc</label>
                                 <div class="relative">
-                                    <select id="rounding-factor" onchange="calculate()" class="w-full bg-slate-900 text-center text-white text-xs font-bold p-2 pr-5 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors appearance-none">
+                                    <select id="rounding-factor" onchange="calculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold py-3 pr-6 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors appearance-none">
                                         <option value="0.5">0.5</option>
                                         <option value="1">1</option>
                                         <option value="1.25" selected>1.25</option>
                                         <option value="2.5">2.5</option>
                                         <option value="5">5</option>
                                     </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-slate-400">
-                                        <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                                     </div>
                                 </div>
                             </div>
@@ -142,7 +142,7 @@
                 </div>
                 
                 <div class="flex flex-col bg-slate-900" id="warmup-container">
-                    </div>
+                </div>
             </div>
             
             <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
@@ -184,7 +184,7 @@
     </div>
 
     <script>
-  let unit = 'kg';
+        let unit = 'kg';
         let timerInterval;
         let totalTime = 0;
         let remainingTime = 0;
@@ -268,24 +268,24 @@
 
         function renderWarmup(oneRM, targetReps, rounding) {
             const container = document.getElementById('warmup-container');
-            const barWeight = parseFloat(document.getElementById('bar-weight').value) || 0;
-            container.innerHTML = '';
+            container.innerHTML = ''; // Clear previous results
 
-            // Render Header Row - tightened widths and padding for mobile
+            // Render Header Row - Larger text and padding
             const header = document.createElement('div');
-            header.className = "flex items-center px-2 sm:px-4 py-3 bg-slate-950/80 border-b border-slate-800 text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-widest";
+            header.className = "flex items-center px-3 sm:px-5 py-4 bg-slate-950/80 border-b border-slate-800 text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest";
             header.innerHTML = `
-                <div class="w-6 sm:w-8 text-center">Set</div>
-                <div class="flex-1 pl-1 sm:pl-2 text-left">Strategy</div>
-                <div class="w-12 sm:w-20 text-center">Side</div>
-                <div class="w-10 sm:w-16 text-center">Load</div>
-                <div class="w-8 sm:w-12 text-center">Reps</div>
-                <div class="w-12 sm:w-16 text-center">Timer</div>
+                <div class="w-8 sm:w-10 text-center">Set</div>
+                <div class="flex-1 pl-2 sm:pl-3 text-left">Strategy</div>
+                <div class="w-14 sm:w-24 text-center">Side</div>
+                <div class="w-12 sm:w-20 text-center">Load</div>
+                <div class="w-10 sm:w-16 text-center">Reps</div>
+                <div class="w-14 sm:w-20 text-center">Timer</div>
             `;
             container.appendChild(header);
 
             let targetLoad = oneRM / (1 + targetReps / 30);
-            
+            const barWeight = parseFloat(document.getElementById('bar-weight').value) || 0;
+
             const steps = [
                 { title: "Activation", pct: 0.20, reps: "15", restSec: 0, notes: "Light" },
                 { title: "Patterning", pct: 0.50, reps: "5", restSec: 60, notes: "Fast" },
@@ -294,8 +294,8 @@
                 { title: `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: 240, notes: "TARGET" }
             ];
 
-            // Reusable stacked text for the empty bar state
-            const emptyBarHtml = `<span class="text-[7px] sm:text-[9px] uppercase text-slate-400 tracking-tighter leading-[1.1] block">Empty<br>Bar</span>`;
+            // Reusable stacked text for the empty bar state - bigger text
+            const emptyBarHtml = `<span class="text-[9px] sm:text-[11px] uppercase text-slate-400 tracking-tighter leading-[1.1] block">Empty<br>Bar</span>`;
 
             steps.forEach((step, index) => {
                 let rawLoad = targetLoad * step.pct;
@@ -338,40 +338,41 @@
                 let restLabel = step.restSec === 0 ? "—" : (step.restSec >= 60 ? `${step.restSec/60}M` : `${step.restSec}S`);
                 
                 let timerButton = step.restSec > 0 ? 
-                    `<button onclick="startTimer(${step.restSec})" class="w-full h-6 sm:h-8 rounded sm:rounded-lg flex items-center justify-center gap-1 transition-all border text-[9px] sm:text-[10px] font-bold uppercase tracking-widest ${btnClass}">
+                    `<button onclick="startTimer(${step.restSec})" class="w-full h-8 sm:h-10 rounded-lg flex items-center justify-center gap-1 transition-all border text-[10px] sm:text-xs font-bold uppercase tracking-widest ${btnClass}">
                         <span>${restLabel}</span>
                     </button>` : 
-                    `<div class="w-full h-6 sm:h-8 rounded sm:rounded-lg flex items-center justify-center border border-transparent opacity-20 text-slate-500 text-[10px]">
+                    `<div class="w-full h-8 sm:h-10 rounded-lg flex items-center justify-center border border-transparent opacity-20 text-slate-500 text-xs">
                         <span>—</span>
                     </div>`;
 
                 const row = document.createElement('div');
-                row.className = `flex items-center px-2 sm:px-4 py-2.5 sm:py-3 border-b transition-colors ${borderBottom} ${rowBg}`;
+                // Massive padding bump here
+                row.className = `flex items-center px-3 sm:px-5 py-4 sm:py-5 border-b transition-colors ${borderBottom} ${rowBg}`;
                 
                 row.innerHTML = `
-                    <div class="w-6 sm:w-8 text-center flex justify-center">
-                        <div class="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full text-[9px] sm:text-[10px] border ${badgeBg}">${index + 1}</div>
+                    <div class="w-8 sm:w-10 text-center flex justify-center">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-[10px] sm:text-xs border ${badgeBg}">${index + 1}</div>
                     </div>
                     
-                    <div class="flex-1 pl-1 sm:pl-2 flex flex-col justify-center">
-                        <span class="text-[12px] sm:text-[15px] leading-tight whitespace-nowrap tracking-tight ${textClass}">${step.title}</span>
+                    <div class="flex-1 pl-2 sm:pl-3 flex flex-col justify-center">
+                        <span class="text-[14px] sm:text-[16px] leading-tight whitespace-nowrap tracking-tight ${textClass}">${step.title}</span>
                     </div>
                     
-                    <div class="w-12 sm:w-20 flex justify-center items-center">
-                        <div class="bg-slate-600/30 text-slate-200 font-bold text-xs sm:text-sm min-h-[26px] sm:min-h-[32px] rounded md sm:rounded-lg w-10 sm:w-16 flex items-center justify-center text-center border border-slate-600/50 shadow-sm overflow-hidden">
+                    <div class="w-14 sm:w-24 flex justify-center items-center">
+                        <div class="bg-slate-600/30 text-slate-200 font-bold text-sm sm:text-base min-h-[36px] sm:min-h-[44px] rounded-lg w-12 sm:w-20 flex items-center justify-center text-center border border-slate-600/50 shadow-sm overflow-hidden">
                             ${sideBoxText}
                         </div>
                     </div>
                     
+                    <div class="w-12 sm:w-20 text-center">
+                        <span class="text-xl sm:text-3xl font-black ${numColor} brand-font tracking-tight leading-none drop-shadow-sm">${finalLoad}</span>
+                    </div>
+                    
                     <div class="w-10 sm:w-16 text-center">
-                        <span class="text-lg sm:text-2xl font-black ${numColor} brand-font tracking-tight leading-none drop-shadow-sm">${finalLoad}</span>
+                        <span class="text-lg sm:text-2xl font-black text-white brand-font tracking-tight leading-none drop-shadow-sm">${step.reps}</span>
                     </div>
                     
-                    <div class="w-8 sm:w-12 text-center">
-                        <span class="text-base sm:text-xl font-black text-white brand-font tracking-tight leading-none drop-shadow-sm">${step.reps}</span>
-                    </div>
-                    
-                    <div class="w-12 sm:w-16 text-center pl-1 sm:pl-2">
+                    <div class="w-14 sm:w-20 text-center pl-2 sm:pl-3">
                         ${timerButton}
                     </div>
                 `;
