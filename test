@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerCalc: Active Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        h1, h2, h3, .brand-font { font-family: 'Teko', sans-serif; }
+        
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        select { -webkit-appearance: none; appearance: none; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Smooth transitions for the active tracker */
+        .warmup-row { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .warmup-active { transform: scale(1.02); box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.3); }
+        .warmup-done { opacity: 0.4; filter: grayscale(100%); }
+        .warmup-done:hover { opacity: 0.7; }
+    </style>
+</head>
+<body class="min-h-screen pb-20 selection:bg-amber-500 selection:text-slate-900">
+
+    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl">🛡️</span>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-wide text-white brand-font uppercase">Safe<span class="text-amber-500">Max</span></h1>
+                </div>
+            </div>
+             <div class="bg-slate-800 p-1 rounded-lg flex text-xs font-bold border border-slate-700">
+                <button onclick="setUnit('kg')" id="btn-kg" class="px-3 py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow">KG</button>
+                <button onclick="setUnit('lbs')" id="btn-lbs" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">LBS</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto px-6 mt-8 space-y-8">
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+            <h2 class="text-white text-xl uppercase tracking-wide brand-font mb-6 flex items-center gap-2">
+                <span class="text-amber-500">1.</span> Calculate Stats
+            </h2>
+            
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-2">Weight Lifted</label>
+                    <div class="relative">
+                        <input type="number" id="input-weight" placeholder="100" oninput="calculate()" class="w-full bg-slate-950 text-white p-4 rounded-xl border border-slate-800 focus:border-amber-500 outline-none font-bold text-3xl text-center placeholder-slate-800 transition-all">
+                        <span id="label-unit" class="absolute right-4 top-6 text-slate-600 text-xs font-bold">KG</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-2">Reps Performed</label>
+                    <div class="relative">
+                        <input type="number" id="input-reps" placeholder="5" oninput="calculate()" class="w-full bg-slate-950 text-white p-4 rounded-xl border border-slate-800 focus:border-amber-500 outline-none font-bold text-3xl text-center placeholder-slate-800 transition-all">
+                        <span class="absolute right-4 top-6 text-slate-600 text-xs font-bold">REPS</span>
+                    </div>
+                </div>
+            </div>
+            
+             <div id="rep-warning" class="hidden mt-4 text-center">
+                <p class="text-[10px] text-orange-400 font-bold bg-orange-500/10 border border-orange-500/20 py-2 rounded-lg inline-block px-4">
+                    ⚠️ Accuracy drops above 12 reps.
+                </p>
+            </div>
+        </div>
+
+        <div id="result-panel" class="hidden fade-in space-y-8">
+            
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-8 text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Estimated 1 Rep Max</p>
+                <div class="flex justify-center items-baseline gap-2">
+                    <span id="val-1rm" class="text-7xl font-black text-white brand-font tracking-tight">--</span>
+                    <span id="val-unit" class="text-2xl text-slate-500 font-bold">KG</span>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center">
+                    <div class="text-2xl mb-1">⚡</div>
+                    <h3 class="brand-font text-white text-lg">Power</h3>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">85% - 95%</p>
+                    <div id="zone-power" class="text-amber-500 font-bold text-xl">--</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center">
+                     <div class="text-2xl mb-1">💪</div>
+                    <h3 class="brand-font text-white text-lg">Growth</h3>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">70% - 85%</p>
+                    <div id="zone-growth" class="text-blue-400 font-bold text-xl">--</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center">
+                     <div class="text-2xl mb-1">🔥</div>
+                    <h3 class="brand-font text-white text-lg">Endurance</h3>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">50% - 65%</p>
+                    <div id="zone-endurance" class="text-emerald-400 font-bold text-xl">--</div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="text-white font-bold brand-font">Loading Chart</h3>
+                    <button onclick="copyTable()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 transition">Copy</button>
+                </div>
+                <div class="p-2">
+                    <table class="w-full text-sm text-left text-slate-400">
+                        <thead class="text-xs text-slate-500 uppercase bg-slate-900/50">
+                            <tr><th class="px-4 py-2">%</th><th class="px-4 py-2">Load</th><th class="px-4 py-2 text-right">Reps</th></tr>
+                        </thead>
+                        <tbody id="percentage-table-body" class="divide-y divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+                <div class="p-4 bg-slate-950 border-b border-slate-800 flex flex-wrap gap-4 justify-between items-center">
+                    <div>
+                        <h3 class="text-white font-bold brand-font text-lg flex items-center gap-2">
+                            🔥 Live Tracker 
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Tap a set to mark your place.</p>
+                    </div>
+                    
+                    <div class="relative">
+                        <select id="warmup-target" onchange="calculate()" class="bg-slate-800 text-white font-bold text-xs uppercase tracking-wider py-2 pl-4 pr-8 rounded-lg border border-slate-700 focus:border-amber-500 outline-none cursor-pointer appearance-none hover:bg-slate-700 transition">
+                            <option value="1">Target: 1 Rep Max</option>
+                            <option value="3">Target: 3 Rep Max</option>
+                            <option value="5" selected>Target: 5 Rep Max</option>
+                            <option value="8">Target: 8 Rep Max</option>
+                            <option value="10">Target: 10 Rep Max</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 space-y-3" id="warmup-container">
+                    </div>
+            </div>
+            
+            <textarea id="copy-area" class="hidden"></textarea>
+        </div>
+    </div>
+
+    <script>
+        let unit = 'kg';
+        let globalOneRM = 0;
+        let globalTargetReps = 5;
+        let activeWarmupStep = 0; // Tracks which set you are currently on
+
+        function setUnit(u) {
+            unit = u;
+            document.getElementById('label-unit').innerText = u.toUpperCase();
+            document.getElementById('val-unit').innerText = u.toUpperCase();
+            
+            if (u === 'kg') {
+                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow";
+                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
+            } else {
+                document.getElementById('btn-lbs').className = "px-3 py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow";
+                document.getElementById('btn-kg').className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
+            }
+            calculate();
+        }
+
+        function calculate() {
+            const weight = parseFloat(document.getElementById('input-weight').value);
+            const reps = parseFloat(document.getElementById('input-reps').value);
+            globalTargetReps = parseInt(document.getElementById('warmup-target').value);
+            const resultPanel = document.getElementById('result-panel');
+            const warningPanel = document.getElementById('rep-warning');
+
+            if (!weight || !reps) {
+                resultPanel.classList.add('hidden');
+                return;
+            }
+
+            if (reps > 12) warningPanel.classList.remove('hidden');
+            else warningPanel.classList.add('hidden');
+
+            // 1RM Formula (Epley)
+            let oneRM = weight * (1 + reps / 30);
+            oneRM = Math.round(oneRM * 2) / 2;
+            globalOneRM = oneRM;
+            
+            // Reset active set to 0 whenever a new calculation happens
+            activeWarmupStep = 0; 
+
+            // Render 1RM
+            resultPanel.classList.remove('hidden');
+            document.getElementById('val-1rm').innerText = oneRM;
+
+            // Render Zones
+            document.getElementById('zone-power').innerText = `${Math.round(oneRM * 0.85)}-${Math.round(oneRM * 0.95)} ${unit}`;
+            document.getElementById('zone-growth').innerText = `${Math.round(oneRM * 0.70)}-${Math.round(oneRM * 0.85)} ${unit}`;
+            document.getElementById('zone-endurance').innerText = `${Math.round(oneRM * 0.50)}-${Math.round(oneRM * 0.65)} ${unit}`;
+
+            // Render Tables
+            renderTable(oneRM);
+            renderWarmup();
+        }
+        
+        // Triggers when a user taps a warmup set
+        function setActiveSet(index) {
+            activeWarmupStep = index;
+            renderWarmup(); // Re-render the UI with the new active states
+        }
+
+        function renderWarmup() {
+            const container = document.getElementById('warmup-container');
+            container.innerHTML = '';
+
+            let targetLoad = globalOneRM / (1 + globalTargetReps / 30);
+            
+            const steps = [
+                { title: "Activation", pct: 0.20, reps: "10-15", rest: "None", notes: "Blood Flow" },
+                { title: "Patterning", pct: 0.50, reps: "5", rest: "60s", notes: "Fast" },
+                { title: "Acclimation", pct: 0.70, reps: "3", rest: "90s", notes: "Build Up" },
+                { title: "Primer", pct: 0.90, reps: globalTargetReps > 5 ? "2" : "1", rest: "2-3 min", notes: "Heavy Feel" },
+                { title: `TEST ${globalTargetReps}RM`, pct: 1.00, reps: globalTargetReps, rest: "Go!", notes: "TARGET SET" }
+            ];
+
+            steps.forEach((step, index) => {
+                let load = targetLoad * step.pct;
+
+                if (unit === 'kg') load = Math.round(load / 2.5) * 2.5;
+                else load = Math.round(load / 5) * 5;
+
+                // Base UI State
+                let borderClass = "border-slate-800";
+                let bgClass = "bg-slate-900";
+                let textClass = "text-white";
+                let activeStyle = "";
+                let iconOrNumber = index + 1;
+                let iconBg = "bg-slate-800 text-slate-400";
+                
+                // Active State Logic
+                if (index < activeWarmupStep) {
+                    // COMPLETED SET
+                    activeStyle = "warmup-done";
+                    iconOrNumber = "✓";
+                    iconBg = "bg-emerald-500/20 text-emerald-500";
+                } 
+                else if (index === activeWarmupStep) {
+                    // CURRENT ACTIVE SET
+                    activeStyle = "warmup-active";
+                    borderClass = "border-amber-500";
+                    bgClass = "bg-amber-500/10";
+                    textClass = "text-amber-500 font-bold";
+                    iconBg = "bg-amber-500 text-slate-900";
+                } 
+                else if (step.pct === 1.0 && index > activeWarmupStep) {
+                    // TARGET SET (Upcoming)
+                    borderClass = "border-emerald-500/30";
+                    bgClass = "bg-emerald-500/5";
+                    textClass = "text-emerald-500 font-bold";
+                }
+
+                const div = document.createElement('div');
+                div.className = `warmup-row flex items-center justify-between p-3 rounded-xl border ${borderClass} ${bgClass} ${activeStyle}`;
+                div.onclick = () => setActiveSet(index); // Add tap functionality
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="${iconBg} w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-colors">
+                            ${iconOrNumber}
+                        </div>
+                        <div>
+                            <div class="text-sm ${textClass} transition-colors">${step.title}</div>
+                            <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${step.notes}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-white brand-font">${load} <span class="text-xs text-slate-500">${unit}</span></div>
+                        <div class="text-xs text-slate-400">${step.reps} reps <span class="text-slate-600">|</span> ${step.rest}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderTable(oneRM) {
+            const tbody = document.getElementById('percentage-table-body');
+            tbody.innerHTML = '';
+            const percentages = [
+                { pct: 100, reps: '1' }, { pct: 95, reps: '2' }, { pct: 90, reps: '3-4' },
+                { pct: 85, reps: '5-6' }, { pct: 80, reps: '7-8' }, { pct: 75, reps: '9-10' },
+                { pct: 70, reps: '11-12' }, { pct: 65, reps: '13-15' }, { pct: 60, reps: '16-20' }
+            ];
+
+            percentages.forEach(row => {
+                let load = oneRM * (row.pct / 100);
+                if (unit === 'kg') load = Math.round(load / 2.5) * 2.5;
+                else load = Math.round(load / 5) * 5;
+
+                let colorClass = "text-slate-400";
+                if(row.pct === 100) colorClass = "text-amber-500 font-bold";
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-2 font-bold ${colorClass}">${row.pct}%</td>
+                    <td class="px-4 py-2 font-mono text-white">${load}</td>
+                    <td class="px-4 py-2 text-right text-xs uppercase tracking-wide">${row.reps}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function copyTable() {
+            const oneRM = document.getElementById('val-1rm').innerText;
+            alert(`1RM (${oneRM}${unit}) copied to clipboard!`);
+        }
+    </script>
+</body>
+</html>
