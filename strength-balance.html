@@ -26,21 +26,22 @@
 </head>
 <body class="min-h-screen pb-20 selection:bg-indigo-500 selection:text-white">
 
-    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-3xl">🧬</span>
-                <div>
-                    <h1 class="text-2xl font-semibold tracking-wide text-white brand-font uppercase">Bio<span class="text-indigo-500">Metric</span></h1>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Strength & Joint Audit</p>
-                </div>
+<nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+        <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer min-w-0">
+            <span class="text-3xl shrink-0">🧬</span>
+            <div class="min-w-0">
+                <h1 class="text-2xl font-semibold tracking-wide text-white brand-font uppercase truncate">Bio<span class="text-indigo-500">Metric</span></h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans truncate">Strength & Joint Audit</p>
             </div>
-             <div class="bg-slate-800 p-1 rounded-lg flex text-xs font-bold border border-slate-700">
-                <button onclick="setUnit('kg')" id="btn-kg" class="px-3 py-1.5 rounded-md transition-all bg-indigo-500 text-white shadow">KG</button>
-                <button onclick="setUnit('lbs')" id="btn-lbs" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">LBS</button>
-            </div>
+        </a>
+        
+        <div class="bg-slate-800 p-1 rounded-lg flex text-xs font-bold border border-slate-700 shrink-0">
+            <button onclick="setUnit('kg')" id="btn-kg" class="px-3 py-1.5 rounded-md transition-all bg-indigo-500 text-white shadow">KG</button>
+            <button onclick="setUnit('lbs')" id="btn-lbs" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">LBS</button>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="max-w-4xl mx-auto px-6 mt-8 space-y-8">
 
