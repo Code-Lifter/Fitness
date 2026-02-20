@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PowerCalc: Safety Edition v18</title>
+    <title>PowerCalc: Safety Edition v19</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -50,8 +50,7 @@
         </div>
     </nav>
 
-    <div class="max-w-3xl mx-auto px-4 mt-4 space-y-3">
-
+<div class="max-w-3xl mx-auto px-0 sm:px-4 mt-4 sm:space-y-4 space-y-2">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
             <h2 class="text-white text-lg sm:text-xl uppercase tracking-wide brand-font mb-2 flex items-center gap-2">
                 <span class="text-amber-500">1.</span> Calculate Stats
@@ -100,39 +99,53 @@
                             <span class="text-amber-500">2.</span> Ramp-Up
                         </h3>
                         
-                        <div class="flex items-end gap-3 w-full sm:w-auto">
-                            <div class="w-full sm:w-auto">
+                        <div class="flex flex-wrap items-end gap-2 w-full sm:w-auto">
+                            
+                            <div class="flex-1 sm:w-24">
+                                <label class="block text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1.5 text-center">Muscle</label>
+                                <div class="relative">
+                                    <select id="muscle-type" onchange="calculate()" class="w-full bg-slate-900 text-center text-white text-sm sm:text-base font-bold py-3 pl-2 pr-6 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors appearance-none">
+                                        <option value="compound" selected>Big</option>
+                                        <option value="isolation">Small</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-400">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex-1 sm:w-24">
                                 <label class="block text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1.5 text-center">Target</label>
                                 <div class="relative">
-                                    <select id="warmup-target" onchange="calculate()" class="w-full sm:w-32 bg-slate-900 text-white font-bold text-sm sm:text-base uppercase tracking-wider py-3 pl-3 pr-8 rounded-lg border border-slate-700 focus:border-amber-500 outline-none cursor-pointer appearance-none hover:bg-slate-800 transition">
+                                    <select id="warmup-target" onchange="calculate()" class="w-full bg-slate-900 text-center text-white font-bold text-sm sm:text-base uppercase tracking-wider py-3 pl-2 pr-6 rounded-lg border border-slate-700 focus:border-amber-500 outline-none cursor-pointer appearance-none hover:bg-slate-800 transition">
                                         <option value="1">1RM</option>
                                         <option value="3">3RM</option>
                                         <option value="5" selected>5RM</option>
                                         <option value="8">8RM</option>
                                         <option value="10">10RM</option>
                                     </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-400">
                                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="w-full sm:w-24">
+                            <div class="w-16 sm:w-20">
                                 <label class="block text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1.5 text-center">Bar</label>
-                                <input type="number" id="bar-weight" value="20" oninput="calculate()" class="w-full bg-slate-900 text-center text-white text-sm sm:text-base font-bold py-3 px-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors placeholder-slate-600">
+                                <input type="number" id="bar-weight" value="20" oninput="calculate()" class="w-full bg-slate-900 text-center text-white text-sm sm:text-base font-bold py-3 px-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors placeholder-slate-600">
                             </div>
 
-                            <div class="w-full sm:w-24">
+                            <div class="w-16 sm:w-20">
                                 <label class="block text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1.5 text-center">Inc</label>
                                 <div class="relative">
-                                    <select id="rounding-factor" onchange="calculate()" class="w-full bg-slate-900 text-center text-white text-sm sm:text-base font-bold py-3 pr-6 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors appearance-none">
+                                    <select id="rounding-factor" onchange="calculate()" class="w-full bg-slate-900 text-center text-white text-sm sm:text-base font-bold py-3 pr-4 rounded-lg border border-slate-700 outline-none focus:border-amber-500 transition-colors appearance-none">
                                         <option value="0.5">0.5</option>
                                         <option value="1">1</option>
                                         <option value="1.25" selected>1.25</option>
                                         <option value="2.5">2.5</option>
                                         <option value="5">5</option>
                                     </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-slate-400">
                                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                                     </div>
                                 </div>
@@ -189,6 +202,7 @@
         let totalTime = 0;
         let remainingTime = 0;
         let audioCtx;
+        window.activeStep = 0;
 
         window.onload = function() {
             loadData();
@@ -200,7 +214,8 @@
                 reps: document.getElementById('input-reps').value,
                 unit: unit,
                 barWeight: document.getElementById('bar-weight').value,
-                rounding: document.getElementById('rounding-factor').value
+                rounding: document.getElementById('rounding-factor').value,
+                muscleType: document.getElementById('muscle-type').value
             };
             localStorage.setItem('powerCalcData', JSON.stringify(data));
         }
@@ -213,6 +228,7 @@
                 document.getElementById('input-reps').value = data.reps || '';
                 document.getElementById('bar-weight').value = data.barWeight || '20';
                 document.getElementById('rounding-factor').value = data.rounding || '1.25';
+                if(data.muscleType) document.getElementById('muscle-type').value = data.muscleType;
                 if(data.unit) setUnit(data.unit);
             }
             if (document.getElementById('input-weight').value) calculate();
@@ -233,11 +249,17 @@
             calculate();
         }
 
+        function setActiveStep(index) {
+            window.activeStep = index;
+            calculate();
+        }
+
         function calculate() {
             const weight = parseFloat(document.getElementById('input-weight').value);
             const reps = parseFloat(document.getElementById('input-reps').value);
             const targetReps = parseInt(document.getElementById('warmup-target').value);
             const rounding = parseFloat(document.getElementById('rounding-factor').value);
+            const muscleType = document.getElementById('muscle-type').value;
             const resultPanel = document.getElementById('result-panel');
             const warningPanel = document.getElementById('rep-warning');
 
@@ -259,14 +281,14 @@
 
             const standardRounding = unit === 'kg' ? 0.5 : 1.0;
             renderTable(oneRM, standardRounding);
-            renderWarmup(oneRM, targetReps, rounding);
+            renderWarmup(oneRM, targetReps, rounding, muscleType);
         }
 
         function roundTo(val, step) {
             return Math.round(val / step) * step;
         }
 
-        function renderWarmup(oneRM, targetReps, rounding) {
+        function renderWarmup(oneRM, targetReps, rounding, muscleType) {
             const container = document.getElementById('warmup-container');
             container.innerHTML = ''; 
 
@@ -284,13 +306,15 @@
 
             let targetLoad = oneRM / (1 + targetReps / 30);
             const barWeight = parseFloat(document.getElementById('bar-weight').value) || 0;
+            
+            const restMult = muscleType === 'isolation' ? 0.5 : 1;
 
             const steps = [
-                { title: "Activation", pct: 0.20, reps: "15", restSec: 0, notes: "Light" },
-                { title: "Patterning", pct: 0.50, reps: "5", restSec: 60, notes: "Fast" },
-                { title: "Acclimation", pct: 0.70, reps: "3", restSec: 120, notes: "Build" },
-                { title: "Primer", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: 180, notes: "Heavy" },
-                { title: `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: 240, notes: "TARGET" }
+                { title: "Activation", pct: 0.20, reps: "15", restSec: Math.round(0 * restMult), notes: "Light" },
+                { title: "Patterning", pct: 0.50, reps: "5", restSec: Math.round(60 * restMult), notes: "Fast" },
+                { title: "Acclimation", pct: 0.70, reps: "3", restSec: Math.round(120 * restMult), notes: "Build" },
+                { title: "Primer", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: Math.round(180 * restMult), notes: "Heavy" },
+                { title: `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: Math.round(240 * restMult), notes: "TARGET" }
             ];
 
             const emptyBarHtml = `<span class="text-[10px] sm:text-[11px] uppercase text-slate-400 tracking-tighter leading-[1.1] block">Empty<br>Bar</span>`;
@@ -318,22 +342,39 @@
                     }
                 }
                 
+                let isActive = index === window.activeStep;
+                let isPast = index < window.activeStep;
+
                 let rowBg = "hover:bg-slate-800/30";
                 let badgeBg = "bg-slate-800 text-slate-400 border-slate-700";
-                let textClass = "text-slate-300";
+                let badgeContent = index + 1;
+                let titleClass = "text-slate-300";
                 let numColor = "text-white";
+                let opacityClass = "opacity-100";
+                let borderClass = "border-b border-slate-800/50";
+                let cursor = "cursor-pointer";
                 let btnClass = "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border-slate-700";
-                let borderBottom = "border-slate-800/50";
                 
-                if (step.pct === 1.0) {
-                    rowBg = "bg-amber-500/5 hover:bg-amber-500/10";
+                if (isPast) {
+                    opacityClass = "opacity-40 grayscale hover:opacity-70";
+                    badgeBg = "bg-slate-800 text-slate-500 border-slate-700";
+                    badgeContent = `<svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+                } else if (isActive) {
+                    rowBg = "bg-slate-800/40 rounded-xl relative z-10 scale-[1.01] sm:scale-[1.02] shadow-[0_0_20px_rgba(245,158,11,0.1)] border border-amber-500/50";
+                    borderClass = ""; // Handled by rowBg
                     badgeBg = "bg-amber-500 text-slate-900 font-bold border-amber-400";
-                    textClass = "text-amber-500 font-bold";
-                    numColor = "text-amber-500";
+                    titleClass = "text-amber-500 font-bold";
                     btnClass = "bg-amber-500/20 text-amber-500 border-amber-500/30 hover:bg-amber-500/30";
+                } else {
+                    // Future State
+                    if (step.pct === 1.0) {
+                        titleClass = "text-emerald-400 font-bold";
+                        numColor = "text-emerald-400";
+                        badgeBg = "bg-slate-800 text-emerald-400 border-emerald-500/30";
+                    }
                 }
 
-                let restLabel = step.restSec === 0 ? "—" : (step.restSec >= 60 ? `${step.restSec/60}M` : `${step.restSec}S`);
+                let restLabel = step.restSec === 0 ? "—" : (step.restSec >= 60 && step.restSec % 60 === 0 ? `${step.restSec/60}M` : `${step.restSec}S`);
                 
                 let timerButton = step.restSec > 0 ? 
                     `<button onclick="startTimer(${step.restSec})" class="w-full h-8 sm:h-10 rounded-lg flex items-center justify-center gap-1 transition-all border text-[10px] sm:text-xs font-bold uppercase tracking-widest ${btnClass}">
@@ -344,15 +385,19 @@
                     </div>`;
 
                 const row = document.createElement('div');
-                row.className = `flex items-center px-3 sm:px-5 py-4 sm:py-5 border-b transition-colors ${borderBottom} ${rowBg}`;
+                row.className = `flex items-center px-3 sm:px-5 py-4 sm:py-5 transition-all duration-300 ${borderClass} ${rowBg} ${opacityClass} ${cursor}`;
+                row.onclick = (e) => {
+                    if (e.target.closest('button')) return; // Ignore clicks on the timer
+                    setActiveStep(index);
+                };
                 
                 row.innerHTML = `
                     <div class="w-8 sm:w-10 text-center flex justify-center">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-[10px] sm:text-xs border ${badgeBg}">${index + 1}</div>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-[10px] sm:text-xs border ${badgeBg}">${badgeContent}</div>
                     </div>
                     
                     <div class="flex-1 pl-2 sm:pl-3 flex flex-col justify-center">
-                        <span class="text-sm sm:text-base leading-tight whitespace-nowrap tracking-tight font-bold ${textClass}">${step.title}</span>
+                        <span class="text-sm sm:text-base leading-tight whitespace-nowrap tracking-tight font-bold ${titleClass}">${step.title}</span>
                     </div>
                     
                     <div class="w-14 sm:w-24 flex justify-center items-center">
@@ -396,10 +441,8 @@
             data.forEach((row, index) => {
                 let load = roundTo(oneRM * (row.pct / 100), rounding);
                 
-                const tr = document.createElement('tr');
-                
-                // Added zebra-striping logic based on the index
                 const rowBg = index % 2 === 0 ? "bg-slate-800/20" : "bg-transparent";
+                const tr = document.createElement('tr');
                 tr.className = `hover:bg-slate-800/40 transition-colors ${rowBg}`;
                 
                 let zoneHtml = '';
