@@ -6,11 +6,12 @@
     <title>Pro Loop Timer</title>
     <style>
         :root {
-            --bg-work: #FF6B6B;      /* Red: Work */
-            --bg-rest: #4ECDC4;      /* Teal: Rest */
-            --bg-warmup: #F7B731;    /* Yellow: Warmup */
-            --bg-done: #6AB04C;      /* Green: Finished */
-            --bg-idle: #2C3E50;      /* Dark Blue: Setup */
+            --bg-work: #FF6B6B;
+            --bg-rest: #4ECDC4;
+            --bg-warmup: #F7B731;
+            --bg-done: #6AB04C;
+            --bg-idle: #2C3E50;
+            --bg-paused: #8395a7;
             --text-color: #ffffff;
             --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
@@ -29,16 +30,23 @@
             align-items: center;
             justify-content: center;
             transition: background-color 0.4s ease;
+            overflow-x: hidden;
         }
 
         /* --- THE DISPLAY --- */
         #timer-display {
-            font-size: 18vw;
-            font-weight: 700;
+            font-size: 20vw;
+            font-weight: 800;
             font-variant-numeric: tabular-nums;
             line-height: 1;
             text-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin: 10px 0;
+            margin: 5px 0;
+            transition: transform 0.1s;
+        }
+
+        .countdown-pulse {
+            transform: scale(1.1);
+            color: #fff3cd;
         }
 
         #status-label {
@@ -46,18 +54,47 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 5px;
+            margin-bottom: 0px;
             text-align: center;
         }
 
+        /* Upgraded for Mobile Clarity */
         #loop-counter {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-bottom: 20px;
-            font-weight: 500;
+            font-size: 6vw; 
+            font-weight: 700;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
         }
 
-        /* --- THE CONTROLS (Hidden when running) --- */
+        /* --- PRESETS --- */
+        .preset-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .preset-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .preset-btn:active { background: rgba(255,255,255,0.4); }
+
+        /* --- THE CONTROLS --- */
         .controls-container {
             width: 100%;
             max-width: 380px;
@@ -65,15 +102,18 @@
             padding: 20px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
+            max-height: 600px;
+            overflow: hidden;
         }
 
         .controls-container.hidden {
             opacity: 0;
             pointer-events: none;
             transform: scale(0.95);
-            position: absolute;
-            z-index: -1;
+            max-height: 0;
+            padding: 0;
+            margin: 0;
         }
 
         .section-title {
@@ -84,12 +124,13 @@
             margin-bottom: 8px;
             border-bottom: 1px solid rgba(255,255,255,0.2);
             padding-bottom: 4px;
+            margin-top: 10px;
         }
 
         .time-row {
             display: flex;
             gap: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .input-wrapper {
@@ -107,7 +148,7 @@
 
         input[type="number"] {
             width: 100%;
-            padding: 12px 5px;
+            padding: 10px 5px;
             border: none;
             border-radius: 8px;
             font-size: 1.2rem;
@@ -122,8 +163,17 @@
             outline: none;
         }
 
-        /* The Big Button */
-        #action-btn {
+        /* --- ACTION BUTTONS --- */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 380px;
+            margin-top: 20px;
+        }
+
+        .btn-main {
+            flex: 2;
             background-color: white;
             color: var(--bg-idle);
             border: none;
@@ -134,41 +184,64 @@
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 300px;
-            margin-top: 25px;
-            transition: transform 0.1s;
+            transition: transform 0.1s, background-color 0.2s;
         }
-        #action-btn:active { transform: scale(0.96); }
+        .btn-main:active { transform: scale(0.96); }
 
-        body.running #action-btn {
+        .btn-secondary {
+            flex: 1;
             background-color: transparent;
             color: white;
             border: 2px solid rgba(255,255,255,0.6);
-            margin-top: 0; /* Move up when controls vanish */
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            display: none; /* Hidden until running */
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.running .btn-secondary { display: flex; }
+        body.paused .btn-main { background-color: #f1c40f; color: #000; }
+
+        /* Hide specific elements dynamically */
+        body.running .preset-container { display: none; }
+        body.running .btn-main { 
+            background-color: transparent; 
+            color: white; 
+            border: 2px solid white; 
+            box-shadow: none;
         }
 
     </style>
 </head>
 <body>
 
-    <div id="status-label">SETUP</div>
-    <div id="loop-counter">&nbsp;</div>
+    <div class="preset-container" id="presets">
+        <button class="preset-btn" onclick="applyPreset(4,0,3,0,4)">4x4 VO2 Max</button>
+        <button class="preset-btn" onclick="applyPreset(0,30,1,0,10)">30s/60s Sprints</button>
+        <button class="preset-btn" onclick="applyPreset(25,0,5,0,4)">25/5 Focus</button>
+        <button class="preset-btn" onclick="applyPreset(50,0,10,0,2)">50/10 Focus</button>
+        <button class="preset-btn" onclick="applyPreset(45,0,15,0,2)">45/15 Focus</button>
+    </div>
+
+    <div id="status-label">TOTAL TIME</div>
+    <div id="loop-counter">Configure Timer</div>
     <div id="timer-display">00:00:00</div>
 
     <div class="controls-container" id="settings">
         
         <div class="section-title">Work Duration</div>
         <div class="time-row">
-            <div class="input-wrapper"><label>Hrs</label><input type="number" id="w-h" placeholder="0"></div>
-            <div class="input-wrapper"><label>Min</label><input type="number" id="w-m" placeholder="0"></div>
+            <div class="input-wrapper"><label>Min</label><input type="number" id="w-m" value="0"></div>
             <div class="input-wrapper"><label>Sec</label><input type="number" id="w-s" value="30"></div>
         </div>
 
         <div class="section-title">Rest Duration</div>
         <div class="time-row">
-            <div class="input-wrapper"><label>Hrs</label><input type="number" id="r-h" placeholder="0"></div>
-            <div class="input-wrapper"><label>Min</label><input type="number" id="r-m" placeholder="0"></div>
+            <div class="input-wrapper"><label>Min</label><input type="number" id="r-m" value="0"></div>
             <div class="input-wrapper"><label>Sec</label><input type="number" id="r-s" value="10"></div>
         </div>
 
@@ -178,63 +251,99 @@
                 <input type="number" id="warmup-input" value="5">
             </div>
             <div class="input-wrapper" style="flex: 1.5;">
-                <label>Loops (0=∞)</label>
-                <input type="number" id="loops-input" placeholder="∞">
+                <label>Rounds (0=∞)</label>
+                <input type="number" id="loops-input" value="4">
             </div>
         </div>
     </div>
 
-    <button id="action-btn">START TIMER</button>
+    <div class="action-row">
+        <button class="btn-secondary" id="btn-skip-back">⏮</button>
+        <button class="btn-main" id="action-btn">START</button>
+        <button class="btn-secondary" id="btn-skip-fwd">⏭</button>
+    </div>
+    <button class="btn-secondary" id="btn-stop" style="width: 100%; max-width: 380px; margin-top: 10px; border-color: #ff6b6b; color: #ff6b6b;">STOP WORKOUT</button>
 
     <script>
-        // --- LOGIC ---
+        // --- STATE ---
         let timerInterval = null;
         let state = 'IDLE'; // IDLE, WARMUP, WORK, REST, FINISHED
+        let isPaused = false;
         let timeLeft = 0;
         let currentLoop = 1;
-        let totalLoops = 0; // 0 means infinite
+        let totalLoops = 0; 
 
         // DOM Elements
         const display = document.getElementById('timer-display');
         const statusLabel = document.getElementById('status-label');
         const loopDisplay = document.getElementById('loop-counter');
-        const btn = document.getElementById('action-btn');
+        const btnMain = document.getElementById('action-btn');
+        const btnStop = document.getElementById('btn-stop');
+        const btnSkipFwd = document.getElementById('btn-skip-fwd');
+        const btnSkipBack = document.getElementById('btn-skip-back');
         const settings = document.getElementById('settings');
         const body = document.body;
+        const inputs = document.querySelectorAll('input');
 
         // Audio Context
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+        // --- HELPERS ---
         function getSeconds(prefix) {
-            const h = parseInt(document.getElementById(prefix + '-h').value) || 0;
             const m = parseInt(document.getElementById(prefix + '-m').value) || 0;
             const s = parseInt(document.getElementById(prefix + '-s').value) || 0;
-            return (h * 3600) + (m * 60) + s;
+            return (m * 60) + s;
         }
 
         function formatTime(totalSeconds) {
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = totalSeconds % 60;
-
-            if (h > 0) {
-                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            }
+            if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
+        // --- DYNAMIC TOTAL TIME ---
+        function calculateTotalIdleTime() {
+            if (state !== 'IDLE') return;
+            const w = getSeconds('w');
+            const r = getSeconds('r');
+            const loops = parseInt(document.getElementById('loops-input').value) || 0;
+            const warmup = parseInt(document.getElementById('warmup-input').value) || 0;
+
+            if (loops === 0) {
+                display.innerText = "∞";
+                statusLabel.innerText = "INFINITE LOOPS";
+            } else {
+                // Total time = warmup + (all work) + (all rest except after last work)
+                const total = warmup + (w * loops) + (r * (loops - 1));
+                display.innerText = formatTime(Math.max(0, total));
+                statusLabel.innerText = "TOTAL WORKOUT TIME";
+            }
+        }
+
+        // Update idle time when user types
+        inputs.forEach(input => input.addEventListener('input', calculateTotalIdleTime));
+
+        function applyPreset(wm, ws, rm, rs, loops) {
+            document.getElementById('w-m').value = wm;
+            document.getElementById('w-s').value = ws;
+            document.getElementById('r-m').value = rm;
+            document.getElementById('r-s').value = rs;
+            document.getElementById('loops-input').value = loops;
+            calculateTotalIdleTime();
+        }
+
+        // --- AUDIO ---
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-
             const now = audioCtx.currentTime;
 
             if (type === 'work') {
-                // High pitch double beep
                 osc.frequency.setValueAtTime(800, now);
                 osc.frequency.setValueAtTime(0, now + 0.1);
                 osc.frequency.setValueAtTime(800, now + 0.2);
@@ -242,48 +351,64 @@
                 osc.start(now);
                 osc.stop(now + 0.4);
             } else if (type === 'rest') {
-                // Lower pitch
                 osc.frequency.setValueAtTime(400, now);
                 gain.gain.setValueAtTime(0.5, now);
                 osc.start(now);
                 osc.stop(now + 0.3);
+            } else if (type === 'countdown') {
+                osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.3, now);
+                osc.start(now);
+                osc.stop(now + 0.1);
             } else if (type === 'finish') {
-                // Happy chord
-                osc.frequency.setValueAtTime(523.25, now); // C
-                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); // E
+                osc.frequency.setValueAtTime(523.25, now); 
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); 
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
                 osc.start(now);
                 osc.stop(now + 1);
             }
-
-            if (navigator.vibrate) navigator.vibrate(type === 'work' ? [100, 50, 100] : 200);
         }
 
+        // --- CORE LOGIC ---
         function updateUI() {
-            display.innerText = formatTime(timeLeft);
+            if (state !== 'IDLE') display.innerText = formatTime(timeLeft);
             
-            let loopText = totalLoops > 0 ? `ROUND ${currentLoop} / ${totalLoops}` : `ROUND ${currentLoop}`;
+            let loopText = totalLoops > 0 ? `ROUND ${currentLoop} OF ${totalLoops}` : `ROUND ${currentLoop} (∞)`;
             
-            if (state === 'IDLE') {
-                body.style.backgroundColor = 'var(--bg-idle)';
-                statusLabel.innerText = "SETUP";
-                loopDisplay.innerText = "Set your intervals";
-            } else if (state === 'WARMUP') {
-                body.style.backgroundColor = 'var(--bg-warmup)';
-                statusLabel.innerText = "GET READY";
-                loopDisplay.innerText = "Starting in...";
-            } else if (state === 'WORK') {
-                body.style.backgroundColor = 'var(--bg-work)';
-                statusLabel.innerText = "WORK";
-                loopDisplay.innerText = loopText;
-            } else if (state === 'REST') {
-                body.style.backgroundColor = 'var(--bg-rest)';
-                statusLabel.innerText = "REST";
-                loopDisplay.innerText = loopText;
-            } else if (state === 'FINISHED') {
-                body.style.backgroundColor = 'var(--bg-done)';
-                statusLabel.innerText = "DONE!";
-                loopDisplay.innerText = "Great job.";
+            if (isPaused) {
+                body.classList.add('paused');
+                statusLabel.innerText = "PAUSED";
+                btnMain.innerText = "RESUME";
+            } else {
+                body.classList.remove('paused');
+                
+                if (state === 'IDLE') {
+                    body.style.backgroundColor = 'var(--bg-idle)';
+                    loopDisplay.innerText = "Configure Timer";
+                    calculateTotalIdleTime();
+                } else if (state === 'WARMUP') {
+                    body.style.backgroundColor = 'var(--bg-warmup)';
+                    statusLabel.innerText = "GET READY";
+                    loopDisplay.innerText = "Starting in...";
+                    btnMain.innerText = "PAUSE";
+                } else if (state === 'WORK') {
+                    body.style.backgroundColor = 'var(--bg-work)';
+                    statusLabel.innerText = "WORK";
+                    loopDisplay.innerText = loopText;
+                    btnMain.innerText = "PAUSE";
+                } else if (state === 'REST') {
+                    body.style.backgroundColor = 'var(--bg-rest)';
+                    statusLabel.innerText = "REST";
+                    loopDisplay.innerText = loopText;
+                    btnMain.innerText = "PAUSE";
+                } else if (state === 'FINISHED') {
+                    body.style.backgroundColor = 'var(--bg-done)';
+                    statusLabel.innerText = "DONE!";
+                    loopDisplay.innerText = "Workout Complete";
+                    display.innerText = "00:00";
+                    btnMain.innerText = "NEW TIMER";
+                    btnStop.style.display = 'none';
+                }
             }
         }
 
@@ -293,20 +418,16 @@
                 timeLeft = getSeconds('w');
                 playSound('work');
             } else if (state === 'WORK') {
-                // Check if we are done with loops
                 if (totalLoops > 0 && currentLoop >= totalLoops && getSeconds('r') === 0) {
                      finish();
                      return;
                 }
-                
-                // Go to rest
                 const restTime = getSeconds('r');
                 if (restTime > 0) {
                     state = 'REST';
                     timeLeft = restTime;
                     playSound('rest');
                 } else {
-                    // No rest time set? Go straight to next loop or finish
                     nextLoop();
                 }
             } else if (state === 'REST') {
@@ -331,14 +452,23 @@
             state = 'FINISHED';
             clearInterval(timerInterval);
             playSound('finish');
-            btn.innerText = "RESET";
             body.classList.remove('running');
             updateUI();
         }
 
         function tick() {
+            if (isPaused) return;
+
             if (timeLeft > 0) {
                 timeLeft--;
+                
+                // 3-2-1 Countdown Logic
+                if (timeLeft <= 3 && timeLeft > 0) {
+                    playSound('countdown');
+                    display.classList.add('countdown-pulse');
+                    setTimeout(() => display.classList.remove('countdown-pulse'), 200);
+                }
+
                 updateUI();
             } else {
                 switchPhase();
@@ -348,26 +478,26 @@
         function stop() {
             clearInterval(timerInterval);
             state = 'IDLE';
+            isPaused = false;
             body.classList.remove('running');
             settings.classList.remove('hidden');
-            btn.innerText = "START TIMER";
+            btnMain.innerText = "START";
+            btnStop.style.display = 'none';
             updateUI();
         }
 
         function start() {
-            // Validation
             const workSecs = getSeconds('w');
             if (workSecs === 0) return alert("Please set a Work time.");
 
-            // Init values
             totalLoops = parseInt(document.getElementById('loops-input').value) || 0;
             const warmupSecs = parseInt(document.getElementById('warmup-input').value) || 0;
             currentLoop = 1;
+            isPaused = false;
 
-            // Start Logic
             body.classList.add('running');
             settings.classList.add('hidden');
-            btn.innerText = "STOP";
+            btnStop.style.display = 'flex';
 
             if (warmupSecs > 0) {
                 state = 'WARMUP';
@@ -382,13 +512,42 @@
             timerInterval = setInterval(tick, 1000);
         }
 
-        btn.addEventListener('click', () => {
-            if (state === 'IDLE' || state === 'FINISHED') {
+        // --- EVENT LISTENERS ---
+        btnMain.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if (state === 'IDLE') {
                 start();
+            } else if (state === 'FINISHED') {
+                stop(); // Reset to idle
             } else {
-                stop();
+                // Toggle Pause
+                isPaused = !isPaused;
+                updateUI();
             }
         });
+
+        btnStop.addEventListener('click', stop);
+
+        btnSkipFwd.addEventListener('click', () => {
+            if(state !== 'FINISHED' && state !== 'IDLE') {
+                timeLeft = 0; // Force immediate phase switch
+                tick();
+            }
+        });
+
+        btnSkipBack.addEventListener('click', () => {
+            if(state !== 'FINISHED' && state !== 'IDLE') {
+                // Simple rollback: reset current phase timer
+                if (state === 'WORK') timeLeft = getSeconds('w');
+                if (state === 'REST') timeLeft = getSeconds('r');
+                if (state === 'WARMUP') timeLeft = parseInt(document.getElementById('warmup-input').value) || 0;
+                updateUI();
+            }
+        });
+
+        // Init
+        calculateTotalIdleTime();
 
     </script>
 </body>
