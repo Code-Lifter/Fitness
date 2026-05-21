@@ -72,27 +72,42 @@
         /* --- PRESETS --- */
         .preset-container {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
             justify-content: center;
             margin-bottom: 20px;
             width: 100%;
             max-width: 380px;
         }
 
-        .preset-btn {
-            background: rgba(255,255,255,0.15);
+        .preset-dropdown {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            outline: none;
+            backdrop-filter: blur(10px);
+            appearance: none;
+            text-align: center;
+            /* Custom dropdown arrow */
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem top 50%;
+            background-size: 0.65rem auto;
         }
 
-        .preset-btn:active { background: rgba(255,255,255,0.4); }
+        .preset-dropdown:focus {
+            background-color: rgba(255,255,255,0.15);
+        }
+
+        .preset-dropdown option, .preset-dropdown optgroup {
+            background-color: var(--bg-idle);
+            color: white;
+            font-weight: 600;
+        }
 
         /* --- THE CONTROLS --- */
         .controls-container {
@@ -220,11 +235,24 @@
 <body>
 
     <div class="preset-container" id="presets">
-        <button class="preset-btn" onclick="applyPreset(4,0,3,0,4)">4x4 VO2 Max</button>
-        <button class="preset-btn" onclick="applyPreset(0,30,1,0,10)">30s/60s Sprints</button>
-        <button class="preset-btn" onclick="applyPreset(25,0,5,0,4)">25/5 Focus</button>
-        <button class="preset-btn" onclick="applyPreset(50,0,10,0,2)">50/10 Focus</button>
-        <button class="preset-btn" onclick="applyPreset(45,0,15,0,2)">45/15 Focus</button>
+        <select id="preset-selector" class="preset-dropdown">
+            <option value="" disabled selected>Load a popular timer...</option>
+            
+            <optgroup label="Productivity & Study">
+                <!-- Value format: WorkMin, WorkSec, RestMin, RestSec, Loops -->
+                <option value="25,0,5,0,4">Pomodoro (25m / 5m) x 4</option>
+                <option value="50,0,10,0,2">Deep Work (50m / 10m) x 2</option>
+                <option value="45,0,15,0,4">Focus Block (45m / 15m) x 4</option>
+            </optgroup>
+
+            <optgroup label="Fitness & HIIT">
+                <option value="0,20,0,10,8">Tabata (20s / 10s) x 8</option>
+                <option value="0,30,0,30,10">HIIT Sprints (30s / 30s) x 10</option>
+                <option value="0,45,0,15,10">EMOM-style (45s / 15s) x 10</option>
+                <option value="3,0,1,0,12">Boxing Rounds (3m / 1m) x 12</option>
+                <option value="4,0,3,0,4">4x4 VO2 Max (4m / 3m) x 4</option>
+            </optgroup>
+        </select>
     </div>
 
     <div id="status-label">TOTAL TIME</div>
@@ -284,6 +312,7 @@
         const settings = document.getElementById('settings');
         const body = document.body;
         const inputs = document.querySelectorAll('input');
+        const presetSelector = document.getElementById('preset-selector');
 
         // Audio Context
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -324,6 +353,15 @@
 
         // Update idle time when user types
         inputs.forEach(input => input.addEventListener('input', calculateTotalIdleTime));
+
+        // Handle Dropdown Presets
+        presetSelector.addEventListener('change', function(e) {
+            if (e.target.value) {
+                // Split the comma separated string back into numbers
+                const values = e.target.value.split(',').map(Number);
+                applyPreset(values[0], values[1], values[2], values[3], values[4]);
+            }
+        });
 
         function applyPreset(wm, ws, rm, rs, loops) {
             document.getElementById('w-m').value = wm;
@@ -483,6 +521,8 @@
             settings.classList.remove('hidden');
             btnMain.innerText = "START";
             btnStop.style.display = 'none';
+            // Reset dropdown to default visually
+            presetSelector.value = "";
             updateUI();
         }
 
