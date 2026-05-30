@@ -443,10 +443,10 @@
         const restMult = muscleType === 'isolation' ? 0.5 : 1;
 
         const steps = [
-            { title: "Activation", pct: 0.20, reps: "15", restSec: Math.round(0 * restMult) },
-            { title: "Patterning", pct: 0.50, reps: "5", restSec: Math.round(60 * restMult) },
-            { title: "Acclimation", pct: 0.70, reps: "3", restSec: Math.round(120 * restMult) },
-            { title: "Primer", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: Math.round(180 * restMult) },
+            { title: "Warm up 1", pct: 0.20, reps: "15", restSec: Math.round(0 * restMult) },
+            { title: "Warm up 2", pct: 0.50, reps: "5", restSec: Math.round(60 * restMult) },
+            { title: "Warm up 3", pct: 0.70, reps: "3", restSec: Math.round(120 * restMult) },
+            { title: "Warm up 4", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: Math.round(180 * restMult) },
             { title: `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: Math.round(240 * restMult) }
         ];
 
