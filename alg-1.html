@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Session Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles to ensure inputs fill their table cells neatly */
+        input {
+            width: 100%;
+            height: 100%;
+            padding: 0.5rem;
+            background: transparent;
+            outline: none;
+        }
+        input:focus {
+            background: #eef2ff;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #374151; /* Tailwind gray-700 */
+        }
+        th {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        .header-bg {
+            background-color: #bfdbfe; /* Tailwind blue-200 */
+        }
+        /* Specific styling for calculator inputs to stand out from table inputs */
+        .calc-input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            background: #fff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white shadow-lg p-6 rounded-lg">
+        
+        <!-- Top Navigation / Controls -->
+        <div class="flex justify-between items-center mb-6">
+            <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
+                &larr; Home
+            </a>
+            <h1 class="text-2xl font-bold text-center hidden sm:block">Session Plan</h1>
+            <button id="resetBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded shadow">
+                Reset Data
+            </button>
+        </div>
+
+        <!-- Session Info Table -->
+        <div class="overflow-x-auto mb-6">
+            <table class="w-full text-sm sm:text-base border-2 border-gray-800">
+                <tbody>
+                    <tr>
+                        <td class="w-1/3 p-2 font-bold bg-gray-100 border-gray-800">Date of Session</td>
+                        <td class="p-0 border-gray-800"><input type="text" placeholder="YYYY-MM-DD"></td>
+                    </tr>
+                    <tr>
+                        <td class="p-2 font-bold bg-gray-100 border-gray-800">Assigned Exercise Type</td>
+                        <td class="p-0 border-gray-800"><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td class="p-2 font-bold bg-gray-100 border-gray-800">Session Frequency</td>
+                        <td class="p-0 border-gray-800"><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td class="p-2 font-bold bg-gray-100 border-gray-800">Session Duration</td>
+                        <td class="p-0 border-gray-800"><input type="text"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Calculators Section (BMI & Karvonen) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-sm sm:text-base">
+            <!-- BMI Calculator -->
+            <div class="border-2 border-gray-800 p-4 bg-gray-50 rounded">
+                <h2 class="font-bold text-lg mb-4 text-gray-800 border-b-2 border-gray-300 pb-1">BMI Calculator</h2>
+                <div class="grid grid-cols-2 gap-4 items-center">
+                    <label class="font-semibold">Height (cm):</label>
+                    <input type="number" id="calc-height" class="calc-input" placeholder="e.g. 175">
+                    
+                    <label class="font-semibold">Weight (kg):</label>
+                    <input type="number" id="calc-weight" class="calc-input" placeholder="e.g. 70">
+                    
+                    <label class="font-bold mt-2">Estimated BMI:</label>
+                    <div id="calc-bmi-out" class="font-bold text-blue-700 mt-2 text-lg">-</div>
+                </div>
+            </div>
+
+            <!-- Karvonen Heart Rate Calculator -->
+            <div class="border-2 border-gray-800 p-4 bg-gray-50 rounded">
+                <h2 class="font-bold text-lg mb-4 text-gray-800 border-b-2 border-gray-300 pb-1">Karvonen Target HR</h2>
+                <div class="grid grid-cols-2 gap-4 items-center">
+                    <label class="font-semibold">Age (Years):</label>
+                    <input type="number" id="calc-age" class="calc-input" placeholder="e.g. 30">
+                    
+                    <label class="font-semibold">Resting HR (bpm):</label>
+                    <input type="number" id="calc-rhr" class="calc-input" placeholder="e.g. 60">
+                    
+                    <label class="font-semibold">Target Intensity (%):</label>
+                    <input type="number" id="calc-intensity" class="calc-input" placeholder="e.g. 70">
+
+                    <label class="font-bold mt-2">Target Heart Rate:</label>
+                    <div id="calc-hr-out" class="font-bold text-blue-700 mt-2 text-lg">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercise Tables Container -->
+        <div id="exercise-tables" class="overflow-x-auto border-2 border-gray-800">
+            <table class="w-full text-center text-sm">
+                <!-- WARM UP SECTION -->
+                <thead>
+                    <tr>
+                        <th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Warm Up</th>
+                    </tr>
+                    <tr>
+                        <th rowspan="2" class="p-2 w-48">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2 w-24">Tempo</th>
+                        <th rowspan="2" class="p-2 w-24">Duration<br>(Rest in sec)</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                        <th rowspan="2" class="p-2 w-24 text-blue-700">Total Time<br>(Auto)</th>
+                    </tr>
+                    <tr>
+                        <th class="p-2 w-16">Sets</th>
+                        <th class="p-2 w-16">Reps</th>
+                    </tr>
+                </thead>
+                <tbody class="warmup-body">
+                    <!-- Javascript will inject rows here -->
+                </tbody>
+                <!-- WARM UP TOTAL -->
+                <tfoot>
+                    <tr class="bg-gray-100">
+                        <td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-b-2">Warm Up Total:</td>
+                        <td id="warmup-total" class="font-bold p-2 text-blue-800 border-gray-800 border-b-2">-</td>
+                    </tr>
+                </tfoot>
+
+                <!-- CONDITIONING SECTION -->
+                <thead>
+                    <tr>
+                        <th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-t-2 border-b-2">Conditioning</th>
+                    </tr>
+                    <tr>
+                        <th rowspan="2" class="p-2">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2">Tempo</th>
+                        <th rowspan="2" class="p-2">Duration</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2">Rest Period<br>(sec)</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                        <th rowspan="2" class="p-2 text-blue-700 hidden">Total Time</th> 
+                    </tr>
+                    <tr>
+                        <th class="p-2">Sets</th>
+                        <th class="p-2">Reps</th>
+                    </tr>
+                </thead>
+                <thead class="hidden" id="cond-real-headers">
+                    <tr>
+                        <th rowspan="2" class="p-2">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2">Tempo</th>
+                        <th rowspan="2" class="p-2">Duration</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2">Rest Period (sec)</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                        <th rowspan="2" class="p-2 text-blue-700">Total Time</th>
+                    </tr>
+                    <tr>
+                        <th>Sets</th>
+                        <th>Reps</th>
+                    </tr>
+                </thead>
+                <tbody class="conditioning-body">
+                    <!-- Javascript will inject rows here -->
+                </tbody>
+                <!-- CONDITIONING TOTAL -->
+                <tfoot>
+                    <tr class="bg-gray-100">
+                        <td colspan="8" class="text-right font-bold p-2 uppercase border-gray-800 border-b-2">Conditioning Total:</td>
+                        <td id="conditioning-total" class="font-bold p-2 text-blue-800 border-gray-800 border-b-2">-</td>
+                    </tr>
+                </tfoot>
+
+                <!-- COOL DOWN SECTION -->
+                <thead>
+                    <tr>
+                        <th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-t-2 border-b-2">Cool Down</th>
+                    </tr>
+                    <tr>
+                        <th rowspan="2" class="p-2">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2">Tempo</th>
+                        <th rowspan="2" class="p-2">Duration<br>(Rest in sec)</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                        <th rowspan="2" class="p-2 text-blue-700">Total Time<br>(Auto)</th>
+                    </tr>
+                    <tr>
+                        <th class="p-2">Sets</th>
+                        <th class="p-2">Reps</th>
+                    </tr>
+                </thead>
+                <tbody class="cooldown-body">
+                    <!-- Javascript will inject rows here -->
+                </tbody>
+                <!-- COOL DOWN TOTAL -->
+                <tfoot>
+                    <tr class="bg-gray-100">
+                        <td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800">Cool Down Total:</td>
+                        <td id="cooldown-total" class="font-bold p-2 text-blue-800 border-gray-800">-</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="mt-4 text-center text-gray-400 font-semibold uppercase text-sm">
+            END OF EXERCISE SESSION PLANS – CLIENT 2
+        </div>
+    </div>
+
+    <script>
+        // Number of empty rows to generate per section
+        const ROWS_PER_SECTION = 5;
+
+        // Row template for Warm Up & Cool Down (7 manual columns + 1 auto column)
+        const standardRow = `
+            <tr class="calc-row h-10">
+                <td class="p-0"><input type="text" placeholder="Exercise"></td>
+                <td class="p-0"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
+                <td class="p-0"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
+                <td class="p-0"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
+                <td class="p-0"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
+                <td class="p-0"><input type="text" class="text-center"></td>
+                <td class="p-0"><input type="text"></td>
+                <td class="p-2 bg-blue-50 font-semibold text-blue-800 output-time">-</td>
+            </tr>
+        `;
+
+        // Row template for Conditioning (Includes Rest Period specifically + 1 auto column)
+        const conditioningRow = `
+            <tr class="calc-row h-10">
+                <td class="p-0"><input type="text" placeholder="Exercise"></td>
+                <td class="p-0"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
+                <td class="p-0"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
+                <td class="p-0"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
+                <td class="p-0"><input type="text" class="text-center" placeholder="Time"></td>
+                <td class="p-0"><input type="text" class="text-center"></td>
+                <td class="p-0"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
+                <td class="p-0"><input type="text"></td>
+                <td class="p-2 bg-blue-50 font-semibold text-blue-800 output-time">-</td>
+            </tr>
+        `;
+
+        // Inject rows into the table bodies
+        document.querySelector('.warmup-body').innerHTML = standardRow.repeat(ROWS_PER_SECTION);
+        
+        // Fix Conditioning Table headers using Javascript to replace the default span layout cleanly
+        const condHeaders = document.getElementById('cond-real-headers').innerHTML;
+        document.querySelector('.conditioning-body').insertAdjacentHTML('beforebegin', `<thead>${condHeaders}</thead>`);
+        document.querySelector('.conditioning-body').innerHTML = conditioningRow.repeat(ROWS_PER_SECTION);
+        
+        document.querySelector('.cooldown-body').innerHTML = standardRow.repeat(ROWS_PER_SECTION);
+
+        // Utility: Assign unique IDs to all inputs so they can be saved in LocalStorage
+        const allInputs = document.querySelectorAll('input');
+        allInputs.forEach((input, index) => {
+            if (!input.id) input.id = 'plan_input_' + index;
+        });
+
+        // Helper: Format seconds to 'Xm Ys'
+        function formatTime(totalSeconds) {
+            if (totalSeconds <= 0) return "-";
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        }
+
+        // Feature: Auto-calculate exercise duration and Table Totals
+        function calculateTimes() {
+            let warmupSecs = 0;
+            let condSecs = 0;
+            let coolSecs = 0;
+
+            document.querySelectorAll('.calc-row').forEach(row => {
+                const sets = parseFloat(row.querySelector('.input-sets')?.value) || 0;
+                const reps = parseFloat(row.querySelector('.input-reps')?.value) || 0;
+                const tempoInput = row.querySelector('.input-tempo')?.value || "";
+                const rest = parseFloat(row.querySelector('.input-rest')?.value) || 0;
+                const output = row.querySelector('.output-time');
+
+                if (output) {
+                    const tempoMatches = tempoInput.match(/\d+(\.\d+)?/g);
+                    let tempoSum = 0;
+                    if (tempoMatches) {
+                        tempoSum = tempoMatches.reduce((sum, val) => sum + parseFloat(val), 0);
+                    }
+
+                    let rowSecs = 0;
+                    if (sets > 0 && reps > 0) {
+                        rowSecs = ((tempoSum * reps) + rest) * sets;
+                    }
+                    
+                    output.textContent = formatTime(rowSecs);
+
+                    // Add to appropriate section total
+                    if (row.closest('.warmup-body')) warmupSecs += rowSecs;
+                    else if (row.closest('.conditioning-body')) condSecs += rowSecs;
+                    else if (row.closest('.cooldown-body')) coolSecs += rowSecs;
+                }
+            });
+
+            // Update UI Totals
+            document.getElementById('warmup-total').textContent = formatTime(warmupSecs);
+            document.getElementById('conditioning-total').textContent = formatTime(condSecs);
+            document.getElementById('cooldown-total').textContent = formatTime(coolSecs);
+        }
+
+        // Feature: Calculate BMI & Karvonen metrics
+        function updateCalculators() {
+            // BMI
+            const height = parseFloat(document.getElementById('calc-height').value);
+            const weight = parseFloat(document.getElementById('calc-weight').value);
+            const bmiOut = document.getElementById('calc-bmi-out');
+            
+            if (height > 0 && weight > 0) {
+                const heightMeters = height / 100;
+                const bmi = (weight / (heightMeters * heightMeters)).toFixed(1);
+                
+                let category = "";
+                if(bmi < 18.5) category = "(Underweight)";
+                else if(bmi < 25) category = "(Normal)";
+                else if(bmi < 30) category = "(Overweight)";
+                else category = "(Obese)";
+                
+                bmiOut.textContent = `${bmi} ${category}`;
+            } else {
+                bmiOut.textContent = "-";
+            }
+
+            // Karvonen Heart Rate
+            const age = parseFloat(document.getElementById('calc-age').value);
+            const rhr = parseFloat(document.getElementById('calc-rhr').value);
+            const intensity = parseFloat(document.getElementById('calc-intensity').value);
+            const hrOut = document.getElementById('calc-hr-out');
+
+            if (age > 0 && rhr > 0 && intensity > 0) {
+                const maxHr = 220 - age;
+                const hrr = maxHr - rhr;
+                const targetHr = (hrr * (intensity / 100)) + rhr;
+                hrOut.textContent = Math.round(targetHr) + " bpm";
+            } else {
+                hrOut.textContent = "-";
+            }
+        }
+
+        // Feature: Load from LocalStorage and Event Listeners for Saving
+        function initStorage() {
+            allInputs.forEach(input => {
+                // Load existing data
+                const savedValue = localStorage.getItem(input.id);
+                if (savedValue !== null) {
+                    input.value = savedValue;
+                }
+
+                // Save data on change and trigger calculations
+                input.addEventListener('input', () => {
+                    localStorage.setItem(input.id, input.value);
+                    calculateTimes();
+                    updateCalculators();
+                });
+            });
+            // Initial calculation run
+            calculateTimes();
+            updateCalculators();
+        }
+
+        // Feature: Reset Button
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm("Are you sure you want to clear all data? This cannot be undone.")) {
+                localStorage.clear();
+                allInputs.forEach(input => input.value = '');
+                calculateTimes(); 
+                updateCalculators();
+            }
+        });
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', initStorage);
+    </script>
+</body>
+</html>
