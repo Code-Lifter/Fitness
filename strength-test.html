@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strength Standards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { -webkit-font-smoothing: antialiased; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans leading-relaxed">
+
+    <!-- Non-fixed Home Button -->
+    <div class="max-w-4xl mx-auto px-4 pt-6">
+        <a href="/" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            Home
+        </a>
+    </div>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        
+        <header class="mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">What Are Strength Standards?</h1>
+            <p class="text-lg text-gray-600">Strength standards are benchmarks that help you understand where your lifting numbers fall compared to the general lifting population. They answer the question everyone asks: <strong>"How strong should I be?"</strong></p>
+        </header>
+
+        <!-- Interactive Calculator Module -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-12">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 mb-1">Personalize Your Standards</h2>
+                    <p class="text-sm text-gray-500">Enter your details. We'll highlight your current level in the tables.</p>
+                </div>
+                <button id="reset-btn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors w-full sm:w-auto">
+                    Reset All
+                </button>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-8 mb-6 border-b border-gray-100 pb-6">
+                <!-- Gender Toggle -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-900 mb-3">Gender</label>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-bold text-gray-900 transition-colors duration-200" id="label-male">Male</span>
+                        <label for="gender-toggle" class="flex items-center cursor-pointer">
+                            <div class="relative">
+                                <input type="checkbox" id="gender-toggle" class="sr-only peer">
+                                <div class="w-12 h-6 bg-blue-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </div>
+                        </label>
+                        <span class="text-sm font-bold text-gray-400 transition-colors duration-200" id="label-female">Female</span>
+                    </div>
+                </div>
+
+                <!-- Bodyweight Input -->
+                <div class="w-full sm:w-1/3">
+                    <label for="bw-input" class="block text-sm font-bold text-gray-900 mb-2">Bodyweight (kg)</label>
+                    <input type="number" id="bw-input" placeholder="e.g. 80" class="w-full border-gray-300 border rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-bold text-gray-900 mb-3">Your 1 Rep Maxes (Optional)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Bench Press</label>
+                        <input type="number" data-lift="Bench Press" class="lift-input w-full border-gray-300 border rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="kg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Squat</label>
+                        <input type="number" data-lift="Squat" class="lift-input w-full border-gray-300 border rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="kg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Deadlift</label>
+                        <input type="number" data-lift="Deadlift" class="lift-input w-full border-gray-300 border rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="kg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Overhead Press</label>
+                        <input type="number" data-lift="Overhead Press" class="lift-input w-full border-gray-300 border rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="kg">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Tables Container -->
+        <div id="male-tables-section" class="transition-opacity duration-300">
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">Male Strength Standards</h2>
+                <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200 mb-8" id="male-standards-container"></div>
+                
+                <h3 class="text-xl font-semibold mt-6 mb-3">Male Percentiles</h3>
+                <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200 mb-8" id="male-percentiles-container"></div>
+            </section>
+        </div>
+
+        <div id="female-tables-section" class="hidden transition-opacity duration-300">
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">Female Strength Standards</h2>
+                <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200 mb-8" id="female-standards-container"></div>
+                
+                <h3 class="text-xl font-semibold mt-6 mb-3">Female Percentiles</h3>
+                <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200 mb-8" id="female-percentiles-container"></div>
+            </section>
+        </div>
+
+    </main>
+
+    <script>
+        // Data Structures
+        const standardsHeaders = ['Exercise', 'Beginner', 'Novice', 'Intermediate', 'Advanced', 'Elite'];
+        const maleStandards = [
+            ['Bench Press', 0.5, 0.75, 1.25, 1.75, 2],
+            ['Squat', 0.75, 1, 1.75, 2.25, 2.5],
+            ['Deadlift', 1, 1.25, 2, 2.5, 3],
+            ['Overhead Press', 0.35, 0.5, 0.75, 1, 1.2],
+            ['Barbell Row', 0.5, 0.75, 1, 1.4, 1.75],
+            ['Pull-ups', 0.1, 0.5, 1, 1.25, 1.5],
+            ['Front Squat', 0.6, 0.85, 1.25, 1.75, 2],
+            ['Hip Thrust', 0.75, 1.25, 1.75, 2.25, 2.75],
+            ['Leg Press', 1.5, 2, 2.5, 3.5, 4.5]
+        ];
+        
+        const femaleStandards = [
+            ['Bench Press', 0.3, 0.45, 0.75, 1.15, 1.5],
+            ['Squat', 0.5, 0.75, 1.25, 1.75, 2.25],
+            ['Deadlift', 0.65, 0.95, 1.5, 2, 2.5],
+            ['Overhead Press', 0.2, 0.3, 0.55, 0.75, 1],
+            ['Barbell Row', 0.3, 0.5, 0.7, 1, 1.3],
+            ['Pull-ups', 0.05, 0.3, 0.7, 1, 1.3],
+            ['Front Squat', 0.4, 0.55, 0.85, 1.25, 1.5],
+            ['Hip Thrust', 0.5, 0.85, 1.25, 1.75, 2.25],
+            ['Leg Press', 1, 1.5, 2, 2.75, 3.5]
+        ];
+
+        const percentileHeaders = ['Lift', '10th', '25th', '50th (median)', '75th', '90th', '99th'];
+        const malePercentiles = [
+            ['Squat', 0.65, 1, 1.5, 2, 2.35, 2.75],
+            ['Bench Press', 0.5, 0.75, 1.1, 1.5, 1.85, 2.25],
+            ['Deadlift', 0.9, 1.25, 1.75, 2.25, 2.65, 3.15],
+            ['Overhead Press', 0.3, 0.5, 0.7, 0.9, 1.1, 1.35]
+        ];
+
+        const femalePercentiles = [
+            ['Squat', 0.45, 0.7, 1.05, 1.45, 1.85, 2.3],
+            ['Bench Press', 0.3, 0.45, 0.65, 0.9, 1.2, 1.6],
+            ['Deadlift', 0.6, 0.9, 1.3, 1.7, 2.1, 2.6],
+            ['Overhead Press', 0.2, 0.3, 0.45, 0.6, 0.8, 1.05]
+        ];
+
+        // Retrieve user data from DOM inputs
+        function getUserData() {
+            const bw = parseFloat(document.getElementById('bw-input').value) || null;
+            const isFemale = document.getElementById('gender-toggle').checked;
+            const lifts = {};
+            document.querySelectorAll('.lift-input').forEach(input => {
+                const liftName = input.getAttribute('data-lift');
+                const val = parseFloat(input.value);
+                if (!isNaN(val)) {
+                    lifts[liftName] = val;
+                }
+            });
+            return { bw, lifts, isFemale };
+        }
+
+        // Table Generator with Highlighting Logic
+        function generateTableHTML(headers, data, userData) {
+            let html = `<table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-100">
+                    <tr>`;
+            
+            headers.forEach(header => {
+                html += `<th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">${header}</th>`;
+            });
+            
+            html += `</tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+            
+            data.forEach((row, index) => {
+                const exerciseName = row[0];
+                const user1RM = userData.lifts[exerciseName];
+                let userRatio = null;
+                let achievedIndex = -1;
+
+                if (userData.bw && user1RM) {
+                    userRatio = user1RM / userData.bw;
+                    for (let i = 1; i < row.length; i++) {
+                        if (userRatio >= row[i]) {
+                            achievedIndex = i;
+                        }
+                    }
+                }
+
+                html += `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors">`;
+                
+                row.forEach((cell, cellIdx) => {
+                    if (cellIdx === 0) {
+                        html += `<td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">${cell}</td>`;
+                    } else {
+                        const isHighlighted = (cellIdx === achievedIndex);
+                        const tdClasses = isHighlighted 
+                            ? 'px-4 py-3 whitespace-nowrap bg-green-100 ring-2 ring-inset ring-green-500 relative z-10' 
+                            : 'px-4 py-3 whitespace-nowrap text-gray-700';
+
+                        let displayVal = `${cell}x`;
+                        
+                        if (userData.bw) {
+                            const targetWeight = (cell * userData.bw).toFixed(1);
+                            displayVal = `
+                                <span class="${isHighlighted ? 'text-green-800 font-extrabold' : 'font-bold'}">${targetWeight}</span> 
+                                <span class="text-xs ${isHighlighted ? 'text-green-700' : 'text-gray-500'}">kg</span><br>
+                                <span class="text-xs ${isHighlighted ? 'text-green-600 font-semibold' : 'text-gray-400'}">(${cell}x)</span>
+                            `;
+                        }
+                        
+                        html += `<td class="${tdClasses}">${displayVal}</td>`;
+                    }
+                });
+                html += `</tr>`;
+            });
+            
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        // Render function
+        function renderAllTables() {
+            const userData = getUserData();
+            
+            // Generate tables (we generate all so data is ready if they flip the toggle)
+            document.getElementById('male-standards-container').innerHTML = generateTableHTML(standardsHeaders, maleStandards, userData);
+            document.getElementById('female-standards-container').innerHTML = generateTableHTML(standardsHeaders, femaleStandards, userData);
+            document.getElementById('male-percentiles-container').innerHTML = generateTableHTML(percentileHeaders, malePercentiles, userData);
+            document.getElementById('female-percentiles-container').innerHTML = generateTableHTML(percentileHeaders, femalePercentiles, userData);
+
+            // Handle Section Visibility
+            const isFemale = userData.isFemale;
+            document.getElementById('male-tables-section').classList.toggle('hidden', isFemale);
+            document.getElementById('female-tables-section').classList.toggle('hidden', !isFemale);
+
+            // Handle Toggle Label styling
+            const labelMale = document.getElementById('label-male');
+            const labelFemale = document.getElementById('label-female');
+            
+            if (isFemale) {
+                labelMale.classList.replace('text-gray-900', 'text-gray-400');
+                labelFemale.classList.replace('text-gray-400', 'text-gray-900');
+            } else {
+                labelMale.classList.replace('text-gray-400', 'text-gray-900');
+                labelFemale.classList.replace('text-gray-900', 'text-gray-400');
+            }
+        }
+
+        // Local Storage integration
+        function loadFromStorage() {
+            try {
+                const savedData = JSON.parse(localStorage.getItem('strength_app_data'));
+                if (savedData) {
+                    if (savedData.bw) document.getElementById('bw-input').value = savedData.bw;
+                    if (savedData.isFemale !== undefined) document.getElementById('gender-toggle').checked = savedData.isFemale;
+                    
+                    document.querySelectorAll('.lift-input').forEach(input => {
+                        const liftName = input.getAttribute('data-lift');
+                        if (savedData.lifts && savedData.lifts[liftName]) {
+                            input.value = savedData.lifts[liftName];
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Error parsing local storage", e);
+            }
+            renderAllTables();
+        }
+
+        function saveToStorage() {
+            const userData = getUserData();
+            localStorage.setItem('strength_app_data', JSON.stringify(userData));
+            renderAllTables();
+        }
+
+        function resetData() {
+            localStorage.removeItem('strength_app_data');
+            document.getElementById('bw-input').value = '';
+            document.getElementById('gender-toggle').checked = false;
+            document.querySelectorAll('.lift-input').forEach(input => input.value = '');
+            renderAllTables();
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            
+            document.getElementById('bw-input').addEventListener('input', saveToStorage);
+            document.getElementById('gender-toggle').addEventListener('change', saveToStorage);
+            document.querySelectorAll('.lift-input').forEach(input => {
+                input.addEventListener('input', saveToStorage);
+            });
+            
+            document.getElementById('reset-btn').addEventListener('click', resetData);
+        });
+    </script>
+</body>
+</html>
