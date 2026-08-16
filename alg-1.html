@@ -6,50 +6,83 @@
     <title>Exercise Session Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Base styles to ensure inputs fill their table cells neatly */
-        input {
+        input, select {
             width: 100%;
             height: 100%;
             padding: 0.5rem;
             background: transparent;
             outline: none;
         }
-        input:focus {
-            background: #eef2ff;
-        }
-        table {
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #374151; /* Tailwind gray-700 */
-        }
-        th {
-            background-color: #f3f4f6; /* Tailwind gray-100 */
-        }
-        .header-bg {
-            background-color: #bfdbfe; /* Tailwind blue-200 */
-        }
-        /* Specific styling for calculator inputs to stand out from table inputs */
+        input:focus, select:focus { background: #eef2ff; }
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #374151; }
+        th { background-color: #f3f4f6; }
+        .header-bg { background-color: #bfdbfe; }
         .calc-input {
-            border: 1px solid #d1d5db;
+            border: 1px solid #9ca3af;
             border-radius: 0.25rem;
             background: #fff;
+            height: 36px;
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        
+        /* Custom Gender Switch */
+        .switch-radio:checked + div {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Active Table Row Highlight */
+        .active-row {
+            background-color: #bfdbfe !important; /* Tailwind blue-200 */
+            font-weight: bold;
+            border: 2px solid #1d4ed8 !important; /* Tailwind blue-700 */
+        }
+        .active-row td { border-color: #1d4ed8; color: #1e3a8a; }
+        
+        /* Print Styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .max-w-[90rem] { box-shadow: none; max-width: 100%; padding: 0; border: none; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            html { font-size: 11px; }
+            input::placeholder { color: transparent; }
+            .border-2 { border-width: 1px !important; }
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto bg-white shadow-lg p-6 rounded-lg">
+    <div class="max-w-[90rem] mx-auto bg-white shadow-lg p-6 rounded-lg print:p-0 print:shadow-none">
         
         <!-- Top Navigation / Controls -->
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 no-print gap-4">
             <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
                 &larr; Home
             </a>
-            <h1 class="text-2xl font-bold text-center hidden sm:block">Session Plan</h1>
-            <button id="resetBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded shadow">
-                Reset Data
-            </button>
+            <h1 class="text-2xl font-bold text-center">Advanced Session Plan</h1>
+            <div class="flex flex-wrap gap-2 justify-center">
+                <!-- JSON Logic Triggers -->
+                <input type="file" id="json-upload" class="hidden" accept=".json" onchange="importJSON(event)">
+                <button onclick="document.getElementById('json-upload').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    Import JSON
+                </button>
+                <button onclick="exportJSON()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    Export JSON
+                </button>
+                <button onclick="window.print()" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded shadow">
+                    Print PDF
+                </button>
+                <button id="resetBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded shadow">
+                    Reset Data
+                </button>
+            </div>
         </div>
 
         <!-- Session Info Table -->
@@ -57,228 +90,275 @@
             <table class="w-full text-sm sm:text-base border-2 border-gray-800">
                 <tbody>
                     <tr>
-                        <td class="w-1/3 p-2 font-bold bg-gray-100 border-gray-800">Date of Session</td>
-                        <td class="p-0 border-gray-800"><input type="text" placeholder="YYYY-MM-DD"></td>
-                    </tr>
-                    <tr>
-                        <td class="p-2 font-bold bg-gray-100 border-gray-800">Assigned Exercise Type</td>
-                        <td class="p-0 border-gray-800"><input type="text"></td>
+                        <td class="w-1/4 p-2 font-bold bg-gray-100 border-gray-800">Date of Session</td>
+                        <td class="p-0 border-gray-800"><input type="text" placeholder="YYYY-MM-DD" id="session-date"></td>
+                        <td class="w-1/4 p-2 font-bold bg-gray-100 border-gray-800">Assigned Exercise Type</td>
+                        <td class="p-0 border-gray-800"><input type="text" id="session-type"></td>
                     </tr>
                     <tr>
                         <td class="p-2 font-bold bg-gray-100 border-gray-800">Session Frequency</td>
-                        <td class="p-0 border-gray-800"><input type="text"></td>
-                    </tr>
-                    <tr>
+                        <td class="p-0 border-gray-800"><input type="text" id="session-freq"></td>
                         <td class="p-2 font-bold bg-gray-100 border-gray-800">Session Duration</td>
-                        <td class="p-0 border-gray-800"><input type="text"></td>
+                        <td class="p-0 border-gray-800"><input type="text" id="session-dur"></td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Calculators Section (BMI & Karvonen) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-sm sm:text-base">
-            <!-- BMI Calculator -->
-            <div class="border-2 border-gray-800 p-4 bg-gray-50 rounded">
-                <h2 class="font-bold text-lg mb-4 text-gray-800 border-b-2 border-gray-300 pb-1">BMI Calculator</h2>
-                <div class="grid grid-cols-2 gap-4 items-center">
-                    <label class="font-semibold">Height (cm):</label>
-                    <input type="number" id="calc-height" class="calc-input" placeholder="e.g. 175">
-                    
-                    <label class="font-semibold">Weight (kg):</label>
-                    <input type="number" id="calc-weight" class="calc-input" placeholder="e.g. 70">
-                    
-                    <label class="font-bold mt-2">Estimated BMI:</label>
-                    <div id="calc-bmi-out" class="font-bold text-blue-700 mt-2 text-lg">-</div>
+        <!-- MASTER BIOMETRICS INPUT PANEL -->
+        <div class="bg-gray-100 border-2 border-gray-800 p-4 rounded-lg mb-6 shadow-inner">
+            <h2 class="font-bold text-lg mb-3 text-gray-800 border-b-2 border-gray-300 pb-1 uppercase tracking-wide">Client Biometrics Master Input</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 text-sm items-end">
+                <div>
+                    <label class="font-semibold block mb-1">Gender</label>
+                    <div class="flex bg-white border border-gray-400 rounded p-1 w-full h-[36px]">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="gender" id="gender-male" value="Male" class="hidden switch-radio" checked>
+                            <div class="text-center text-xs font-semibold py-1 rounded text-gray-600 h-full flex items-center justify-center">M</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="gender" id="gender-female" value="Female" class="hidden switch-radio">
+                            <div class="text-center text-xs font-semibold py-1 rounded text-gray-600 h-full flex items-center justify-center">F</div>
+                        </label>
+                    </div>
+                </div>
+                <div><label class="font-semibold block mb-1">Age</label><input type="number" id="calc-age" class="calc-input py-1 px-2 text-center" placeholder="Yrs"></div>
+                <div><label class="font-semibold block mb-1">Height (cm)</label><input type="number" id="calc-height" class="calc-input py-1 px-2 text-center" placeholder="cm"></div>
+                <div><label class="font-semibold block mb-1">Weight (kg)</label><input type="number" id="calc-weight" class="calc-input py-1 px-2 text-center" placeholder="kg"></div>
+                <div><label class="font-semibold block mb-1">Waist (cm)</label><input type="number" id="calc-waist" class="calc-input py-1 px-2 text-center" placeholder="cm"></div>
+                <div><label class="font-semibold block mb-1">Body Fat (%)</label><input type="number" id="calc-bf" class="calc-input py-1 px-2 text-center" placeholder="%"></div>
+                <div><label class="font-semibold block mb-1">Rest HR</label><input type="number" id="calc-rhr" class="calc-input py-1 px-2 text-center" placeholder="bpm"></div>
+                <div>
+                    <label class="font-semibold block mb-1">BP (Sys/Dia)</label>
+                    <div class="flex gap-1">
+                        <input type="number" id="calc-bp-sys" class="calc-input py-1 px-1 text-center w-1/2" placeholder="Sys">
+                        <input type="number" id="calc-bp-dia" class="calc-input py-1 px-1 text-center w-1/2" placeholder="Dia">
+                    </div>
                 </div>
             </div>
-
-            <!-- Karvonen Heart Rate Calculator -->
-            <div class="border-2 border-gray-800 p-4 bg-gray-50 rounded">
-                <h2 class="font-bold text-lg mb-4 text-gray-800 border-b-2 border-gray-300 pb-1">Karvonen Target HR</h2>
-                <div class="grid grid-cols-2 gap-4 items-center">
-                    <label class="font-semibold">Age (Years):</label>
-                    <input type="number" id="calc-age" class="calc-input" placeholder="e.g. 30">
-                    
-                    <label class="font-semibold">Resting HR (bpm):</label>
-                    <input type="number" id="calc-rhr" class="calc-input" placeholder="e.g. 60">
-                    
-                    <label class="font-semibold">Target Intensity (%):</label>
-                    <input type="number" id="calc-intensity" class="calc-input" placeholder="e.g. 70">
-
-                    <label class="font-bold mt-2">Target Heart Rate:</label>
-                    <div id="calc-hr-out" class="font-bold text-blue-700 mt-2 text-lg">-</div>
-                </div>
+            <!-- Base Risks Summary -->
+            <div class="mt-4 pt-3 border-t border-gray-300 text-sm flex gap-6">
+                <div><span class="font-semibold">Age/Waist Risk:</span> <span id="risk-warning" class="font-bold text-gray-500">-</span></div>
             </div>
         </div>
 
-        <!-- Exercise Tables Container -->
-        <div id="exercise-tables" class="overflow-x-auto border-2 border-gray-800">
+        <!-- DIAGNOSTIC OUTPUT TABLES -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 text-xs sm:text-sm">
+            
+            <!-- BMI Table -->
+            <div class="border-2 border-gray-800 p-3 bg-white rounded">
+                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
+                    <span>BMI Status</span>
+                    <span id="out-bmi-val" class="text-blue-700">-</span>
+                </h2>
+                <table class="w-full text-center border-collapse">
+                    <tr class="bg-gray-100"><th class="p-1">Category</th><th class="p-1">Range</th></tr>
+                    <tr id="bmi-row-0"><td class="p-1 border border-gray-300">Underweight</td><td class="p-1 border border-gray-300">< 18.5</td></tr>
+                    <tr id="bmi-row-1"><td class="p-1 border border-gray-300">Normal</td><td class="p-1 border border-gray-300">18.5 - 24.9</td></tr>
+                    <tr id="bmi-row-2"><td class="p-1 border border-gray-300">Overweight</td><td class="p-1 border border-gray-300">25.0 - 29.9</td></tr>
+                    <tr id="bmi-row-3"><td class="p-1 border border-gray-300">Obese</td><td class="p-1 border border-gray-300">≥ 30.0</td></tr>
+                </table>
+            </div>
+
+            <!-- WHtR Table -->
+            <div class="border-2 border-gray-800 p-3 bg-white rounded">
+                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
+                    <span>Waist-to-Height Ratio</span>
+                    <span id="out-whtr-val" class="text-blue-700">-</span>
+                </h2>
+                <table class="w-full text-center border-collapse">
+                    <tr class="bg-gray-100"><th class="p-1">Meaning</th><th class="p-1">WHtR Range</th></tr>
+                    <tr id="whtr-row-0"><td class="p-1 border border-gray-300">Very lean</td><td class="p-1 border border-gray-300">< 0.40</td></tr>
+                    <tr id="whtr-row-1"><td class="p-1 border border-gray-300">Healthy</td><td class="p-1 border border-gray-300">0.40 - 0.49</td></tr>
+                    <tr id="whtr-row-2"><td class="p-1 border border-gray-300">Increased risk</td><td class="p-1 border border-gray-300">0.50 - 0.59</td></tr>
+                    <tr id="whtr-row-3"><td class="p-1 border border-gray-300">High health risk</td><td class="p-1 border border-gray-300">≥ 0.60</td></tr>
+                </table>
+            </div>
+
+            <!-- FFMI Table (Now Dynamic by Gender) -->
+            <div class="border-2 border-gray-800 p-3 bg-white rounded">
+                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
+                    <span>Fat-Free Mass Index</span>
+                    <span id="out-ffmi-val" class="text-blue-700">-</span>
+                </h2>
+                <table class="w-full text-center border-collapse text-[11px] sm:text-xs">
+                    <tr class="bg-gray-100"><th class="p-1">Interpretation</th><th class="p-1 w-20">FFMI Range</th></tr>
+                    <tr id="ffmi-row-0"><td class="p-1 border border-gray-300 text-left">Below average / Low</td><td class="p-1 border border-gray-300" id="ffmi-range-0">< 18</td></tr>
+                    <tr id="ffmi-row-1"><td class="p-1 border border-gray-300 text-left">Average</td><td class="p-1 border border-gray-300" id="ffmi-range-1">18 - 20</td></tr>
+                    <tr id="ffmi-row-2"><td class="p-1 border border-gray-300 text-left">Moderately muscular</td><td class="p-1 border border-gray-300" id="ffmi-range-2">20 - 22</td></tr>
+                    <tr id="ffmi-row-3"><td class="p-1 border border-gray-300 text-left">Muscular</td><td class="p-1 border border-gray-300" id="ffmi-range-3">22 - 24</td></tr>
+                    <tr id="ffmi-row-4"><td class="p-1 border border-gray-300 text-left">Very muscular / Elite</td><td class="p-1 border border-gray-300" id="ffmi-range-4">24 - 25</td></tr>
+                    <tr id="ffmi-row-5"><td class="p-1 border border-gray-300 text-left">Exceptional / Steroids</td><td class="p-1 border border-gray-300" id="ffmi-range-5">> 25</td></tr>
+                </table>
+            </div>
+
+            <!-- Karvonen HR Table -->
+            <div class="border-2 border-gray-800 p-3 bg-white rounded">
+                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
+                    <span>Heart Rate Zones (Karvonen)</span>
+                    <span id="out-hr-max" class="text-blue-700 font-normal text-xs self-end">Max HR: -</span>
+                </h2>
+                <table class="w-full text-center border-collapse">
+                    <tr class="bg-gray-100"><th class="p-1">Zone</th><th class="p-1">%</th><th class="p-1 w-24">Target BPM</th></tr>
+                    <tr><td class="border border-gray-300 p-1 text-gray-600">1 (Warm Up)</td><td class="border border-gray-300 p-1">50-60</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-1">-</td></tr>
+                    <tr><td class="border border-gray-300 p-1 text-blue-600">2 (Fat Burn)</td><td class="border border-gray-300 p-1">60-70</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-2">-</td></tr>
+                    <tr><td class="border border-gray-300 p-1 text-green-600">3 (Aerobic)</td><td class="border border-gray-300 p-1">70-80</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-3">-</td></tr>
+                    <tr><td class="border border-gray-300 p-1 text-orange-500">4 (Anaerobic)</td><td class="border border-gray-300 p-1">80-90</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-4">-</td></tr>
+                    <tr><td class="border border-gray-300 p-1 text-red-600">5 (VO2 Max)</td><td class="border border-gray-300 p-1">90-100</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-5">-</td></tr>
+                </table>
+            </div>
+
+            <!-- Blood Pressure Table (Spans 2 columns on large screens to fit data cleanly) -->
+            <div class="border-2 border-gray-800 p-3 bg-white rounded lg:col-span-2">
+                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
+                    <span>Blood Pressure Classification</span>
+                    <span id="out-bp-val" class="text-blue-700">-</span>
+                </h2>
+                <table class="w-full text-center border-collapse text-[11px] sm:text-xs">
+                    <tr class="bg-gray-100"><th class="p-1">Category</th><th class="p-1">Systolic (Top)</th><th class="p-1">Diastolic (Bottom)</th></tr>
+                    <tr id="bp-row-0"><td class="p-1 border border-gray-300 text-blue-600 font-semibold">Hypotension (Low BP)</td><td class="p-1 border border-gray-300">< 90</td><td class="p-1 border border-gray-300">and/or < 60</td></tr>
+                    <tr id="bp-row-1"><td class="p-1 border border-gray-300 text-green-600 font-semibold">Optimal</td><td class="p-1 border border-gray-300">< 120</td><td class="p-1 border border-gray-300">and < 80</td></tr>
+                    <tr id="bp-row-2"><td class="p-1 border border-gray-300 text-lime-600 font-semibold">Normal</td><td class="p-1 border border-gray-300">120 - 129</td><td class="p-1 border border-gray-300">and/or 80 - 84</td></tr>
+                    <tr id="bp-row-3"><td class="p-1 border border-gray-300 text-yellow-600 font-semibold">High-Normal</td><td class="p-1 border border-gray-300">130 - 139</td><td class="p-1 border border-gray-300">and/or 85 - 89</td></tr>
+                    <tr id="bp-row-4"><td class="p-1 border border-gray-300 text-orange-500 font-semibold">Stage 1 Hypertension</td><td class="p-1 border border-gray-300">140 - 159</td><td class="p-1 border border-gray-300">and/or 90 - 99</td></tr>
+                    <tr id="bp-row-5"><td class="p-1 border border-gray-300 text-red-500 font-semibold">Stage 2 Hypertension</td><td class="p-1 border border-gray-300">160 - 179</td><td class="p-1 border border-gray-300">and/or 100 - 109</td></tr>
+                    <tr id="bp-row-6"><td class="p-1 border border-gray-300 text-red-700 font-semibold">Stage 3 Hypertension</td><td class="p-1 border border-gray-300">≥ 180</td><td class="p-1 border border-gray-300">and/or ≥ 110</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- EXERCISE TABLES (Warm Up, Conditioning, Cool Down) -->
+        
+        <div class="overflow-visible mb-6 border-2 border-gray-800">
             <table class="w-full text-center text-sm">
-                <!-- WARM UP SECTION -->
                 <thead>
-                    <tr>
-                        <th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Warm Up</th>
-                    </tr>
+                    <tr><th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Warm Up</th></tr>
                     <tr>
                         <th rowspan="2" class="p-2 w-48">Exercises</th>
                         <th colspan="2" class="p-2">Volume</th>
-                        <th rowspan="2" class="p-2 w-24">Tempo</th>
+                        <th rowspan="2" class="p-2 w-28 relative group cursor-help z-30">
+                            Tempo <span class="inline-flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[10px] ml-1 shadow no-print">i</span>
+                            <div class="opacity-0 w-64 bg-gray-900 text-white text-xs rounded-md absolute left-1/2 -translate-x-1/2 top-full mt-2 p-3 pointer-events-none group-hover:opacity-100 transition-opacity font-normal text-left shadow-xl z-50 no-print">
+                                <span class="block mb-1">⚡ <b>Explosive (2–0–X–0):</b> ~25s TUT</span>
+                                <span class="block mb-1">🎯 <b>Hypertrophy (3–1–1–0):</b> ~50s TUT</span>
+                                <span class="block">🔥 <b>Eccentric Overload (6–1–1–0):</b> ~80s TUT</span>
+                            </div>
+                        </th>
                         <th rowspan="2" class="p-2 w-24">Duration<br>(Rest in sec)</th>
                         <th rowspan="2" class="p-2">Intensity</th>
                         <th rowspan="2" class="p-2">Equipment Required</th>
                         <th rowspan="2" class="p-2 w-24 text-blue-700">Total Time<br>(Auto)</th>
                     </tr>
-                    <tr>
-                        <th class="p-2 w-16">Sets</th>
-                        <th class="p-2 w-16">Reps</th>
-                    </tr>
+                    <tr><th class="p-2 w-16 border-t-0">Sets</th><th class="p-2 w-16 border-t-0">Reps</th></tr>
                 </thead>
-                <tbody class="warmup-body">
-                    <!-- Javascript will inject rows here -->
-                </tbody>
-                <!-- WARM UP TOTAL -->
+                <tbody class="warmup-body"></tbody>
                 <tfoot>
-                    <tr class="bg-gray-100">
-                        <td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-b-2">Warm Up Total:</td>
-                        <td id="warmup-total" class="font-bold p-2 text-blue-800 border-gray-800 border-b-2">-</td>
-                    </tr>
-                </tfoot>
-
-                <!-- CONDITIONING SECTION -->
-                <thead>
-                    <tr>
-                        <th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-t-2 border-b-2">Conditioning</th>
-                    </tr>
-                    <tr>
-                        <th rowspan="2" class="p-2">Exercises</th>
-                        <th colspan="2" class="p-2">Volume</th>
-                        <th rowspan="2" class="p-2">Tempo</th>
-                        <th rowspan="2" class="p-2">Duration</th>
-                        <th rowspan="2" class="p-2">Intensity</th>
-                        <th rowspan="2" class="p-2">Rest Period<br>(sec)</th>
-                        <th rowspan="2" class="p-2">Equipment Required</th>
-                        <th rowspan="2" class="p-2 text-blue-700 hidden">Total Time</th> 
-                    </tr>
-                    <tr>
-                        <th class="p-2">Sets</th>
-                        <th class="p-2">Reps</th>
-                    </tr>
-                </thead>
-                <thead class="hidden" id="cond-real-headers">
-                    <tr>
-                        <th rowspan="2" class="p-2">Exercises</th>
-                        <th colspan="2" class="p-2">Volume</th>
-                        <th rowspan="2" class="p-2">Tempo</th>
-                        <th rowspan="2" class="p-2">Duration</th>
-                        <th rowspan="2" class="p-2">Intensity</th>
-                        <th rowspan="2" class="p-2">Rest Period (sec)</th>
-                        <th rowspan="2" class="p-2">Equipment Required</th>
-                        <th rowspan="2" class="p-2 text-blue-700">Total Time</th>
-                    </tr>
-                    <tr>
-                        <th>Sets</th>
-                        <th>Reps</th>
-                    </tr>
-                </thead>
-                <tbody class="conditioning-body">
-                    <!-- Javascript will inject rows here -->
-                </tbody>
-                <!-- CONDITIONING TOTAL -->
-                <tfoot>
-                    <tr class="bg-gray-100">
-                        <td colspan="8" class="text-right font-bold p-2 uppercase border-gray-800 border-b-2">Conditioning Total:</td>
-                        <td id="conditioning-total" class="font-bold p-2 text-blue-800 border-gray-800 border-b-2">-</td>
-                    </tr>
-                </tfoot>
-
-                <!-- COOL DOWN SECTION -->
-                <thead>
-                    <tr>
-                        <th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-t-2 border-b-2">Cool Down</th>
-                    </tr>
-                    <tr>
-                        <th rowspan="2" class="p-2">Exercises</th>
-                        <th colspan="2" class="p-2">Volume</th>
-                        <th rowspan="2" class="p-2">Tempo</th>
-                        <th rowspan="2" class="p-2">Duration<br>(Rest in sec)</th>
-                        <th rowspan="2" class="p-2">Intensity</th>
-                        <th rowspan="2" class="p-2">Equipment Required</th>
-                        <th rowspan="2" class="p-2 text-blue-700">Total Time<br>(Auto)</th>
-                    </tr>
-                    <tr>
-                        <th class="p-2">Sets</th>
-                        <th class="p-2">Reps</th>
-                    </tr>
-                </thead>
-                <tbody class="cooldown-body">
-                    <!-- Javascript will inject rows here -->
-                </tbody>
-                <!-- COOL DOWN TOTAL -->
-                <tfoot>
-                    <tr class="bg-gray-100">
-                        <td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800">Cool Down Total:</td>
-                        <td id="cooldown-total" class="font-bold p-2 text-blue-800 border-gray-800">-</td>
-                    </tr>
+                    <tr class="bg-gray-100"><td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-t-2">Warm Up Total:</td><td id="warmup-total" class="font-bold p-2 text-blue-800 border-gray-800 border-t-2">-</td></tr>
                 </tfoot>
             </table>
         </div>
 
-        <div class="mt-4 text-center text-gray-400 font-semibold uppercase text-sm">
+        <div class="overflow-visible mb-6 border-2 border-gray-800">
+            <table class="w-full text-center text-sm">
+                <thead>
+                    <tr><th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Conditioning</th></tr>
+                    <tr>
+                        <th rowspan="2" class="p-2 w-48">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2 w-28 relative group cursor-help z-20">
+                            Tempo <span class="inline-flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[10px] ml-1 shadow no-print">i</span>
+                            <div class="opacity-0 w-64 bg-gray-900 text-white text-xs rounded-md absolute left-1/2 -translate-x-1/2 bottom-full mb-2 p-3 pointer-events-none group-hover:opacity-100 transition-opacity font-normal text-left shadow-xl z-50 no-print">
+                                <span class="block mb-1">⚡ <b>Explosive (2–0–X–0):</b> ~25s TUT</span>
+                                <span class="block mb-1">🎯 <b>Hypertrophy (3–1–1–0):</b> ~50s TUT</span>
+                                <span class="block">🔥 <b>Eccentric Overload (6–1–1–0):</b> ~80s TUT</span>
+                            </div>
+                        </th>
+                        <th rowspan="2" class="p-2 w-24 text-blue-700">Duration<br>(Auto)</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2 w-24">Rest Period<br>(sec)</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                    </tr>
+                    <tr><th class="p-2 w-16 border-t-0">Sets</th><th class="p-2 w-16 border-t-0">Reps</th></tr>
+                </thead>
+                <tbody class="conditioning-body"></tbody>
+                <tfoot>
+                    <tr class="bg-gray-100"><td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-t-2">Conditioning Total:</td><td id="conditioning-total" class="font-bold p-2 text-blue-800 border-gray-800 border-t-2">-</td></tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="overflow-visible mb-6 border-2 border-gray-800">
+            <table class="w-full text-center text-sm">
+                <thead>
+                    <tr><th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Cool Down</th></tr>
+                    <tr>
+                        <th rowspan="2" class="p-2 w-48">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2 w-28 relative group cursor-help z-10">
+                            Tempo <span class="inline-flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[10px] ml-1 shadow no-print">i</span>
+                            <div class="opacity-0 w-64 bg-gray-900 text-white text-xs rounded-md absolute left-1/2 -translate-x-1/2 bottom-full mb-2 p-3 pointer-events-none group-hover:opacity-100 transition-opacity font-normal text-left shadow-xl z-50 no-print">
+                                <span class="block mb-1">⚡ <b>Explosive (2–0–X–0):</b> ~25s TUT</span>
+                                <span class="block mb-1">🎯 <b>Hypertrophy (3–1–1–0):</b> ~50s TUT</span>
+                                <span class="block">🔥 <b>Eccentric Overload (6–1–1–0):</b> ~80s TUT</span>
+                            </div>
+                        </th>
+                        <th rowspan="2" class="p-2 w-24">Duration<br>(Rest in sec)</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                        <th rowspan="2" class="p-2 w-24 text-blue-700">Total Time<br>(Auto)</th>
+                    </tr>
+                    <tr><th class="p-2 w-16 border-t-0">Sets</th><th class="p-2 w-16 border-t-0">Reps</th></tr>
+                </thead>
+                <tbody class="cooldown-body"></tbody>
+                <tfoot>
+                    <tr class="bg-gray-100"><td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-t-2">Cool Down Total:</td><td id="cooldown-total" class="font-bold p-2 text-blue-800 border-gray-800 border-t-2">-</td></tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="mt-4 text-center text-gray-400 font-semibold uppercase text-sm no-print">
             END OF EXERCISE SESSION PLANS – CLIENT 2
         </div>
     </div>
 
     <script>
-        // Number of empty rows to generate per section
-        const ROWS_PER_SECTION = 5;
-
-        // Row template for Warm Up & Cool Down (7 manual columns + 1 auto column)
+        // Table Construction 
         const standardRow = `
-            <tr class="calc-row h-10">
-                <td class="p-0"><input type="text" placeholder="Exercise"></td>
-                <td class="p-0"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
-                <td class="p-0"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
-                <td class="p-0"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
-                <td class="p-0"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
-                <td class="p-0"><input type="text" class="text-center"></td>
-                <td class="p-0"><input type="text"></td>
-                <td class="p-2 bg-blue-50 font-semibold text-blue-800 output-time">-</td>
+            <tr class="calc-row h-10 border-gray-800 border">
+                <td class="p-0 border-gray-800 border"><input type="text" placeholder="Exercise"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="text-center"></td>
+                <td class="p-0 border-gray-800 border"><input type="text"></td>
+                <td class="p-2 bg-blue-50 font-semibold text-blue-800 border-gray-800 border output-time">-</td>
             </tr>
         `;
-
-        // Row template for Conditioning (Includes Rest Period specifically + 1 auto column)
         const conditioningRow = `
-            <tr class="calc-row h-10">
-                <td class="p-0"><input type="text" placeholder="Exercise"></td>
-                <td class="p-0"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
-                <td class="p-0"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
-                <td class="p-0"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
-                <td class="p-0"><input type="text" class="text-center" placeholder="Time"></td>
-                <td class="p-0"><input type="text" class="text-center"></td>
-                <td class="p-0"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
-                <td class="p-0"><input type="text"></td>
-                <td class="p-2 bg-blue-50 font-semibold text-blue-800 output-time">-</td>
+            <tr class="calc-row h-10 border-gray-800 border">
+                <td class="p-0 border-gray-800 border"><input type="text" placeholder="Exercise"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
+                <td class="p-2 bg-blue-50 font-semibold text-blue-800 border-gray-800 border output-time">-</td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="text-center"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
+                <td class="p-0 border-gray-800 border"><input type="text"></td>
             </tr>
         `;
+        const standardSubHeader = (title) => `<tr><td colspan="8" class="bg-gray-200 font-bold text-gray-700 uppercase p-1 px-3 text-left border-gray-800 border-x-2 border-y print:bg-gray-100">${title}</td></tr>`;
 
-        // Inject rows into the table bodies
-        document.querySelector('.warmup-body').innerHTML = standardRow.repeat(ROWS_PER_SECTION);
-        
-        // Fix Conditioning Table headers using Javascript to replace the default span layout cleanly
-        const condHeaders = document.getElementById('cond-real-headers').innerHTML;
-        document.querySelector('.conditioning-body').insertAdjacentHTML('beforebegin', `<thead>${condHeaders}</thead>`);
-        document.querySelector('.conditioning-body').innerHTML = conditioningRow.repeat(ROWS_PER_SECTION);
-        
-        document.querySelector('.cooldown-body').innerHTML = standardRow.repeat(ROWS_PER_SECTION);
+        document.querySelector('.warmup-body').innerHTML = standardSubHeader("Cardio") + standardRow.repeat(2) + standardSubHeader("Dynamic Stretching") + standardRow.repeat(3);
+        document.querySelector('.conditioning-body').innerHTML = standardSubHeader("Compound") + conditioningRow.repeat(3) + standardSubHeader("Isolation") + conditioningRow.repeat(3);
+        document.querySelector('.cooldown-body').innerHTML = standardSubHeader("Cardio") + standardRow.repeat(2) + standardSubHeader("Static Stretch") + standardRow.repeat(3);
 
-        // Utility: Assign unique IDs to all inputs so they can be saved in LocalStorage
-        const allInputs = document.querySelectorAll('input');
+        const allInputs = document.querySelectorAll('input, select');
         allInputs.forEach((input, index) => {
-            if (!input.id) input.id = 'plan_input_' + index;
+            if (!input.id && input.type !== 'file') input.id = 'plan_input_' + index;
         });
 
-        // Helper: Format seconds to 'Xm Ys'
         function formatTime(totalSeconds) {
             if (totalSeconds <= 0) return "-";
             const mins = Math.floor(totalSeconds / 60);
@@ -286,116 +366,259 @@
             return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
         }
 
-        // Feature: Auto-calculate exercise duration and Table Totals
-        function calculateTimes() {
-            let warmupSecs = 0;
-            let condSecs = 0;
-            let coolSecs = 0;
+        function clearActiveRows(prefix) {
+            document.querySelectorAll(`tr[id^="${prefix}-row-"]`).forEach(row => {
+                row.classList.remove('active-row');
+            });
+        }
+        function setActiveRow(id) {
+            const row = document.getElementById(id);
+            if (row) row.classList.add('active-row');
+        }
 
+        // --- Core Calculators ---
+        function calculateTimes() {
+            let warmupSecs = 0; let condSecs = 0; let coolSecs = 0;
             document.querySelectorAll('.calc-row').forEach(row => {
                 const sets = parseFloat(row.querySelector('.input-sets')?.value) || 0;
                 const reps = parseFloat(row.querySelector('.input-reps')?.value) || 0;
                 const tempoInput = row.querySelector('.input-tempo')?.value || "";
                 const rest = parseFloat(row.querySelector('.input-rest')?.value) || 0;
                 const output = row.querySelector('.output-time');
-
                 if (output) {
                     const tempoMatches = tempoInput.match(/\d+(\.\d+)?/g);
                     let tempoSum = 0;
-                    if (tempoMatches) {
-                        tempoSum = tempoMatches.reduce((sum, val) => sum + parseFloat(val), 0);
-                    }
-
+                    if (tempoMatches) tempoSum = tempoMatches.reduce((sum, val) => sum + parseFloat(val), 0);
                     let rowSecs = 0;
-                    if (sets > 0 && reps > 0) {
-                        rowSecs = ((tempoSum * reps) + rest) * sets;
-                    }
-                    
+                    if (sets > 0 && reps > 0) rowSecs = ((tempoSum * reps) + rest) * sets;
                     output.textContent = formatTime(rowSecs);
-
-                    // Add to appropriate section total
                     if (row.closest('.warmup-body')) warmupSecs += rowSecs;
                     else if (row.closest('.conditioning-body')) condSecs += rowSecs;
                     else if (row.closest('.cooldown-body')) coolSecs += rowSecs;
                 }
             });
-
-            // Update UI Totals
             document.getElementById('warmup-total').textContent = formatTime(warmupSecs);
             document.getElementById('conditioning-total').textContent = formatTime(condSecs);
             document.getElementById('cooldown-total').textContent = formatTime(coolSecs);
         }
 
-        // Feature: Calculate BMI & Karvonen metrics
         function updateCalculators() {
-            // BMI
+            const age = parseFloat(document.getElementById('calc-age').value);
             const height = parseFloat(document.getElementById('calc-height').value);
             const weight = parseFloat(document.getElementById('calc-weight').value);
-            const bmiOut = document.getElementById('calc-bmi-out');
+            const waist = parseFloat(document.getElementById('calc-waist').value);
+            const bf = parseFloat(document.getElementById('calc-bf').value);
+            const rhr = parseFloat(document.getElementById('calc-rhr').value);
+            const sys = parseFloat(document.getElementById('calc-bp-sys').value);
+            const dia = parseFloat(document.getElementById('calc-bp-dia').value);
+            const genderNode = document.querySelector('input[name="gender"]:checked');
+            const gender = genderNode ? genderNode.value : "Male";
+
+            // 1. Age/Waist Base Risk
+            const riskWarning = document.getElementById('risk-warning');
+            let issues = [];
+            if (age > 0) { if ((gender === 'Male' && age > 45) || (gender === 'Female' && age > 55)) issues.push("Age limit >"); }
+            if (waist > 0) { if ((gender === 'Male' && waist >= 94) || (gender === 'Female' && waist >= 80)) issues.push("Waist size >"); }
             
+            if (issues.length > 0) {
+                riskWarning.innerHTML = `⚠️ ${issues.join(" & ")}`;
+                riskWarning.className = "font-bold text-red-600";
+            } else if (age > 0 || waist > 0) {
+                riskWarning.innerHTML = "✅ Normal Range";
+                riskWarning.className = "font-bold text-green-600";
+            } else {
+                riskWarning.textContent = "-";
+                riskWarning.className = "font-bold text-gray-400";
+            }
+
+            // 2. BMI
+            clearActiveRows('bmi');
             if (height > 0 && weight > 0) {
                 const heightMeters = height / 100;
                 const bmi = (weight / (heightMeters * heightMeters)).toFixed(1);
-                
-                let category = "";
-                if(bmi < 18.5) category = "(Underweight)";
-                else if(bmi < 25) category = "(Normal)";
-                else if(bmi < 30) category = "(Overweight)";
-                else category = "(Obese)";
-                
-                bmiOut.textContent = `${bmi} ${category}`;
+                document.getElementById('out-bmi-val').textContent = bmi;
+                let rowIdx = 0;
+                if(bmi < 18.5) rowIdx = 0;
+                else if(bmi < 25) rowIdx = 1;
+                else if(bmi < 30) rowIdx = 2;
+                else rowIdx = 3;
+                setActiveRow(`bmi-row-${rowIdx}`);
+            } else { document.getElementById('out-bmi-val').textContent = "-"; }
+
+            // 3. WHtR (Waist to Height Ratio)
+            clearActiveRows('whtr');
+            if (height > 0 && waist > 0) {
+                const whtr = (waist / height).toFixed(2);
+                document.getElementById('out-whtr-val').textContent = whtr;
+                let rowIdx = 0;
+                if(whtr < 0.40) rowIdx = 0;
+                else if(whtr < 0.50) rowIdx = 1;
+                else if(whtr < 0.60) rowIdx = 2;
+                else rowIdx = 3;
+                setActiveRow(`whtr-row-${rowIdx}`);
+            } else { document.getElementById('out-whtr-val').textContent = "-"; }
+
+            // 4. FFMI (Fat-Free Mass Index) Dynamic Gender Table
+            if (gender === 'Female') {
+                document.getElementById('ffmi-range-0').textContent = '< 14';
+                document.getElementById('ffmi-range-1').textContent = '14 - 16';
+                document.getElementById('ffmi-range-2').textContent = '16 - 18';
+                document.getElementById('ffmi-range-3').textContent = '18 - 20';
+                document.getElementById('ffmi-range-4').textContent = '20 - 22';
+                document.getElementById('ffmi-range-5').textContent = '> 22';
             } else {
-                bmiOut.textContent = "-";
+                document.getElementById('ffmi-range-0').textContent = '< 18';
+                document.getElementById('ffmi-range-1').textContent = '18 - 20';
+                document.getElementById('ffmi-range-2').textContent = '20 - 22';
+                document.getElementById('ffmi-range-3').textContent = '22 - 24';
+                document.getElementById('ffmi-range-4').textContent = '24 - 25';
+                document.getElementById('ffmi-range-5').textContent = '> 25';
             }
 
-            // Karvonen Heart Rate
-            const age = parseFloat(document.getElementById('calc-age').value);
-            const rhr = parseFloat(document.getElementById('calc-rhr').value);
-            const intensity = parseFloat(document.getElementById('calc-intensity').value);
-            const hrOut = document.getElementById('calc-hr-out');
+            clearActiveRows('ffmi');
+            if (height > 0 && weight > 0 && bf >= 0) {
+                const heightMeters = height / 100;
+                const leanMass = weight * (1 - (bf / 100));
+                const ffmi = (leanMass / (heightMeters * heightMeters)).toFixed(1);
+                document.getElementById('out-ffmi-val').textContent = ffmi;
+                
+                let rowIdx = 0;
+                if (gender === 'Female') {
+                    if (ffmi < 14) rowIdx = 0;
+                    else if (ffmi <= 16) rowIdx = 1;
+                    else if (ffmi <= 18) rowIdx = 2;
+                    else if (ffmi <= 20) rowIdx = 3;
+                    else if (ffmi <= 22) rowIdx = 4;
+                    else rowIdx = 5;
+                } else {
+                    if (ffmi < 18) rowIdx = 0;
+                    else if (ffmi <= 20) rowIdx = 1;
+                    else if (ffmi <= 22) rowIdx = 2;
+                    else if (ffmi <= 24) rowIdx = 3;
+                    else if (ffmi <= 25) rowIdx = 4;
+                    else rowIdx = 5;
+                }
+                setActiveRow(`ffmi-row-${rowIdx}`);
+            } else { document.getElementById('out-ffmi-val').textContent = "-"; }
 
-            if (age > 0 && rhr > 0 && intensity > 0) {
+            // 5. Blood Pressure (7-Tier System)
+            clearActiveRows('bp');
+            if (sys > 0 && dia > 0) {
+                document.getElementById('out-bp-val').textContent = `${sys} / ${dia}`;
+                let catIdx = 0;
+                if (sys >= 180 || dia >= 110) catIdx = 6;
+                else if (sys >= 160 || dia >= 100) catIdx = 5;
+                else if (sys >= 140 || dia >= 90) catIdx = 4;
+                else if (sys >= 130 || dia >= 85) catIdx = 3;
+                else if (sys < 90 || dia < 60) catIdx = 0; 
+                else if (sys >= 120 || dia >= 80) catIdx = 2;
+                else catIdx = 1; 
+                setActiveRow(`bp-row-${catIdx}`);
+            } else { document.getElementById('out-bp-val').textContent = "-"; }
+
+            // 6. Karvonen Target HR Zones
+            if (age > 0 && rhr > 0) {
                 const maxHr = 220 - age;
                 const hrr = maxHr - rhr;
-                const targetHr = (hrr * (intensity / 100)) + rhr;
-                hrOut.textContent = Math.round(targetHr) + " bpm";
+                document.getElementById('out-hr-max').textContent = `Max HR: ${maxHr}`;
+                const calcZone = (minPct, maxPct) => `${Math.round(hrr * minPct + rhr)} - ${Math.round(hrr * maxPct + rhr)}`;
+                document.getElementById('kz-1').textContent = calcZone(0.5, 0.6);
+                document.getElementById('kz-2').textContent = calcZone(0.6, 0.7);
+                document.getElementById('kz-3').textContent = calcZone(0.7, 0.8);
+                document.getElementById('kz-4').textContent = calcZone(0.8, 0.9);
+                document.getElementById('kz-5').textContent = calcZone(0.9, 1.0);
             } else {
-                hrOut.textContent = "-";
+                document.getElementById('out-hr-max').textContent = `Max HR: -`;
+                [1,2,3,4,5].forEach(i => document.getElementById(`kz-${i}`).textContent = "-");
             }
         }
 
-        // Feature: Load from LocalStorage and Event Listeners for Saving
+        // --- Data Management (Storage & JSON) ---
         function initStorage() {
             allInputs.forEach(input => {
-                // Load existing data
-                const savedValue = localStorage.getItem(input.id);
-                if (savedValue !== null) {
-                    input.value = savedValue;
+                const key = input.type === 'radio' ? `plan_radio_${input.name}` : input.id;
+                const savedValue = localStorage.getItem(key);
+                if (savedValue !== null && input.type !== 'file') {
+                    if (input.type === 'radio') {
+                        if (input.value === savedValue) input.checked = true;
+                    } else {
+                        input.value = savedValue;
+                    }
                 }
-
-                // Save data on change and trigger calculations
-                input.addEventListener('input', () => {
-                    localStorage.setItem(input.id, input.value);
-                    calculateTimes();
-                    updateCalculators();
-                });
+                if (input.type !== 'file') {
+                    input.addEventListener('input', () => {
+                        localStorage.setItem(key, input.type === 'radio' ? input.value : input.value);
+                        calculateTimes();
+                        updateCalculators();
+                    });
+                }
             });
-            // Initial calculation run
             calculateTimes();
             updateCalculators();
         }
 
-        // Feature: Reset Button
+        function exportJSON() {
+            const data = {};
+            allInputs.forEach(input => {
+                if (input.type === 'file') return;
+                const key = input.type === 'radio' ? `plan_radio_${input.name}` : input.id;
+                if (input.type === 'radio') {
+                    if (input.checked) data[key] = input.value;
+                } else {
+                    data[key] = input.value;
+                }
+            });
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'session_plan_data.json';
+            a.click();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    allInputs.forEach(input => {
+                        if (input.type === 'file') return;
+                        const key = input.type === 'radio' ? `plan_radio_${input.name}` : input.id;
+                        if (data[key] !== undefined) {
+                            if (input.type === 'radio') {
+                                if (data[key] === input.value) input.checked = true;
+                            } else {
+                                input.value = data[key];
+                            }
+                            localStorage.setItem(key, data[key]);
+                        }
+                    });
+                    calculateTimes();
+                    updateCalculators();
+                } catch (err) {
+                    alert('Invalid JSON file format.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+        }
+
         document.getElementById('resetBtn').addEventListener('click', () => {
             if (confirm("Are you sure you want to clear all data? This cannot be undone.")) {
                 localStorage.clear();
-                allInputs.forEach(input => input.value = '');
+                allInputs.forEach(input => {
+                    if (input.type === 'radio') {
+                        if (input.id === 'gender-male') input.checked = true;
+                    } else if (input.type !== 'file') {
+                        input.value = '';
+                    }
+                });
                 calculateTimes(); 
                 updateCalculators();
             }
         });
 
-        // Initialize App
         document.addEventListener('DOMContentLoaded', initStorage);
     </script>
 </body>
