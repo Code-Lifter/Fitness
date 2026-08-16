@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target Load Generator</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #f5f5f5;
+            --text-muted: #a0a0a0;
+            --accent: #00d2d3; /* Swapped to a cool cyan for the new tool */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            color: var(--text-main);
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            background-color: #2a2a2a;
+            color: var(--text-main);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #2a2a2a;
+            border-radius: 6px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            border-left: 4px solid var(--accent);
+            pointer-events: none;
+        }
+
+        .result-box.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 10px 0;
+        }
+
+        .calc-method {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Target Load Generator</h1>
+        <p class="subtitle">Calculate the exact weight to put on the bar.</p>
+
+        <div class="input-group">
+            <label for="max">Your Known 1RM (Weight)</label>
+            <input type="number" id="max" placeholder="e.g., 100" step="0.5" required>
+        </div>
+
+        <div class="input-group">
+            <label for="reps">Target Reps</label>
+            <input type="number" id="reps" placeholder="e.g., 5" min="1" required>
+        </div>
+
+        <div class="input-group">
+            <label for="rpe">Target RPE</label>
+            <select id="rpe">
+                <option value="10">10 (Absolute Max, 0 RIR)</option>
+                <option value="9.5">9.5 (Maybe 1 more rep)</option>
+                <option value="9">9 (1 Rep in Reserve)</option>
+                <option value="8.5">8.5 (Maybe 2 more reps)</option>
+                <option value="8" selected>8 (2 Reps in Reserve)</option>
+                <option value="7.5">7.5 (Maybe 3 more reps)</option>
+                <option value="7">7 (3 Reps in Reserve)</option>
+                <option value="6.5">6.5 (Maybe 4 more reps)</option>
+                <option value="6">6 (4 Reps in Reserve)</option>
+            </select>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div>Target Weight to Load</div>
+            <div class="result-value" id="targetWeight">0</div>
+            <div class="calc-method" id="calcMethod"></div>
+        </div>
+    </div>
+
+    <script>
+        const rpeChart = {
+            1:  { "10": 1.00, "9.5": 0.98, "9": 0.96, "8.5": 0.94, "8": 0.92, "7.5": 0.90, "7": 0.88, "6.5": 0.86, "6": 0.84 },
+            2:  { "10": 0.96, "9.5": 0.94, "9": 0.92, "8.5": 0.90, "8": 0.89, "7.5": 0.87, "7": 0.86, "6.5": 0.84, "6": 0.82 },
+            3:  { "10": 0.92, "9.5": 0.90, "9": 0.89, "8.5": 0.87, "8": 0.86, "7.5": 0.84, "7": 0.82, "6.5": 0.80, "6": 0.78 },
+            4:  { "10": 0.89, "9.5": 0.87, "9": 0.86, "8.5": 0.84, "8": 0.82, "7.5": 0.80, "7": 0.78, "6.5": 0.76, "6": 0.74 },
+            5:  { "10": 0.86, "9.5": 0.84, "9": 0.82, "8.5": 0.80, "8": 0.79, "7.5": 0.77, "7": 0.76, "6.5": 0.74, "6": 0.72 },
+            6:  { "10": 0.84, "9.5": 0.82, "9": 0.80, "8.5": 0.78, "8": 0.76, "7.5": 0.74, "7": 0.72, "6.5": 0.70, "6": 0.68 },
+            7:  { "10": 0.82, "9.5": 0.80, "9": 0.78, "8.5": 0.76, "8": 0.74, "7.5": 0.72, "7": 0.70, "6.5": 0.68, "6": 0.66 },
+            8:  { "10": 0.80, "9.5": 0.78, "9": 0.76, "8.5": 0.74, "8": 0.72, "7.5": 0.70, "7": 0.68, "6.5": 0.66, "6": 0.64 },
+            9:  { "10": 0.78, "9.5": 0.76, "9": 0.74, "8.5": 0.72, "8": 0.70, "7.5": 0.68, "7": 0.66, "6.5": 0.64, "6": 0.62 },
+            10: { "10": 0.76, "9.5": 0.74, "9": 0.72, "8.5": 0.70, "8": 0.68, "7.5": 0.66, "7": 0.64, "6.5": 0.62, "6": 0.60 }
+        };
+
+        const maxInput = document.getElementById('max');
+        const repsInput = document.getElementById('reps');
+        const rpeInput = document.getElementById('rpe');
+        const resultBox = document.getElementById('resultBox');
+        const resultValue = document.getElementById('targetWeight');
+        const methodText = document.getElementById('calcMethod');
+
+        function calculateTargetLoad() {
+            const oneRepMax = parseFloat(maxInput.value);
+            const reps = parseInt(repsInput.value);
+            const rpeStr = rpeInput.value;
+            const rpe = parseFloat(rpeStr);
+            
+            // Hide results if inputs are invalid or empty
+            if (isNaN(oneRepMax) || isNaN(reps) || reps < 1 || oneRepMax <= 0) {
+                resultBox.classList.remove('active');
+                return;
+            }
+
+            let percentage = 0;
+            let usedFormula = false;
+
+            // Check if exact match exists in the established table
+            if (rpeChart[reps] && rpeChart[reps][rpeStr]) {
+                percentage = rpeChart[reps][rpeStr];
+                usedFormula = false;
+            } else {
+                // Fallback: Modified Epley Formula
+                const rir = 10 - rpe;
+                const maxReps = reps + rir;
+                percentage = 1 / (1 + (0.0333 * maxReps));
+                usedFormula = true;
+            }
+
+            // Calculate Target Weight (1RM * Percentage)
+            const targetWeight = oneRepMax * percentage;
+
+            // Update UI
+            resultValue.innerText = targetWeight.toFixed(1);
+            methodText.innerText = usedFormula 
+                ? `Loading ${(percentage * 100).toFixed(1)}% of 1RM using Modified Epley Formula` 
+                : `Loading ${(percentage * 100).toFixed(1)}% of 1RM using Standard RPE Table`;
+            
+            resultBox.classList.add('active');
+        }
+
+        // Attach event listeners for live updates
+        [maxInput, repsInput, rpeInput].forEach(element => {
+            element.addEventListener('input', calculateTargetLoad);
+            element.addEventListener('change', calculateTargetLoad);
+        });
+    </script>
+</body>
+</html>
