@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6-Week Hypertrophy Planner (Set Breakdown)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8 font-sans text-gray-800">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-slate-900 text-white p-6 md:p-8 text-center border-b-4 border-brand-500">
+            <h1 class="text-3xl font-bold mb-2">6-Week Hypertrophy Mesocycle</h1>
+            <p class="text-slate-300 max-w-3xl mx-auto mb-4">Enter your estimated 1-Rep Max (1RM) and exercise type below. <strong>Click on any week row to expand and view the set-by-set breakdown.</strong></p>
+            
+            <!-- Tempo Legend -->
+            <div class="inline-block bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 text-left">
+                <span class="font-bold text-brand-500">Tempo Guide (e.g., 3-0-1-0):</span><br>
+                <strong>3</strong> = Seconds lowering (Eccentric) | <strong>0</strong> = Seconds paused at bottom<br>
+                <strong>1</strong> = Seconds lifting (Concentric) | <strong>0</strong> = Seconds paused at top
+            </div>
+        </div>
+
+        <!-- Calculator Input -->
+        <div class="p-6 border-b border-gray-200 bg-slate-50 flex flex-wrap items-center justify-center gap-4">
+            <div class="flex items-center gap-2">
+                <label for="onerm" class="font-semibold text-lg">Your 1RM (kg):</label>
+                <input type="number" id="onerm" value="100" class="border-2 border-slate-300 rounded-md px-4 py-2 w-28 text-center text-lg font-bold focus:border-brand-500 focus:outline-none shadow-sm">
+            </div>
+
+            <div class="flex items-center gap-2">
+                <label for="ex-type" class="font-semibold text-lg">Exercise Type:</label>
+                <select id="ex-type" class="border-2 border-slate-300 rounded-md px-4 py-2 text-lg font-bold focus:border-brand-500 focus:outline-none shadow-sm bg-white cursor-pointer">
+                    <option value="compound">Compound (Barbell)</option>
+                    <option value="machine" selected>Machine Compound</option>
+                    <option value="isolate">Isolation</option>
+                </select>
+            </div>
+
+            <button onclick="updatePlan()" class="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2 rounded-md font-semibold transition-colors shadow-sm w-full sm:w-auto">
+                Calculate Plan
+            </button>
+        </div>
+
+        <!-- Training Plan Container -->
+        <div id="plan-container" class="p-6 md:p-8 space-y-10">
+            <!-- Content will be injected here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Database of distinct training plans based on exercise type
+        const trainingProfiles = {
+            machine: [
+                {
+                    title: "Phase 1: Volume Accumulation (Machine Compound)",
+                    subtitle: "Building the baseline and increasing sets/reps.",
+                    colorClass: "bg-indigo-600",
+                    weeks: [
+                        { week: "Week 1", reps: "3 × 10", percent: 0.65, rest: "90s", tempo: "3-0-1-0", rpe: "RPE 7 (3 RIR)", obj: "Establish baseline volume. Leave reps in reserve." },
+                        { week: "Week 2", reps: "4 × 10", percent: 0.65, rest: "90s", tempo: "3-0-1-0", rpe: "RPE 7.5 (2-3 RIR)", obj: "Add one working set. Same load, higher total tonnage." },
+                        { week: "Week 3", reps: "4 × 10", percent: 0.675, rest: "120s", tempo: "3-0-1-0", rpe: "RPE 8 (2 RIR)", obj: "Slight intensity bump. Longer rest needed." }
+                    ]
+                },
+                {
+                    title: "Phase 2: Overreach & Deload",
+                    subtitle: "Pushing close to failure followed by recovery.",
+                    colorClass: "bg-purple-700",
+                    weeks: [
+                        { week: "Week 4", reps: "4 × 11", percent: 0.675, rest: "120s", tempo: "3-1-1-0", rpe: "RPE 8.5 (1-2 RIR)", obj: "Add reps. Introduce a 1s pause at the bottom stretch." },
+                        { week: "Week 5", reps: "4 × 12", percent: 0.70, rest: "150s", tempo: "3-1-1-0", rpe: "RPE 9-10 (0-1 RIR)", obj: "Functional overreach. Maximize reps, rest as needed.", isPeak: true },
+                        { week: "Week 6", reps: "2 × 10", percent: 0.55, rest: "90s", tempo: "2-0-1-0", rpe: "RPE 5 (5 RIR)", obj: "Deload. Drop volume, load, and speed up tempo to shed fatigue.", isDeload: true }
+                    ]
+                }
+            ],
+            compound: [
+                {
+                    title: "Phase 1: Volume Accumulation (Free Weight Compound)",
+                    subtitle: "Heavy systemic load. Lower reps, higher percentages, longer rest.",
+                    colorClass: "bg-blue-700",
+                    weeks: [
+                        { week: "Week 1", reps: "3 × 6", percent: 0.70, rest: "150s", tempo: "3-0-1-0", rpe: "RPE 7 (3 RIR)", obj: "Establish baseline strength and form." },
+                        { week: "Week 2", reps: "4 × 6", percent: 0.70, rest: "150s", tempo: "3-0-1-0", rpe: "RPE 7.5 (2-3 RIR)", obj: "Add one working set. Increase tonnage." },
+                        { week: "Week 3", reps: "4 × 7", percent: 0.725, rest: "180s", tempo: "3-0-1-0", rpe: "RPE 8 (2 RIR)", obj: "Slight intensity bump. Increase rest time for CNS recovery." }
+                    ]
+                },
+                {
+                    title: "Phase 2: Overreach & Deload",
+                    subtitle: "Pushing close to failure followed by recovery.",
+                    colorClass: "bg-indigo-800",
+                    weeks: [
+                        { week: "Week 4", reps: "4 × 8", percent: 0.725, rest: "180s", tempo: "3-1-1-0", rpe: "RPE 8.5 (1-2 RIR)", obj: "Add reps. Pause at the bottom." },
+                        { week: "Week 5", reps: "4 × 8", percent: 0.75, rest: "180s+", tempo: "3-1-1-0", rpe: "RPE 9-10 (0-1 RIR)", obj: "Peak week. Rest as long as needed to hit reps safely.", isPeak: true },
+                        { week: "Week 6", reps: "2 × 6", percent: 0.60, rest: "120s", tempo: "2-0-1-0", rpe: "RPE 5 (5 RIR)", obj: "Deload. Drop volume and load heavily for joint recovery.", isDeload: true }
+                    ]
+                }
+            ],
+            isolate: [
+                {
+                    title: "Phase 1: Volume Accumulation (Isolation)",
+                    subtitle: "Metabolic stress focus. Higher reps, lower loads, shorter rest.",
+                    colorClass: "bg-emerald-600",
+                    weeks: [
+                        { week: "Week 1", reps: "3 × 12", percent: 0.55, rest: "60s", tempo: "3-0-1-1", rpe: "RPE 7 (3 RIR)", obj: "Mind-muscle connection. Pause at peak contraction." },
+                        { week: "Week 2", reps: "4 × 12", percent: 0.55, rest: "60s", tempo: "3-0-1-1", rpe: "RPE 7.5 (2-3 RIR)", obj: "Add set. Focus on pump and metabolic accumulation." },
+                        { week: "Week 3", reps: "4 × 12", percent: 0.575, rest: "90s", tempo: "3-0-1-1", rpe: "RPE 8 (2 RIR)", obj: "Increase weight slightly. Extend rest slightly if needed." }
+                    ]
+                },
+                {
+                    title: "Phase 2: Overreach & Deload",
+                    subtitle: "Pushing close to failure followed by recovery.",
+                    colorClass: "bg-teal-700",
+                    weeks: [
+                        { week: "Week 4", reps: "4 × 14", percent: 0.575, rest: "90s", tempo: "3-0-1-1", rpe: "RPE 8.5 (1-2 RIR)", obj: "High rep overreach. Embrace the burn." },
+                        { week: "Week 5", reps: "4 × 15", percent: 0.60, rest: "90s", tempo: "3-0-1-1", rpe: "RPE 9-10 (0-1 RIR)", obj: "Maximal metabolic stress. Take sets near failure.", isPeak: true },
+                        { week: "Week 6", reps: "2 × 12", percent: 0.45, rest: "60s", tempo: "2-0-1-0", rpe: "RPE 5 (5 RIR)", obj: "Deload. Flush blood to the muscle, no hard effort.", isDeload: true }
+                    ]
+                }
+            ]
+        };
+
+        // Toggle function for the set breakdown rows
+        function toggleSets(detailId, iconId) {
+            const detailRow = document.getElementById(detailId);
+            const icon = document.getElementById(iconId);
+            if (detailRow.classList.contains('hidden')) {
+                detailRow.classList.remove('hidden');
+                icon.textContent = '−';
+            } else {
+                detailRow.classList.add('hidden');
+                icon.textContent = '+';
+            }
+        }
+
+        function updatePlan() {
+            const oneRmInput = document.getElementById('onerm').value;
+            const typeInput = document.getElementById('ex-type').value;
+            
+            const oneRM = parseFloat(oneRmInput) || 100;
+            const activePlan = trainingProfiles[typeInput];
+            
+            const container = document.getElementById('plan-container');
+            container.innerHTML = ''; 
+
+            activePlan.forEach((block, bIndex) => {
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'border rounded-lg overflow-hidden shadow-sm';
+
+                const header = document.createElement('div');
+                header.className = `${block.colorClass} text-white px-6 py-4 flex flex-col sm:flex-row justify-between items-baseline`;
+                header.innerHTML = `
+                    <h2 class="text-xl font-bold">${block.title}</h2>
+                    <span class="text-sm font-medium opacity-90 mt-2 sm:mt-0">${block.subtitle}</span>
+                `;
+                blockDiv.appendChild(header);
+
+                const tableWrapper = document.createElement('div');
+                tableWrapper.className = 'overflow-x-auto';
+                
+                let tableHTML = `
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-gray-50 border-b text-gray-600 text-sm uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Week</th>
+                                <th class="p-4 font-semibold">Sets × Reps</th>
+                                <th class="p-4 font-semibold">Target Load</th>
+                                <th class="p-4 font-semibold">Rest</th>
+                                <th class="p-4 font-semibold">Tempo</th>
+                                <th class="p-4 font-semibold">Effort</th>
+                                <th class="p-4 font-semibold">Objective</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                `;
+
+                block.weeks.forEach((week, wIndex) => {
+                    let rowClass = 'hover:bg-gray-100 transition-colors cursor-pointer';
+                    if (week.isDeload) rowClass = 'bg-gray-50 text-gray-500 hover:bg-gray-100 cursor-pointer';
+                    if (week.isPeak) rowClass = 'bg-purple-50 font-bold hover:bg-purple-100 cursor-pointer';
+
+                    // For lower percentages/isolations, sometimes 1RM math yields weird decimals. We round to nearest 1kg (or 2.5kg depending on plates, but 1 is safe).
+                    const calculatedLoad = (oneRM * week.percent).toFixed(1);
+                    const percentageText = (week.percent * 100).toFixed(1).replace('.0', '');
+                    
+                    const detailId = `detail-${bIndex}-${wIndex}`;
+                    const iconId = `icon-${bIndex}-${wIndex}`;
+
+                    const repsSplit = week.reps.split('×').map(str => str.trim());
+                    const numSets = parseInt(repsSplit[0]) || 1;
+                    const numReps = repsSplit[1] || "";
+
+                    tableHTML += `
+                        <tr class="${rowClass}" onclick="toggleSets('${detailId}', '${iconId}')" title="Click to view set breakdown">
+                            <td class="p-4 whitespace-nowrap flex items-center">
+                                <span id="${iconId}" class="inline-flex items-center justify-center w-5 h-5 mr-3 bg-brand-100 text-brand-600 rounded text-lg font-bold leading-none pb-0.5">+</span>
+                                ${week.week}
+                            </td>
+                            <td class="p-4 whitespace-nowrap font-semibold text-lg">${week.reps}</td>
+                            <td class="p-4 whitespace-nowrap">
+                                <span class="text-lg">${calculatedLoad} kg</span>
+                                <span class="text-xs text-gray-500 block">(${percentageText}%)</span>
+                            </td>
+                            <td class="p-4 whitespace-nowrap text-blue-600 font-medium">${week.rest}</td>
+                            <td class="p-4 whitespace-nowrap text-slate-700 tracking-widest">${week.tempo}</td>
+                            <td class="p-4 whitespace-nowrap">${week.rpe}</td>
+                            <td class="p-4 text-sm">${week.obj}</td>
+                        </tr>
+                    `;
+
+                    let setsBreakdownHTML = `<div class="p-4 bg-slate-100 border-l-4 border-brand-500 shadow-inner space-y-2">
+                        <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Set Breakdown</h4>`;
+                    
+                    for (let i = 1; i <= numSets; i++) {
+                        setsBreakdownHTML += `
+                            <div class="flex items-center justify-between bg-white p-3 rounded border border-slate-200 hover:border-brand-300 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <span class="font-bold text-slate-800 w-12">Set ${i}</span>
+                                    <span class="text-slate-600 font-medium w-16">${numReps} reps</span>
+                                    <span class="text-brand-600 font-bold w-20">${calculatedLoad} kg</span>
+                                </div>
+                                <div class="hidden sm:flex items-center gap-6 text-sm text-slate-500">
+                                    <span><i class="opacity-70">Tempo:</i> ${week.tempo}</span>
+                                    <span><i class="opacity-70">Rest:</i> ${week.rest}</span>
+                                    <span class="w-24"><i class="opacity-70">Target:</i> ${week.rpe.split(' ')[0]}</span>
+                                </div>
+                                <div>
+                                    <input type="checkbox" class="w-5 h-5 accent-brand-500 rounded cursor-pointer" title="Mark set as complete">
+                                </div>
+                            </div>
+                        `;
+                    }
+                    setsBreakdownHTML += `</div>`;
+
+                    tableHTML += `
+                        <tr id="${detailId}" class="hidden">
+                            <td colspan="7" class="p-0 border-b border-slate-200">
+                                ${setsBreakdownHTML}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+                
+                tableWrapper.innerHTML = tableHTML;
+                blockDiv.appendChild(tableWrapper);
+                container.appendChild(blockDiv);
+            });
+        }
+
+        // Initialize
+        updatePlan();
+    </script>
+</body>
+</html>
