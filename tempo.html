@@ -1,1 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Tempo Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen antialiased flex justify-center p-4">
+    
+    <div class="w-full max-w-md flex flex-col pt-4 pb-12">
+        
+        <!-- Home Button -->
+        <a href="/" class="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors mb-6 font-medium">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Home
+        </a>
 
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-white tracking-tight">Tempo Visualizer</h1>
+            <p class="text-slate-400 text-sm mt-1">Configure your rep tempo and hit start.</p>
+        </div>
+
+        <!-- Animation Area -->
+        <div id="anim-container" class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 flex flex-col items-center shadow-xl transition-all duration-300">
+            <!-- Rep & Phase Status -->
+            <div class="w-full flex justify-between items-start mb-4 px-2 min-h-[4rem]">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Reps Left</p>
+                    <div id="rep-display" class="text-4xl font-bold text-white flex flex-col items-start">0</div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Current Phase</p>
+                    <p id="phase-display" class="text-xl font-bold text-blue-400 truncate w-32 ml-auto">Ready</p>
+                </div>
+            </div>
+
+            <!-- The Barbell / Weight Track -->
+            <div class="relative w-16 h-64 bg-slate-900 rounded-full border-2 border-slate-700 overflow-hidden mt-2">
+                <div id="weight-block" class="absolute top-0 left-0 w-full h-16 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] flex items-center justify-center transition-colors duration-300">
+                    <span id="ball-timer" class="text-white font-black text-2xl drop-shadow-md select-none"></span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 w-full mt-8">
+                <button id="btn-reset" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 font-semibold py-3 rounded-lg transition-colors shadow-sm">
+                    Reset
+                </button>
+                <button id="btn-start" class="flex-[2] bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition-colors">
+                    Start Set
+                </button>
+            </div>
+        </div>
+
+        <!-- Controls Form -->
+        <div class="space-y-6">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Reps Input -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Total Reps</label>
+                    <input type="number" id="input-reps" value="10" min="1" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 h-[42px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                </div>
+
+                <!-- Prep Time (Countdown) -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Prep Time (s)</label>
+                    <div id="seg-Prep" class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 h-[42px]"></div>
+                </div>
+                
+                <!-- Start Position Switch -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Start Position</label>
+                    <div id="seg-Start" class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 h-[42px]"></div>
+                </div>
+
+                <!-- Tempo Presets -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Pre-set Tempo</label>
+                    <select id="select-preset" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 h-[42px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none">
+                        <option value="" disabled selected>Select a goal...</option>
+                        <optgroup label="Hypertrophy / Tension">
+                            <option value="3-1-1-0">3-1-1-0</option>
+                            <option value="4-1-1-0">4-1-1-0</option>
+                        </optgroup>
+                        <optgroup label="Explosive Power">
+                            <option value="2-0-X-0">2-0-X-0</option>
+                            <option value="1-0-X-0">1-0-X-0</option>
+                        </optgroup>
+                        <optgroup label="Pause Heavy">
+                            <option value="3-3-1-0">3-3-1-0</option>
+                            <option value="2-2-1-1">2-2-1-1</option>
+                        </optgroup>
+                        <optgroup label="Continuous Tension">
+                            <option value="2-0-2-0">2-0-2-0</option>
+                        </optgroup>
+                        <optgroup label="Eccentric Overload">
+                            <option value="5-0-1-0">5-0-1-0</option>
+                            <option value="6-1-1-0">6-1-1-0</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Segmented Controls for Tempo -->
+            <div class="pt-2 border-t border-slate-800">
+                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-4">Tempo Inputs</p>
+                
+                <!-- This grid now stays visually consistent regardless of the Top/Bottom setting -->
+                <div id="tempo-grid" class="grid grid-cols-2 gap-4">
+                    <div id="box-C" class="flex flex-col">
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"><span class="text-slate-500 mr-1">↑</span> Concentric (Up)</label>
+                        <div id="seg-C" class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 h-[42px]"></div>
+                    </div>
+                    <div id="box-T" class="flex flex-col">
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"><span class="text-slate-500 mr-1">—</span> Top Pause</label>
+                        <div id="seg-T" class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 h-[42px]"></div>
+                    </div>
+                    <div id="box-E" class="flex flex-col">
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"><span class="text-slate-500 mr-1">↓</span> Eccentric (Down)</label>
+                        <div id="seg-E" class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 h-[42px]"></div>
+                    </div>
+                    <div id="box-B" class="flex flex-col">
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"><span class="text-slate-500 mr-1">—</span> Bottom Pause</label>
+                        <div id="seg-B" class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 h-[42px]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let settings = {
+            reps: 10,
+            prepTime: 5,
+            startPos: 'Top', 
+            tempo: { E: 3, B: 0, C: 1, T: 2 }
+        };
+        let isRunning = false;
+        let currentTimeout = null;
+        let ballTimerInterval = null;
+
+        // Elements
+        const elAnimContainer = document.getElementById('anim-container');
+        const elBlock = document.getElementById('weight-block');
+        const elRepDisplay = document.getElementById('rep-display');
+        const elPhaseDisplay = document.getElementById('phase-display');
+        const elBallTimer = document.getElementById('ball-timer');
+        const inputReps = document.getElementById('input-reps');
+        const selectPreset = document.getElementById('select-preset');
+        const btnStart = document.getElementById('btn-start');
+        const btnReset = document.getElementById('btn-reset');
+
+        // Track constraints (256px tall track - 64px tall block = 192px travel distance)
+        const TRAVEL_DISTANCE = 192;
+
+        // Initialize App
+        function init() {
+            loadState();
+            renderAllSegments();
+            
+            inputReps.value = settings.reps;
+            selectPreset.value = ""; 
+            updateInitialUI();
+
+            inputReps.addEventListener('change', (e) => {
+                settings.reps = Math.max(1, parseInt(e.target.value) || 1);
+                saveState();
+                updateInitialUI();
+            });
+
+            selectPreset.addEventListener('change', (e) => {
+                const parts = e.target.value.split('-');
+                if(parts.length === 4) {
+                    settings.tempo.E = parseInt(parts[0]);
+                    settings.tempo.B = parseInt(parts[1]);
+                    settings.tempo.C = parts[2] === 'X' ? 'X' : parseInt(parts[2]);
+                    settings.tempo.T = parseInt(parts[3]);
+                    saveState();
+                    renderAllSegments();
+                    updateInitialUI();
+                }
+            });
+
+            btnStart.addEventListener('click', toggleWorkout);
+            btnReset.addEventListener('click', resetWorkout);
+        }
+
+        function renderAllSegments() {
+            buildSegment('seg-Start', ['Top', 'Bottom'], settings.startPos, (val) => {
+                settings.startPos = val;
+                saveState();
+                updateInitialUI();
+            });
+            buildSegment('seg-Prep', [0, 3, 5, 10], settings.prepTime, (val) => {
+                settings.prepTime = val;
+                saveState();
+            });
+            buildSegment('seg-E', [1, 2, 3, 4, 5, 6], settings.tempo.E, (val) => updateTempo('E', val));
+            buildSegment('seg-B', [0, 1, 2, 3, 4], settings.tempo.B, (val) => updateTempo('B', val));
+            buildSegment('seg-C', ['X', 1, 2, 3, 4, 5], settings.tempo.C, (val) => updateTempo('C', val));
+            buildSegment('seg-T', [0, 1, 2, 3, 4], settings.tempo.T, (val) => updateTempo('T', val));
+        }
+
+        function buildSegment(containerId, options, currentValue, callback) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; 
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.textContent = (opt === 0 && containerId === 'seg-Prep') ? '0s' : opt;
+                btn.className = `flex-1 py-1 text-sm font-medium rounded-md transition-all h-full ${
+                    opt === currentValue 
+                    ? 'bg-blue-600 text-white shadow' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                }`;
+                btn.onclick = () => {
+                    if (isRunning) return; 
+                    callback(opt);
+                    buildSegment(containerId, options, opt, callback); 
+                    if(containerId.startsWith('seg-E') || containerId.startsWith('seg-B') || containerId.startsWith('seg-C') || containerId.startsWith('seg-T')) {
+                        selectPreset.value = ""; 
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function updateTempo(phase, value) {
+            settings.tempo[phase] = value;
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('gymTempoStateV6', JSON.stringify(settings));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('gymTempoStateV6');
+            if (saved) {
+                try { settings = JSON.parse(saved); } catch(e) {}
+            }
+        }
+
+        const sleep = (ms) => new Promise(resolve => {
+            currentTimeout = setTimeout(resolve, ms);
+        });
+
+        function startBallTimer(seconds) {
+            clearInterval(ballTimerInterval);
+            
+            if (seconds === 'X') {
+                elBallTimer.textContent = '⚡';
+                return;
+            }
+            
+            let numSec = parseFloat(seconds);
+            if (numSec <= 0) {
+                elBallTimer.textContent = '';
+                return;
+            }
+
+            let endTime = Date.now() + (numSec * 1000);
+            elBallTimer.textContent = Math.ceil(numSec);
+
+            ballTimerInterval = setInterval(() => {
+                let left = endTime - Date.now();
+                if (left <= 0) {
+                    clearInterval(ballTimerInterval);
+                    elBallTimer.textContent = '';
+                } else {
+                    elBallTimer.textContent = Math.ceil(left / 1000);
+                }
+            }, 50);
+        }
+
+        function moveWeight(position, seconds) {
+            if (!isRunning) return;
+            const duration = seconds === 'X' ? 0.3 : seconds;
+            elBlock.style.transition = `transform ${duration}s linear`;
+            elBlock.style.transform = `translateY(${position}px)`;
+        }
+
+        function updateStatus(text, colorClass) {
+            if (!isRunning) return;
+            elPhaseDisplay.textContent = text;
+            elPhaseDisplay.className = `text-xl font-bold ${colorClass} truncate w-32 right-0`;
+        }
+
+        // Dynamically applies Tailwind color classes to the weight block based on the phase
+        function setBallStyle(phaseType) {
+            // Remove existing color classes
+            elBlock.classList.remove(
+                'bg-blue-500', 'bg-orange-500', 'bg-green-500', 'bg-purple-500',
+                'shadow-[0_0_15px_rgba(59,130,246,0.5)]', 
+                'shadow-[0_0_15px_rgba(249,115,22,0.5)]', 
+                'shadow-[0_0_15px_rgba(34,197,94,0.5)]', 
+                'shadow-[0_0_15px_rgba(168,85,247,0.5)]', 
+                'shadow-[0_0_20px_rgba(34,197,94,0.7)]'
+            );
+
+            // Apply new colors
+            if (phaseType === 'E') { // Eccentric (Blue)
+                elBlock.classList.add('bg-blue-500', 'shadow-[0_0_15px_rgba(59,130,246,0.5)]');
+            } else if (phaseType === 'B') { // Bottom Pause (Orange)
+                elBlock.classList.add('bg-orange-500', 'shadow-[0_0_15px_rgba(249,115,22,0.5)]');
+            } else if (phaseType === 'C') { // Concentric (Green)
+                elBlock.classList.add('bg-green-500', 'shadow-[0_0_15px_rgba(34,197,94,0.5)]');
+            } else if (phaseType === 'T') { // Top Pause (Purple)
+                elBlock.classList.add('bg-purple-500', 'shadow-[0_0_15px_rgba(168,85,247,0.5)]');
+            } else if (phaseType === 'DONE') { // Finished (Bright Green)
+                elBlock.classList.add('bg-green-500', 'shadow-[0_0_20px_rgba(34,197,94,0.7)]');
+            } else { // Default (Ready)
+                elBlock.classList.add('bg-blue-500', 'shadow-[0_0_15px_rgba(59,130,246,0.5)]');
+            }
+        }
+
+        function updateInitialUI() {
+            // Remove end-state classes
+            elAnimContainer.classList.remove('ring-4', 'ring-green-500', 'bg-slate-700');
+            setBallStyle('READY');
+
+            elRepDisplay.innerHTML = settings.reps;
+            elRepDisplay.className = "text-4xl font-bold text-white flex flex-col items-start";
+            
+            elPhaseDisplay.textContent = "Ready";
+            elPhaseDisplay.className = "text-xl font-bold text-slate-400 truncate w-32";
+            elBallTimer.textContent = "";
+            
+            // Snap block to correct start position
+            elBlock.style.transition = 'none';
+            if (settings.startPos === 'Bottom') {
+                elBlock.style.transform = `translateY(${TRAVEL_DISTANCE}px)`;
+            } else {
+                elBlock.style.transform = 'translateY(0px)';
+            }
+            void elBlock.offsetHeight; 
+        }
+
+        async function runPhase(phaseName, duration, targetY, colorClass, phaseType) {
+            if (!isRunning) return;
+            
+            const isExplosive = (duration === 'X');
+            const numericDuration = isExplosive ? 0.3 : parseFloat(duration);
+
+            startBallTimer(duration);
+            setBallStyle(phaseType);
+
+            if (targetY !== null) { 
+                updateStatus(`${phaseName}`, colorClass);
+                moveWeight(targetY, duration);
+                await sleep(numericDuration * 1000);
+            } else { 
+                if (numericDuration > 0) {
+                    updateStatus(`Pause`, colorClass);
+                    await sleep(numericDuration * 1000);
+                }
+            }
+        }
+
+        // Main Workout Loop
+        async function toggleWorkout() {
+            if (isRunning) {
+                resetWorkout();
+                return;
+            }
+
+            isRunning = true;
+            
+            elAnimContainer.classList.remove('ring-4', 'ring-green-500', 'bg-slate-700');
+
+            btnStart.textContent = "Stop";
+            btnStart.classList.replace('bg-blue-600', 'bg-red-600');
+            btnStart.classList.replace('hover:bg-blue-500', 'hover:bg-red-500');
+            btnStart.classList.replace('shadow-blue-500/30', 'shadow-red-500/30');
+            inputReps.disabled = true;
+            selectPreset.disabled = true;
+
+            // Optional Countdown Phase
+            if (settings.prepTime > 0) {
+                setBallStyle('READY'); // Reset ball visual during countdown
+                for (let i = settings.prepTime; i > 0; i--) {
+                    if (!isRunning) return;
+                    updateStatus(`Starting in ${i}`, 'text-orange-400');
+                    elBallTimer.textContent = i;
+                    await sleep(1000);
+                }
+            }
+            if (!isRunning) return;
+            elBallTimer.textContent = '';
+
+            for (let rep = 1; rep <= settings.reps; rep++) {
+                if (!isRunning) break;
+                
+                let repsRemaining = settings.reps - rep + 1;
+                
+                if (repsRemaining === 1) {
+                    elRepDisplay.innerHTML = `1 <span class="text-sm text-orange-500 uppercase tracking-widest mt-1 font-bold animate-pulse">Last One!</span>`;
+                } else {
+                    elRepDisplay.textContent = repsRemaining;
+                }
+
+                if (settings.startPos === 'Bottom') {
+                    await runPhase('Concentric', settings.tempo.C, 0, 'text-green-400', 'C');
+                    if (!isRunning) break;
+                    await runPhase('Top Pause', settings.tempo.T, null, 'text-purple-400', 'T');
+                    if (!isRunning) break;
+                    await runPhase('Eccentric', settings.tempo.E, TRAVEL_DISTANCE, 'text-blue-400', 'E');
+                    if (!isRunning) break;
+                    await runPhase('Btm Pause', settings.tempo.B, null, 'text-orange-400', 'B');
+                } else {
+                    await runPhase('Eccentric', settings.tempo.E, TRAVEL_DISTANCE, 'text-blue-400', 'E');
+                    if (!isRunning) break;
+                    await runPhase('Btm Pause', settings.tempo.B, null, 'text-orange-400', 'B');
+                    if (!isRunning) break;
+                    await runPhase('Concentric', settings.tempo.C, 0, 'text-green-400', 'C');
+                    if (!isRunning) break;
+                    await runPhase('Top Pause', settings.tempo.T, null, 'text-purple-400', 'T');
+                }
+            }
+
+            if (isRunning) {
+                elRepDisplay.innerHTML = "0";
+                elRepDisplay.className = "text-4xl font-bold text-green-400 flex flex-col items-start";
+                updateStatus("COMPLETE!", "text-green-400 uppercase tracking-widest text-sm text-right");
+                elBallTimer.textContent = "✓";
+                
+                elAnimContainer.classList.add('ring-4', 'ring-green-500', 'bg-slate-700');
+                setBallStyle('DONE');
+
+                finishWorkout();
+            }
+        }
+
+        function resetWorkout() {
+            isRunning = false;
+            clearTimeout(currentTimeout);
+            clearInterval(ballTimerInterval);
+            finishWorkout();
+            updateInitialUI();
+        }
+
+        function finishWorkout() {
+            isRunning = false;
+            btnStart.textContent = "Start Set";
+            btnStart.classList.replace('bg-red-600', 'bg-blue-600');
+            btnStart.classList.replace('hover:bg-red-500', 'hover:bg-blue-500');
+            btnStart.classList.replace('shadow-red-500/30', 'shadow-blue-500/30');
+            inputReps.disabled = false;
+            selectPreset.disabled = false;
+        }
+
+        // Boot
+        init();
+    </script>
+</body>
+</html>
