@@ -122,36 +122,38 @@
                         </h3>
                         
                         <div class="flex flex-wrap items-end gap-2">
-                            <div class="w-20">
+                            <!-- Segmented Control: Type -->
+                            <div class="w-24">
                                 <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Type</label>
-                                <select id="muscle-type" onchange="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold py-2 px-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
-                                    <option value="compound" selected>Comp</option>
-                                    <option value="isolation">Iso</option>
-                                </select>
+                                <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-700 h-8 items-stretch gap-0.5 relative">
+                                    <button data-value="compound" onclick="setSegment('muscle-type', 'compound')" class="flex-1 text-[10px] font-bold uppercase rounded bg-amber-500 text-slate-900 transition">Comp</button>
+                                    <button data-value="isolation" onclick="setSegment('muscle-type', 'isolation')" class="flex-1 text-[10px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition hover:bg-slate-800/50">Iso</button>
+                                    <input type="hidden" id="muscle-type" value="compound">
+                                </div>
                             </div>
-                            <div class="w-20">
+                            
+                            <!-- Segmented Control: Target -->
+                            <div class="w-[140px]">
                                 <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Target</label>
-                                <select id="warmup-target" onchange="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold py-2 px-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
-                                    <option value="1">1RM</option>
-                                    <option value="3">3RM</option>
-                                    <option value="5" selected>5RM</option>
-                                    <option value="8">8RM</option>
-                                    <option value="10">10RM</option>
-                                </select>
+                                <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-700 h-8 items-stretch gap-0.5 relative">
+                                    <button data-value="1" onclick="setSegment('warmup-target', '1')" class="flex-1 text-[10px] font-bold rounded text-slate-500 hover:text-slate-300 transition hover:bg-slate-800/50">1</button>
+                                    <button data-value="3" onclick="setSegment('warmup-target', '3')" class="flex-1 text-[10px] font-bold rounded text-slate-500 hover:text-slate-300 transition hover:bg-slate-800/50">3</button>
+                                    <button data-value="5" onclick="setSegment('warmup-target', '5')" class="flex-1 text-[10px] font-bold rounded bg-amber-500 text-slate-900 transition">5</button>
+                                    <button data-value="8" onclick="setSegment('warmup-target', '8')" class="flex-1 text-[10px] font-bold rounded text-slate-500 hover:text-slate-300 transition hover:bg-slate-800/50">8</button>
+                                    <button data-value="10" onclick="setSegment('warmup-target', '10')" class="flex-1 text-[10px] font-bold rounded text-slate-500 hover:text-slate-300 transition hover:bg-slate-800/50">10</button>
+                                    <input type="hidden" id="warmup-target" value="5">
+                                </div>
                             </div>
+
                             <div class="w-16">
                                 <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Bar</label>
-                                <input type="number" id="bar-weight" value="20" oninput="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold py-2 px-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
+                                <input type="number" id="bar-weight" value="20" oninput="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-8 px-1 transition-colors">
                             </div>
+                            
+                            <!-- Manual Input: Increment -->
                             <div class="w-16">
                                 <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Increment</label>
-                                <select id="rounding-factor" onchange="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold py-2 px-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
-                                    <option value="0.5">0.5</option>
-                                    <option value="1">1</option>
-                                    <option value="1.25" selected>1.25</option>
-                                    <option value="2.5">2.5</option>
-                                    <option value="5">5</option>
-                                </select>
+                                <input type="number" id="rounding-factor" value="1.25" step="0.25" oninput="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-8 px-1 transition-colors">
                             </div>
                         </div>
                     </div>
@@ -307,6 +309,23 @@
     let remainingTime = 0;
     let audioCtx;
     window.activeStep = 0;
+
+    // Helper to control the new Segmented Control UI elements 
+    function setSegment(groupId, value) {
+        document.getElementById(groupId).value = value;
+        const container = document.getElementById(groupId).parentElement;
+        const buttons = container.querySelectorAll('button');
+        
+        buttons.forEach(btn => {
+            if (btn.getAttribute('data-value') === value.toString()) {
+                btn.className = 'flex-1 text-[10px] font-bold uppercase rounded bg-amber-500 text-slate-900 transition';
+            } else {
+                btn.className = 'flex-1 text-[10px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition hover:bg-slate-800/50';
+            }
+        });
+        
+        masterCalculate();
+    }
 
     function masterCalculate() {
         let final1RM = 0;
