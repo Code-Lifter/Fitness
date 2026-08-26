@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Session Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input, select {
+            width: 100%;
+            height: 100%;
+            padding: 0.5rem;
+            background: transparent;
+            outline: none;
+        }
+        input:focus, select:focus { background: #eef2ff; }
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #374151; }
+        th { background-color: #f3f4f6; }
+        .header-bg { background-color: #bfdbfe; }
+        
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        /* Print Styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .max-w-[90rem] { box-shadow: none; max-width: 100%; padding: 0; border: none; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            html { font-size: 11px; }
+            input::placeholder { color: transparent; }
+            .border-2 { border-width: 1px !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans p-4 md:p-8">
+
+    <div class="max-w-[90rem] mx-auto bg-white shadow-lg p-6 rounded-lg print:p-0 print:shadow-none">
+        
+        <!-- Top Navigation / Controls -->
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 no-print gap-4">
+            <div class="flex gap-2">
+                <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    &larr; Home
+                </a>
+                <a href="health-bench.html" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    &larr; Health Bench
+                </a>
+            </div>
+            <h1 class="text-2xl font-bold text-center">Exercise Session Plan</h1>
+            <div class="flex flex-wrap gap-2 justify-center">
+                <!-- JSON Logic Triggers -->
+                <input type="file" id="json-upload" class="hidden" accept=".json" onchange="importJSON(event)">
+                <button onclick="document.getElementById('json-upload').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    Import JSON
+                </button>
+                <button onclick="exportJSON()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow">
+                    Export JSON
+                </button>
+                <button onclick="window.print()" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded shadow">
+                    Print PDF
+                </button>
+                <button id="resetBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded shadow">
+                    Reset Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Session Info Table -->
+        <div class="overflow-x-auto mb-6">
+            <table class="w-full text-sm sm:text-base border-2 border-gray-800">
+                <tbody>
+                    <tr>
+                        <td class="w-1/4 p-2 font-bold bg-gray-100 border-gray-800">Date of Session</td>
+                        <td class="p-0 border-gray-800"><input type="text" placeholder="YYYY-MM-DD" id="session-date"></td>
+                        <td class="w-1/4 p-2 font-bold bg-gray-100 border-gray-800">Assigned Exercise Type</td>
+                        <td class="p-0 border-gray-800"><input type="text" id="session-type"></td>
+                    </tr>
+                    <tr>
+                        <td class="p-2 font-bold bg-gray-100 border-gray-800">Session Frequency</td>
+                        <td class="p-0 border-gray-800"><input type="text" id="session-freq"></td>
+                        <td class="p-2 font-bold bg-gray-100 border-gray-800">Session Duration</td>
+                        <td class="p-0 border-gray-800"><input type="text" id="session-dur"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- EXERCISE TABLES (Warm Up, Conditioning, Cool Down) -->
+        <div class="overflow-visible mb-6 border-2 border-gray-800">
+            <table class="w-full text-center text-sm">
+                <thead>
+                    <tr><th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Warm Up</th></tr>
+                    <tr>
+                        <th rowspan="2" class="p-2 w-48">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2 w-28 relative group cursor-help z-30">
+                            Tempo <span class="inline-flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[10px] ml-1 shadow no-print">i</span>
+                            <div class="opacity-0 w-64 bg-gray-900 text-white text-xs rounded-md absolute left-1/2 -translate-x-1/2 top-full mt-2 p-3 pointer-events-none group-hover:opacity-100 transition-opacity font-normal text-left shadow-xl z-50 no-print">
+                                <span class="block mb-1">⚡ <b>Explosive (2–0–X–0):</b> ~25s TUT</span>
+                                <span class="block mb-1">🎯 <b>Hypertrophy (3–1–1–0):</b> ~50s TUT</span>
+                                <span class="block">🔥 <b>Eccentric Overload (6–1–1–0):</b> ~80s TUT</span>
+                            </div>
+                        </th>
+                        <th rowspan="2" class="p-2 w-24">Duration<br>(Rest in sec)</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                        <th rowspan="2" class="p-2 w-24 text-blue-700">Total Time<br>(Auto)</th>
+                    </tr>
+                    <tr><th class="p-2 w-16 border-t-0">Sets</th><th class="p-2 w-16 border-t-0">Reps</th></tr>
+                </thead>
+                <tbody class="warmup-body"></tbody>
+                <tfoot>
+                    <tr class="bg-gray-100"><td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-t-2">Warm Up Total:</td><td id="warmup-total" class="font-bold p-2 text-blue-800 border-gray-800 border-t-2">-</td></tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="overflow-visible mb-6 border-2 border-gray-800">
+            <table class="w-full text-center text-sm">
+                <thead>
+                    <tr><th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Conditioning</th></tr>
+                    <tr>
+                        <th rowspan="2" class="p-2 w-48">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2 w-28 relative group cursor-help z-20">
+                            Tempo <span class="inline-flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[10px] ml-1 shadow no-print">i</span>
+                            <div class="opacity-0 w-64 bg-gray-900 text-white text-xs rounded-md absolute left-1/2 -translate-x-1/2 bottom-full mb-2 p-3 pointer-events-none group-hover:opacity-100 transition-opacity font-normal text-left shadow-xl z-50 no-print">
+                                <span class="block mb-1">⚡ <b>Explosive (2–0–X–0):</b> ~25s TUT</span>
+                                <span class="block mb-1">🎯 <b>Hypertrophy (3–1–1–0):</b> ~50s TUT</span>
+                                <span class="block">🔥 <b>Eccentric Overload (6–1–1–0):</b> ~80s TUT</span>
+                            </div>
+                        </th>
+                        <th rowspan="2" class="p-2 w-24 text-blue-700">Duration<br>(Auto)</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2 w-24">Rest Period<br>(sec)</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                    </tr>
+                    <tr><th class="p-2 w-16 border-t-0">Sets</th><th class="p-2 w-16 border-t-0">Reps</th></tr>
+                </thead>
+                <tbody class="conditioning-body"></tbody>
+                <tfoot>
+                    <tr class="bg-gray-100"><td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-t-2">Conditioning Total:</td><td id="conditioning-total" class="font-bold p-2 text-blue-800 border-gray-800 border-t-2">-</td></tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="overflow-visible mb-6 border-2 border-gray-800">
+            <table class="w-full text-center text-sm">
+                <thead>
+                    <tr><th colspan="8" class="header-bg text-left p-2 font-bold uppercase border-gray-800 border-b-2">Cool Down</th></tr>
+                    <tr>
+                        <th rowspan="2" class="p-2 w-48">Exercises</th>
+                        <th colspan="2" class="p-2">Volume</th>
+                        <th rowspan="2" class="p-2 w-28 relative group cursor-help z-10">
+                            Tempo <span class="inline-flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[10px] ml-1 shadow no-print">i</span>
+                            <div class="opacity-0 w-64 bg-gray-900 text-white text-xs rounded-md absolute left-1/2 -translate-x-1/2 bottom-full mb-2 p-3 pointer-events-none group-hover:opacity-100 transition-opacity font-normal text-left shadow-xl z-50 no-print">
+                                <span class="block mb-1">⚡ <b>Explosive (2–0–X–0):</b> ~25s TUT</span>
+                                <span class="block mb-1">🎯 <b>Hypertrophy (3–1–1–0):</b> ~50s TUT</span>
+                                <span class="block">🔥 <b>Eccentric Overload (6–1–1–0):</b> ~80s TUT</span>
+                            </div>
+                        </th>
+                        <th rowspan="2" class="p-2 w-24">Duration<br>(Rest in sec)</th>
+                        <th rowspan="2" class="p-2">Intensity</th>
+                        <th rowspan="2" class="p-2">Equipment Required</th>
+                        <th rowspan="2" class="p-2 w-24 text-blue-700">Total Time<br>(Auto)</th>
+                    </tr>
+                    <tr><th class="p-2 w-16 border-t-0">Sets</th><th class="p-2 w-16 border-t-0">Reps</th></tr>
+                </thead>
+                <tbody class="cooldown-body"></tbody>
+                <tfoot>
+                    <tr class="bg-gray-100"><td colspan="7" class="text-right font-bold p-2 uppercase border-gray-800 border-t-2">Cool Down Total:</td><td id="cooldown-total" class="font-bold p-2 text-blue-800 border-gray-800 border-t-2">-</td></tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="mt-4 text-center text-gray-400 font-semibold uppercase text-sm no-print">
+            END OF EXERCISE SESSION PLANS
+        </div>
+    </div>
+
+    <script>
+        // Table Construction 
+        const standardRow = `
+            <tr class="calc-row h-10 border-gray-800 border">
+                <td class="p-0 border-gray-800 border"><input type="text" placeholder="Exercise"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="text-center"></td>
+                <td class="p-0 border-gray-800 border"><input type="text"></td>
+                <td class="p-2 bg-blue-50 font-semibold text-blue-800 border-gray-800 border output-time">-</td>
+            </tr>
+        `;
+        const conditioningRow = `
+            <tr class="calc-row h-10 border-gray-800 border">
+                <td class="p-0 border-gray-800 border"><input type="text" placeholder="Exercise"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-sets text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-reps text-center" min="0" placeholder="0"></td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="input-tempo text-center" placeholder="3 0 1 0"></td>
+                <td class="p-2 bg-blue-50 font-semibold text-blue-800 border-gray-800 border output-time">-</td>
+                <td class="p-0 border-gray-800 border"><input type="text" class="text-center"></td>
+                <td class="p-0 border-gray-800 border"><input type="number" class="input-rest text-center" min="0" placeholder="sec"></td>
+                <td class="p-0 border-gray-800 border"><input type="text"></td>
+            </tr>
+        `;
+        const standardSubHeader = (title) => `<tr><td colspan="8" class="bg-gray-200 font-bold text-gray-700 uppercase p-1 px-3 text-left border-gray-800 border-x-2 border-y print:bg-gray-100">${title}</td></tr>`;
+
+        document.querySelector('.warmup-body').innerHTML = standardSubHeader("Cardio") + standardRow.repeat(2) + standardSubHeader("Dynamic Stretching") + standardRow.repeat(3);
+        document.querySelector('.conditioning-body').innerHTML = standardSubHeader("Compound") + conditioningRow.repeat(3) + standardSubHeader("Isolation") + conditioningRow.repeat(3);
+        document.querySelector('.cooldown-body').innerHTML = standardSubHeader("Cardio") + standardRow.repeat(2) + standardSubHeader("Static Stretch") + standardRow.repeat(3);
+
+        const allInputs = document.querySelectorAll('input, select');
+        allInputs.forEach((input, index) => {
+            // Unique prefix so they don't overwrite if hosted on same domain path
+            if (!input.id && input.type !== 'file') input.id = 'workout_input_' + index;
+        });
+
+        function formatTime(totalSeconds) {
+            if (totalSeconds <= 0) return "-";
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        }
+
+        function calculateTimes() {
+            let warmupSecs = 0; let condSecs = 0; let coolSecs = 0;
+            document.querySelectorAll('.calc-row').forEach(row => {
+                const sets = parseFloat(row.querySelector('.input-sets')?.value) || 0;
+                const reps = parseFloat(row.querySelector('.input-reps')?.value) || 0;
+                const tempoInput = row.querySelector('.input-tempo')?.value || "";
+                const rest = parseFloat(row.querySelector('.input-rest')?.value) || 0;
+                const output = row.querySelector('.output-time');
+                if (output) {
+                    const tempoMatches = tempoInput.match(/\d+(\.\d+)?/g);
+                    let tempoSum = 0;
+                    if (tempoMatches) tempoSum = tempoMatches.reduce((sum, val) => sum + parseFloat(val), 0);
+                    let rowSecs = 0;
+                    if (sets > 0 && reps > 0) rowSecs = ((tempoSum * reps) + rest) * sets;
+                    output.textContent = formatTime(rowSecs);
+                    if (row.closest('.warmup-body')) warmupSecs += rowSecs;
+                    else if (row.closest('.conditioning-body')) condSecs += rowSecs;
+                    else if (row.closest('.cooldown-body')) coolSecs += rowSecs;
+                }
+            });
+            document.getElementById('warmup-total').textContent = formatTime(warmupSecs);
+            document.getElementById('conditioning-total').textContent = formatTime(condSecs);
+            document.getElementById('cooldown-total').textContent = formatTime(coolSecs);
+        }
+
+        // Data Management 
+        function initStorage() {
+            allInputs.forEach(input => {
+                const key = input.id;
+                const savedValue = localStorage.getItem(key);
+                if (savedValue !== null && input.type !== 'file') {
+                    input.value = savedValue;
+                }
+                if (input.type !== 'file') {
+                    input.addEventListener('input', () => {
+                        localStorage.setItem(key, input.value);
+                        calculateTimes();
+                    });
+                }
+            });
+            calculateTimes();
+        }
+
+        function exportJSON() {
+            const data = {};
+            allInputs.forEach(input => {
+                if (input.type === 'file') return;
+                data[input.id] = input.value;
+            });
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'workout_plan_data.json';
+            a.click();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    allInputs.forEach(input => {
+                        if (input.type === 'file') return;
+                        if (data[input.id] !== undefined) {
+                            input.value = data[input.id];
+                            localStorage.setItem(input.id, data[input.id]);
+                        }
+                    });
+                    calculateTimes();
+                } catch (err) {
+                    alert('Invalid JSON file format.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm("Are you sure you want to clear all data? This cannot be undone.")) {
+                localStorage.clear();
+                allInputs.forEach(input => {
+                    if (input.type !== 'file') {
+                        input.value = '';
+                    }
+                });
+                calculateTimes(); 
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', initStorage);
+    </script>
+</body>
+</html>
