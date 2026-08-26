@@ -3,213 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Biometrics & Health Bench</title>
+    <title>Client Biometrics & Health Bench (Dark)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        input, select {
+        /* Dark Theme Input Styling */
+        input:not([type="radio"]), select, textarea {
             width: 100%;
-            height: 100%;
-            padding: 0.5rem;
-            background: transparent;
+            padding: 0.5rem 0.75rem;
+            background: #1f2937; /* gray-800 */
+            border: 1px solid #374151; /* gray-700 */
+            border-radius: 0.375rem;
+            color: #f3f4f6; /* gray-100 */
             outline: none;
+            transition: all 0.2s;
         }
-        input:focus, select:focus { background: #eef2ff; }
-        table { border-collapse: collapse; }
-        th, td { border: 1px solid #374151; }
-        th { background-color: #f3f4f6; }
+        input:not([type="radio"]) { height: 40px; }
+        input:focus:not([type="radio"]), select:focus, textarea:focus { 
+            background: #111827; /* gray-900 */
+            border-color: #3b82f6; /* blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        input::placeholder { color: #6b7280; } /* gray-500 */
         
-        .calc-input {
-            border: 1px solid #9ca3af;
-            border-radius: 0.25rem;
-            background: #fff;
-            height: 36px;
-        }
+        /* Table Styling */
+        table { border-collapse: separate; border-spacing: 0; }
+        th, td { border-bottom: 1px solid #374151; border-right: 1px solid #374151; }
+        th:last-child, td:last-child { border-right: none; }
+        tr:last-child td { border-bottom: none; }
+        th { background-color: #1f2937; color: #d1d5db; font-weight: 600; }
+        td { color: #9ca3af; } /* gray-400 */
+        
+        /* Remove number arrows */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
+            -webkit-appearance: none; margin: 0; 
         }
         
         /* Custom Gender Switch */
         .switch-radio:checked + div {
-            background-color: #3b82f6;
-            color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background-color: #3b82f6; color: white; border-color: #3b82f6;
         }
 
         /* Active Table Row Highlight */
-        .active-row {
-            background-color: #bfdbfe !important; /* Tailwind blue-200 */
-            font-weight: bold;
-            border: 2px solid #1d4ed8 !important; /* Tailwind blue-700 */
+        .active-row td {
+            background-color: rgba(59, 130, 246, 0.15) !important;
+            color: #60a5fa !important; /* blue-400 */
+            font-weight: 700;
         }
-        .active-row td { border-color: #1d4ed8; color: #1e3a8a; }
         
-        /* Print Styles */
+        /* Print Styles - Forces White BG / Black Text for PDFs */
         @media print {
             .no-print { display: none !important; }
-            body { background: white; padding: 0; }
-            .max-w-[90rem] { box-shadow: none; max-width: 100%; padding: 0; border: none; }
+            body { background: white !important; color: black !important; padding: 0; }
+            .print-container { box-shadow: none; max-width: 100%; padding: 0; background: white !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            html { font-size: 11px; }
-            input::placeholder { color: transparent; }
-            .border-2 { border-width: 1px !important; }
+            th { background-color: #f3f4f6 !important; color: #000 !important; }
+            td { color: #000 !important; border-color: #d1d5db !important; }
+            input:not([type="radio"]), select { background: #fff !important; color: #000 !important; border: 1px solid #d1d5db !important; }
+            .bg-gray-800, .bg-gray-900 { background: #fff !important; border: 1px solid #d1d5db; }
+            .text-gray-100, .text-gray-200, .text-gray-400 { color: #374151 !important; }
+            .bg-gray-750 { background: #f9fafb !important; }
+            .active-row td { background-color: #eff6ff !important; color: #1e40af !important; }
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans p-4 md:p-8">
+<body class="bg-gray-900 text-gray-200 font-sans p-4 md:p-8">
 
-    <div class="max-w-[90rem] mx-auto bg-white shadow-lg p-6 rounded-lg print:p-0 print:shadow-none">
+    <div class="print-container max-w-[95rem] mx-auto bg-gray-800 shadow-2xl p-6 md:p-8 rounded-xl border border-gray-700">
         
         <!-- Top Navigation / Controls -->
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 no-print gap-4">
-            <div class="flex gap-2">
-                <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
+        <div class="flex flex-col xl:flex-row justify-between items-center mb-8 no-print gap-4 pb-6 border-b border-gray-700">
+            <div class="flex gap-3">
+                <a href="/" class="text-gray-400 hover:text-blue-400 font-medium px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors">
                     &larr; Home
                 </a>
-                <a href="workout-sheet.html" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded shadow">
+                <a href="workout-sheet.html" class="bg-teal-900/50 text-teal-400 border border-teal-800 hover:bg-teal-800 font-semibold py-2 px-4 rounded-lg transition-colors">
                     Workout Sheet &rarr;
                 </a>
             </div>
-            <h1 class="text-2xl font-bold text-center">Health Bench & Biometrics</h1>
+            
+            <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
+                Health Bench & Biometrics
+            </h1>
+            
             <div class="flex flex-wrap gap-2 justify-center">
                 <input type="file" id="json-upload" class="hidden" accept=".json" onchange="importJSON(event)">
-                <button onclick="document.getElementById('json-upload').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow">
-                    Import JSON
+                <button onclick="document.getElementById('json-upload').click()" class="bg-gray-700 border border-gray-600 text-gray-200 hover:bg-gray-600 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2">
+                    📂 Import
                 </button>
-                <button onclick="exportJSON()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow">
-                    Export JSON
+                <button onclick="exportJSON()" class="bg-gray-700 border border-gray-600 text-gray-200 hover:bg-gray-600 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2">
+                    💾 Export
                 </button>
-                <button onclick="window.print()" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded shadow">
-                    Print PDF
+                <button onclick="window.print()" class="bg-blue-600 text-white hover:bg-blue-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2">
+                    🖨️ Print PDF
                 </button>
-                <button id="resetBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded shadow">
-                    Reset Data
+                <button id="resetBtn" class="bg-red-900/50 border border-red-800 text-red-400 hover:bg-red-800 hover:text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+                    Reset
                 </button>
+            </div>
+        </div>
+
+        <!-- CLIENT IDENTIFICATION -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-blue-900/20 p-4 rounded-lg border border-blue-900/50">
+            <div>
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Client Name</label>
+                <input type="text" id="client-name" placeholder="John Doe">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Date of Assessment</label>
+                <input type="date" id="client-date">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Activity Level (For TDEE)</label>
+                <select id="calc-activity">
+                    <option value="1.2">Sedentary (Little/No exercise)</option>
+                    <option value="1.375">Lightly Active (1-3 days/wk)</option>
+                    <option value="1.55">Moderately Active (3-5 days/wk)</option>
+                    <option value="1.725">Very Active (6-7 days/wk)</option>
+                    <option value="1.9">Super Active (Physical job/training)</option>
+                </select>
             </div>
         </div>
 
         <!-- MASTER BIOMETRICS INPUT PANEL -->
-        <div class="bg-gray-100 border-2 border-gray-800 p-4 rounded-lg mb-6 shadow-inner">
-            <h2 class="font-bold text-lg mb-3 text-gray-800 border-b-2 border-gray-300 pb-1 uppercase tracking-wide">Client Biometrics Master Input</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 text-sm items-end">
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-100 mb-4 flex items-center gap-2">
+                <span class="bg-blue-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-sm">1</span> 
+                Master Biometrics Input
+            </h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-3 items-end">
                 <div>
-                    <label class="font-semibold block mb-1">Gender</label>
-                    <div class="flex bg-white border border-gray-400 rounded p-1 w-full h-[36px]">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Gender</label>
+                    <div class="flex bg-gray-900 p-1 rounded-lg w-full h-[40px] border border-gray-700">
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="gender" id="gender-male" value="Male" class="hidden switch-radio" checked>
-                            <div class="text-center text-xs font-semibold py-1 rounded text-gray-600 h-full flex items-center justify-center">M</div>
+                            <div class="text-center text-sm font-medium rounded text-gray-400 h-full flex items-center justify-center transition-colors">M</div>
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="gender" id="gender-female" value="Female" class="hidden switch-radio">
-                            <div class="text-center text-xs font-semibold py-1 rounded text-gray-600 h-full flex items-center justify-center">F</div>
+                            <div class="text-center text-sm font-medium rounded text-gray-400 h-full flex items-center justify-center transition-colors">F</div>
                         </label>
                     </div>
                 </div>
-                <div><label class="font-semibold block mb-1">Age</label><input type="number" id="calc-age" class="calc-input py-1 px-2 text-center" placeholder="Yrs"></div>
-                <div><label class="font-semibold block mb-1">Height (cm)</label><input type="number" id="calc-height" class="calc-input py-1 px-2 text-center" placeholder="cm"></div>
-                <div><label class="font-semibold block mb-1">Weight (kg)</label><input type="number" id="calc-weight" class="calc-input py-1 px-2 text-center" placeholder="kg"></div>
-                <div><label class="font-semibold block mb-1">Waist (cm)</label><input type="number" id="calc-waist" class="calc-input py-1 px-2 text-center" placeholder="cm"></div>
-                <div><label class="font-semibold block mb-1">Body Fat (%)</label><input type="number" id="calc-bf" class="calc-input py-1 px-2 text-center" placeholder="%"></div>
-                <div><label class="font-semibold block mb-1">Rest HR</label><input type="number" id="calc-rhr" class="calc-input py-1 px-2 text-center" placeholder="bpm"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Age</label><input type="number" min="10" max="120" id="calc-age" placeholder="Yrs"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Height (cm)</label><input type="number" min="100" max="250" id="calc-height" placeholder="cm"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Weight (kg)</label><input type="number" min="30" max="300" id="calc-weight" placeholder="kg"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Waist (cm)</label><input type="number" min="40" max="200" id="calc-waist" placeholder="cm"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Hip (cm)</label><input type="number" min="40" max="250" id="calc-hip" placeholder="cm"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Body Fat %</label><input type="number" min="1" max="60" step="0.1" id="calc-bf" placeholder="%"></div>
                 <div>
-                    <label class="font-semibold block mb-1">BP (Sys/Dia)</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">BP (Sys/Dia)</label>
                     <div class="flex gap-1">
-                        <input type="number" id="calc-bp-sys" class="calc-input py-1 px-1 text-center w-1/2" placeholder="Sys">
-                        <input type="number" id="calc-bp-dia" class="calc-input py-1 px-1 text-center w-1/2" placeholder="Dia">
+                        <input type="number" id="calc-bp-sys" min="70" max="250" placeholder="Sys" class="w-1/2 !px-1 text-center text-sm">
+                        <input type="number" id="calc-bp-dia" min="40" max="150" placeholder="Dia" class="w-1/2 !px-1 text-center text-sm">
                     </div>
                 </div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Rest HR</label><input type="number" min="30" max="150" id="calc-rhr" placeholder="BPM"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">HRV (ms)</label><input type="number" min="1" max="200" id="calc-hrv" placeholder="ms"></div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Stress (1-10)</label><input type="number" min="1" max="10" id="calc-stress" placeholder="1-10"></div>
             </div>
-            <!-- Base Risks Summary -->
-            <div class="mt-4 pt-3 border-t border-gray-300 text-sm flex gap-6">
-                <div><span class="font-semibold">Age/Waist Risk:</span> <span id="risk-warning" class="font-bold text-gray-500">-</span></div>
+
+            <!-- Fast Insights Bar -->
+            <div class="mt-4 p-3 bg-gray-900 border border-gray-700 rounded-lg flex flex-wrap gap-6 text-sm items-center">
+                <div><span class="font-bold text-gray-300">Risk Profile:</span> <span id="risk-warning" class="font-medium text-gray-500">Awaiting data...</span></div>
+                <div class="hidden sm:block w-px h-4 bg-gray-600"></div>
+                <div><span class="font-bold text-gray-300">Est. BMR:</span> <span id="out-bmr" class="font-medium text-blue-400">- kcal</span></div>
+                <div class="hidden sm:block w-px h-4 bg-gray-600"></div>
+                <div><span class="font-bold text-gray-300">Est. TDEE:</span> <span id="out-tdee" class="font-medium text-green-400">- kcal</span></div>
             </div>
         </div>
 
         <!-- DIAGNOSTIC OUTPUT TABLES -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 text-xs sm:text-sm">
+        <h2 class="text-lg font-bold text-gray-100 mb-4 flex items-center gap-2">
+            <span class="bg-blue-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-sm">2</span> 
+            Diagnostic Results
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 text-xs sm:text-sm">
             
-            <!-- BMI Table -->
-            <div class="border-2 border-gray-800 p-3 bg-white rounded">
-                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
-                    <span>BMI Status</span>
-                    <span id="out-bmi-val" class="text-blue-700">-</span>
-                </h2>
-                <table class="w-full text-center border-collapse">
-                    <tr class="bg-gray-100"><th class="p-1">Category</th><th class="p-1">Range</th></tr>
-                    <tr id="bmi-row-0"><td class="p-1 border border-gray-300">Underweight</td><td class="p-1 border border-gray-300">< 18.5</td></tr>
-                    <tr id="bmi-row-1"><td class="p-1 border border-gray-300">Normal</td><td class="p-1 border border-gray-300">18.5 - 24.9</td></tr>
-                    <tr id="bmi-row-2"><td class="p-1 border border-gray-300">Overweight</td><td class="p-1 border border-gray-300">25.0 - 29.9</td></tr>
-                    <tr id="bmi-row-3"><td class="p-1 border border-gray-300">Obese</td><td class="p-1 border border-gray-300">≥ 30.0</td></tr>
+            <!-- BMI & Body Fat Table -->
+            <div class="border border-gray-700 bg-gray-800 rounded-xl shadow-md overflow-hidden flex flex-col">
+                <div class="bg-gray-900 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-200">BMI Status</h3>
+                    <span id="out-bmi-val" class="bg-gray-700 text-gray-300 py-1 px-3 rounded-full font-bold text-sm border border-gray-600">-</span>
+                </div>
+                <table class="w-full text-center flex-1">
+                    <tr><th class="p-2">Category</th><th class="p-2">Range</th></tr>
+                    <tr id="bmi-row-0"><td class="p-2">Underweight</td><td class="p-2">< 18.5</td></tr>
+                    <tr id="bmi-row-1"><td class="p-2">Normal</td><td class="p-2">18.5 - 24.9</td></tr>
+                    <tr id="bmi-row-2"><td class="p-2">Overweight</td><td class="p-2">25.0 - 29.9</td></tr>
+                    <tr id="bmi-row-3"><td class="p-2">Obese</td><td class="p-2">≥ 30.0</td></tr>
+                </table>
+            </div>
+
+            <!-- WHR Table -->
+            <div class="border border-gray-700 bg-gray-800 rounded-xl shadow-md overflow-hidden flex flex-col">
+                <div class="bg-gray-900 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-200">Waist-to-Hip Ratio (WHR)</h3>
+                    <span id="out-whr-val" class="bg-gray-700 text-gray-300 py-1 px-3 rounded-full font-bold text-sm border border-gray-600">-</span>
+                </div>
+                <table class="w-full text-center flex-1">
+                    <tr><th class="p-2">Risk Level</th><th class="p-2">WHR Range</th></tr>
+                    <tr id="whr-row-0"><td class="p-2">Low Risk</td><td class="p-2" id="whr-range-0">-</td></tr>
+                    <tr id="whr-row-1"><td class="p-2">Moderate Risk</td><td class="p-2" id="whr-range-1">-</td></tr>
+                    <tr id="whr-row-2"><td class="p-2">High Risk</td><td class="p-2" id="whr-range-2">-</td></tr>
                 </table>
             </div>
 
             <!-- WHtR Table -->
-            <div class="border-2 border-gray-800 p-3 bg-white rounded">
-                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
-                    <span>Waist-to-Height Ratio</span>
-                    <span id="out-whtr-val" class="text-blue-700">-</span>
-                </h2>
-                <table class="w-full text-center border-collapse">
-                    <tr class="bg-gray-100"><th class="p-1">Meaning</th><th class="p-1">WHtR Range</th></tr>
-                    <tr id="whtr-row-0"><td class="p-1 border border-gray-300">Very lean</td><td class="p-1 border border-gray-300">< 0.40</td></tr>
-                    <tr id="whtr-row-1"><td class="p-1 border border-gray-300">Healthy</td><td class="p-1 border border-gray-300">0.40 - 0.49</td></tr>
-                    <tr id="whtr-row-2"><td class="p-1 border border-gray-300">Increased risk</td><td class="p-1 border border-gray-300">0.50 - 0.59</td></tr>
-                    <tr id="whtr-row-3"><td class="p-1 border border-gray-300">High health risk</td><td class="p-1 border border-gray-300">≥ 0.60</td></tr>
+            <div class="border border-gray-700 bg-gray-800 rounded-xl shadow-md overflow-hidden flex flex-col">
+                <div class="bg-gray-900 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-200">Waist-to-Height (WHtR)</h3>
+                    <span id="out-whtr-val" class="bg-gray-700 text-gray-300 py-1 px-3 rounded-full font-bold text-sm border border-gray-600">-</span>
+                </div>
+                <table class="w-full text-center flex-1">
+                    <tr><th class="p-2">Meaning</th><th class="p-2">WHtR Range</th></tr>
+                    <tr id="whtr-row-0"><td class="p-2">Very lean</td><td class="p-2">< 0.40</td></tr>
+                    <tr id="whtr-row-1"><td class="p-2">Healthy</td><td class="p-2">0.40 - 0.49</td></tr>
+                    <tr id="whtr-row-2"><td class="p-2">Increased risk</td><td class="p-2">0.50 - 0.59</td></tr>
+                    <tr id="whtr-row-3"><td class="p-2">High risk</td><td class="p-2">≥ 0.60</td></tr>
                 </table>
             </div>
 
             <!-- FFMI Table -->
-            <div class="border-2 border-gray-800 p-3 bg-white rounded">
-                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
-                    <span>Fat-Free Mass Index</span>
-                    <span id="out-ffmi-val" class="text-blue-700">-</span>
-                </h2>
-                <table class="w-full text-center border-collapse text-[11px] sm:text-xs">
-                    <tr class="bg-gray-100"><th class="p-1">Interpretation</th><th class="p-1 w-20">FFMI Range</th></tr>
-                    <tr id="ffmi-row-0"><td class="p-1 border border-gray-300 text-left">Below average / Low</td><td class="p-1 border border-gray-300" id="ffmi-range-0">< 18</td></tr>
-                    <tr id="ffmi-row-1"><td class="p-1 border border-gray-300 text-left">Average</td><td class="p-1 border border-gray-300" id="ffmi-range-1">18 - 20</td></tr>
-                    <tr id="ffmi-row-2"><td class="p-1 border border-gray-300 text-left">Moderately muscular</td><td class="p-1 border border-gray-300" id="ffmi-range-2">20 - 22</td></tr>
-                    <tr id="ffmi-row-3"><td class="p-1 border border-gray-300 text-left">Muscular</td><td class="p-1 border border-gray-300" id="ffmi-range-3">22 - 24</td></tr>
-                    <tr id="ffmi-row-4"><td class="p-1 border border-gray-300 text-left">Very muscular / Elite</td><td class="p-1 border border-gray-300" id="ffmi-range-4">24 - 25</td></tr>
-                    <tr id="ffmi-row-5"><td class="p-1 border border-gray-300 text-left">Exceptional / Steroids</td><td class="p-1 border border-gray-300" id="ffmi-range-5">> 25</td></tr>
+            <div class="border border-gray-700 bg-gray-800 rounded-xl shadow-md overflow-hidden flex flex-col">
+                <div class="bg-gray-900 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-200">Fat-Free Mass Index</h3>
+                    <span id="out-ffmi-val" class="bg-gray-700 text-gray-300 py-1 px-3 rounded-full font-bold text-sm border border-gray-600">-</span>
+                </div>
+                <table class="w-full text-left flex-1 text-[11px] sm:text-xs">
+                    <tr><th class="p-2 pl-4">Interpretation</th><th class="p-2 w-20 text-center">Range</th></tr>
+                    <tr id="ffmi-row-0"><td class="p-2 pl-4">Below average</td><td class="p-2 text-center" id="ffmi-range-0">< 18</td></tr>
+                    <tr id="ffmi-row-1"><td class="p-2 pl-4">Average</td><td class="p-2 text-center" id="ffmi-range-1">18 - 20</td></tr>
+                    <tr id="ffmi-row-2"><td class="p-2 pl-4">Moderately muscular</td><td class="p-2 text-center" id="ffmi-range-2">20 - 22</td></tr>
+                    <tr id="ffmi-row-3"><td class="p-2 pl-4">Muscular</td><td class="p-2 text-center" id="ffmi-range-3">22 - 24</td></tr>
+                    <tr id="ffmi-row-4"><td class="p-2 pl-4">Very muscular</td><td class="p-2 text-center" id="ffmi-range-4">24 - 25</td></tr>
+                    <tr id="ffmi-row-5"><td class="p-2 pl-4">Exceptional</td><td class="p-2 text-center" id="ffmi-range-5">> 25</td></tr>
                 </table>
             </div>
 
-            <!-- Karvonen HR Table -->
-            <div class="border-2 border-gray-800 p-3 bg-white rounded">
-                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
-                    <span>Heart Rate Zones (Karvonen)</span>
-                    <span id="out-hr-max" class="text-blue-700 font-normal text-xs self-end">Max HR: -</span>
-                </h2>
-                <table class="w-full text-center border-collapse">
-                    <tr class="bg-gray-100"><th class="p-1">Zone</th><th class="p-1">%</th><th class="p-1 w-24">Target BPM</th></tr>
-                    <tr><td class="border border-gray-300 p-1 text-gray-600">1 (Warm Up)</td><td class="border border-gray-300 p-1">50-60</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-1">-</td></tr>
-                    <tr><td class="border border-gray-300 p-1 text-blue-600">2 (Fat Burn)</td><td class="border border-gray-300 p-1">60-70</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-2">-</td></tr>
-                    <tr><td class="border border-gray-300 p-1 text-green-600">3 (Aerobic)</td><td class="border border-gray-300 p-1">70-80</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-3">-</td></tr>
-                    <tr><td class="border border-gray-300 p-1 text-orange-500">4 (Anaerobic)</td><td class="border border-gray-300 p-1">80-90</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-4">-</td></tr>
-                    <tr><td class="border border-gray-300 p-1 text-red-600">5 (VO2 Max)</td><td class="border border-gray-300 p-1">90-100</td><td class="border border-gray-300 p-1 font-bold bg-gray-50" id="kz-5">-</td></tr>
+            <!-- Nervous System & Recovery Table -->
+            <div class="border border-gray-700 bg-gray-800 rounded-xl shadow-md overflow-hidden flex flex-col">
+                <div class="bg-gray-900 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-200">Recovery Context</h3>
+                    <span id="out-stress-val" class="text-xs font-medium text-gray-400">Stress: -</span>
+                </div>
+                <table class="w-full text-center flex-1">
+                    <tr><th class="p-2 text-left pl-4">RHR Range</th><th class="p-2">Fitness Level</th><th class="p-2">HRV Guide (ms)</th></tr>
+                    <tr id="rec-row-0"><td class="p-2 text-left pl-4 font-bold text-blue-400">< 60</td><td class="p-2">Athlete / Excellent</td><td class="p-2 row-span-4 align-top text-[10px] text-gray-400 p-2" rowspan="4">
+                        HRV is highly individual.<br>
+                        Higher = Better Recovery.<br>
+                        <span class="text-white mt-1 block font-bold" id="hrv-status">Your HRV: -</span>
+                    </td></tr>
+                    <tr id="rec-row-1"><td class="p-2 text-left pl-4 font-bold text-green-400">60 - 70</td><td class="p-2">Good</td></tr>
+                    <tr id="rec-row-2"><td class="p-2 text-left pl-4 font-bold text-yellow-500">71 - 80</td><td class="p-2">Average</td></tr>
+                    <tr id="rec-row-3"><td class="p-2 text-left pl-4 font-bold text-red-400">> 80</td><td class="p-2">Poor / High Stress</td></tr>
                 </table>
             </div>
 
             <!-- Blood Pressure Table -->
-            <div class="border-2 border-gray-800 p-3 bg-white rounded lg:col-span-2">
-                <h2 class="font-bold text-base mb-2 text-gray-800 border-b border-gray-300 pb-1 flex justify-between">
-                    <span>Blood Pressure Classification</span>
-                    <span id="out-bp-val" class="text-blue-700">-</span>
-                </h2>
-                <table class="w-full text-center border-collapse text-[11px] sm:text-xs">
-                    <tr class="bg-gray-100"><th class="p-1">Category</th><th class="p-1">Systolic (Top)</th><th class="p-1">Diastolic (Bottom)</th></tr>
-                    <tr id="bp-row-0"><td class="p-1 border border-gray-300 text-blue-600 font-semibold">Hypotension (Low BP)</td><td class="p-1 border border-gray-300">< 90</td><td class="p-1 border border-gray-300">and/or < 60</td></tr>
-                    <tr id="bp-row-1"><td class="p-1 border border-gray-300 text-green-600 font-semibold">Optimal</td><td class="p-1 border border-gray-300">< 120</td><td class="p-1 border border-gray-300">and < 80</td></tr>
-                    <tr id="bp-row-2"><td class="p-1 border border-gray-300 text-lime-600 font-semibold">Normal</td><td class="p-1 border border-gray-300">120 - 129</td><td class="p-1 border border-gray-300">and/or 80 - 84</td></tr>
-                    <tr id="bp-row-3"><td class="p-1 border border-gray-300 text-yellow-600 font-semibold">High-Normal</td><td class="p-1 border border-gray-300">130 - 139</td><td class="p-1 border border-gray-300">and/or 85 - 89</td></tr>
-                    <tr id="bp-row-4"><td class="p-1 border border-gray-300 text-orange-500 font-semibold">Stage 1 Hypertension</td><td class="p-1 border border-gray-300">140 - 159</td><td class="p-1 border border-gray-300">and/or 90 - 99</td></tr>
-                    <tr id="bp-row-5"><td class="p-1 border border-gray-300 text-red-500 font-semibold">Stage 2 Hypertension</td><td class="p-1 border border-gray-300">160 - 179</td><td class="p-1 border border-gray-300">and/or 100 - 109</td></tr>
-                    <tr id="bp-row-6"><td class="p-1 border border-gray-300 text-red-700 font-semibold">Stage 3 Hypertension</td><td class="p-1 border border-gray-300">≥ 180</td><td class="p-1 border border-gray-300">and/or ≥ 110</td></tr>
+            <div class="border border-gray-700 bg-gray-800 rounded-xl shadow-md overflow-hidden flex flex-col">
+                <div class="bg-gray-900 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-200">Blood Pressure Status</h3>
+                    <span id="out-bp-val" class="bg-gray-700 text-gray-300 py-1 px-3 rounded-full font-bold text-sm border border-gray-600">-</span>
+                </div>
+                <table class="w-full text-center flex-1 text-[11px] sm:text-xs">
+                    <tr><th class="p-2 text-left pl-4">Category</th><th class="p-2">Sys / Dia</th></tr>
+                    <tr id="bp-row-0"><td class="p-2 text-left pl-4 text-blue-400 font-semibold">Low</td><td class="p-2">< 90 / < 60</td></tr>
+                    <tr id="bp-row-1"><td class="p-2 text-left pl-4 text-green-400 font-semibold">Optimal</td><td class="p-2">< 120 and < 80</td></tr>
+                    <tr id="bp-row-2"><td class="p-2 text-left pl-4 text-lime-400 font-semibold">Normal</td><td class="p-2">120-129 / 80-84</td></tr>
+                    <tr id="bp-row-3"><td class="p-2 text-left pl-4 text-yellow-500 font-semibold">High-Normal</td><td class="p-2">130-139 / 85-89</td></tr>
+                    <tr id="bp-row-4"><td class="p-2 text-left pl-4 text-orange-400 font-semibold">Stage 1 HTN</td><td class="p-2">140-159 / 90-99</td></tr>
+                    <tr id="bp-row-5"><td class="p-2 text-left pl-4 text-red-500 font-bold">Stage 2/3 HTN</td><td class="p-2">≥ 160 / ≥ 100</td></tr>
                 </table>
             </div>
         </div>
+
+        <!-- HYPERTEXT NOTE EXPORT -->
+        <div class="no-print border border-gray-700 bg-gray-900 rounded-xl p-4 shadow-inner mt-8">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold text-gray-300 flex items-center gap-2">
+                    📋 Hypertext Summary Note
+                </h3>
+                <button onclick="copyNote()" id="copy-btn" class="bg-gray-700 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded transition-colors">
+                    Copy to Clipboard
+                </button>
+            </div>
+            <textarea id="export-note" rows="12" class="w-full font-mono text-xs text-gray-400 p-3 bg-gray-800 border-gray-700 rounded resize-y" readonly></textarea>
+        </div>
+
     </div>
 
     <script>
@@ -229,33 +312,55 @@
             if (row) row.classList.add('active-row');
         }
 
+        function updateBadge(id, value, colorClass = "bg-blue-600 text-white border-blue-500") {
+            const el = document.getElementById(id);
+            if(value === "-") {
+                el.textContent = "-";
+                el.className = "bg-gray-700 text-gray-300 py-1 px-3 rounded-full font-bold text-sm border border-gray-600";
+            } else {
+                el.textContent = value;
+                el.className = `${colorClass} py-1 px-3 rounded-full font-bold text-sm shadow-sm border`;
+            }
+        }
+
+        let summaryData = {}; // Global object to hold data for the text note
+
         function updateCalculators() {
             const age = parseFloat(document.getElementById('calc-age').value);
             const height = parseFloat(document.getElementById('calc-height').value);
             const weight = parseFloat(document.getElementById('calc-weight').value);
             const waist = parseFloat(document.getElementById('calc-waist').value);
+            const hip = parseFloat(document.getElementById('calc-hip').value);
             const bf = parseFloat(document.getElementById('calc-bf').value);
             const rhr = parseFloat(document.getElementById('calc-rhr').value);
+            const hrv = parseFloat(document.getElementById('calc-hrv').value);
+            const stress = parseFloat(document.getElementById('calc-stress').value);
             const sys = parseFloat(document.getElementById('calc-bp-sys').value);
             const dia = parseFloat(document.getElementById('calc-bp-dia').value);
+            const activity = parseFloat(document.getElementById('calc-activity').value) || 1.2;
             const genderNode = document.querySelector('input[name="gender"]:checked');
             const gender = genderNode ? genderNode.value : "Male";
+
+            // Initialize summary object
+            summaryData = {
+                bmiTxt: "-", whrTxt: "-", whtrTxt: "-", ffmiTxt: "-", bpTxt: "-", recTxt: "-"
+            };
 
             // 1. Age/Waist Base Risk
             const riskWarning = document.getElementById('risk-warning');
             let issues = [];
-            if (age > 0) { if ((gender === 'Male' && age > 45) || (gender === 'Female' && age > 55)) issues.push("Age limit >"); }
-            if (waist > 0) { if ((gender === 'Male' && waist >= 94) || (gender === 'Female' && waist >= 80)) issues.push("Waist size >"); }
+            if (age > 0) { if ((gender === 'Male' && age > 45) || (gender === 'Female' && age > 55)) issues.push("Age Risk"); }
+            if (waist > 0) { if ((gender === 'Male' && waist >= 94) || (gender === 'Female' && waist >= 80)) issues.push("Waist Risk"); }
             
             if (issues.length > 0) {
                 riskWarning.innerHTML = `⚠️ ${issues.join(" & ")}`;
-                riskWarning.className = "font-bold text-red-600";
+                riskWarning.className = "font-bold text-red-400";
             } else if (age > 0 || waist > 0) {
                 riskWarning.innerHTML = "✅ Normal Range";
-                riskWarning.className = "font-bold text-green-600";
+                riskWarning.className = "font-bold text-green-400";
             } else {
-                riskWarning.textContent = "-";
-                riskWarning.className = "font-bold text-gray-400";
+                riskWarning.textContent = "Awaiting data...";
+                riskWarning.className = "font-medium text-gray-500";
             }
 
             // 2. BMI
@@ -263,29 +368,59 @@
             if (height > 0 && weight > 0) {
                 const heightMeters = height / 100;
                 const bmi = (weight / (heightMeters * heightMeters)).toFixed(1);
-                document.getElementById('out-bmi-val').textContent = bmi;
-                let rowIdx = 0;
-                if(bmi < 18.5) rowIdx = 0;
-                else if(bmi < 25) rowIdx = 1;
-                else if(bmi < 30) rowIdx = 2;
-                else rowIdx = 3;
+                let rowIdx = 0; let color = "bg-green-600 text-white border-green-500";
+                if(bmi < 18.5) { rowIdx = 0; color = "bg-yellow-600 text-white border-yellow-500"; summaryData.bmiTxt = "Underweight"; }
+                else if(bmi < 25) { rowIdx = 1; summaryData.bmiTxt = "Normal"; }
+                else if(bmi < 30) { rowIdx = 2; color = "bg-orange-600 text-white border-orange-500"; summaryData.bmiTxt = "Overweight"; }
+                else { rowIdx = 3; color = "bg-red-600 text-white border-red-500"; summaryData.bmiTxt = "Obese"; }
+                
+                updateBadge('out-bmi-val', bmi, color);
                 setActiveRow(`bmi-row-${rowIdx}`);
-            } else { document.getElementById('out-bmi-val').textContent = "-"; }
+            } else { updateBadge('out-bmi-val', "-"); }
 
-            // 3. WHtR (Waist to Height Ratio)
+            // 3. WHR (Waist to Hip Ratio)
+            clearActiveRows('whr');
+            if(gender === 'Female') {
+                document.getElementById('whr-range-0').textContent = '< 0.80';
+                document.getElementById('whr-range-1').textContent = '0.80 - 0.84';
+                document.getElementById('whr-range-2').textContent = '≥ 0.85';
+            } else {
+                document.getElementById('whr-range-0').textContent = '< 0.90';
+                document.getElementById('whr-range-1').textContent = '0.90 - 0.99';
+                document.getElementById('whr-range-2').textContent = '≥ 1.00';
+            }
+
+            if(waist > 0 && hip > 0) {
+                const whr = (waist / hip).toFixed(2);
+                let rowIdx = 0; let color = "bg-green-600 text-white border-green-500";
+                if (gender === 'Female') {
+                    if (whr < 0.80) { rowIdx = 0; summaryData.whrTxt = "Low Risk"; }
+                    else if (whr <= 0.84) { rowIdx = 1; color = "bg-orange-600 text-white border-orange-500"; summaryData.whrTxt = "Mod Risk"; }
+                    else { rowIdx = 2; color = "bg-red-600 text-white border-red-500"; summaryData.whrTxt = "High Risk"; }
+                } else {
+                    if (whr < 0.90) { rowIdx = 0; summaryData.whrTxt = "Low Risk"; }
+                    else if (whr <= 0.99) { rowIdx = 1; color = "bg-orange-600 text-white border-orange-500"; summaryData.whrTxt = "Mod Risk"; }
+                    else { rowIdx = 2; color = "bg-red-600 text-white border-red-500"; summaryData.whrTxt = "High Risk"; }
+                }
+                updateBadge('out-whr-val', whr, color);
+                setActiveRow(`whr-row-${rowIdx}`);
+            } else { updateBadge('out-whr-val', "-"); }
+
+            // 4. WHtR (Waist to Height Ratio)
             clearActiveRows('whtr');
             if (height > 0 && waist > 0) {
                 const whtr = (waist / height).toFixed(2);
-                document.getElementById('out-whtr-val').textContent = whtr;
-                let rowIdx = 0;
-                if(whtr < 0.40) rowIdx = 0;
-                else if(whtr < 0.50) rowIdx = 1;
-                else if(whtr < 0.60) rowIdx = 2;
-                else rowIdx = 3;
+                let rowIdx = 0; let color = "bg-green-600 text-white border-green-500";
+                if(whtr < 0.40) { rowIdx = 0; color = "bg-blue-600 text-white border-blue-500"; summaryData.whtrTxt = "Very Lean"; }
+                else if(whtr < 0.50) { rowIdx = 1; summaryData.whtrTxt = "Healthy"; }
+                else if(whtr < 0.60) { rowIdx = 2; color = "bg-orange-600 text-white border-orange-500"; summaryData.whtrTxt = "Increased Risk"; }
+                else { rowIdx = 3; color = "bg-red-600 text-white border-red-500"; summaryData.whtrTxt = "High Risk"; }
+                
+                updateBadge('out-whtr-val', whtr, color);
                 setActiveRow(`whtr-row-${rowIdx}`);
-            } else { document.getElementById('out-whtr-val').textContent = "-"; }
+            } else { updateBadge('out-whtr-val', "-"); }
 
-            // 4. FFMI
+            // 5. FFMI
             if (gender === 'Female') {
                 document.getElementById('ffmi-range-0').textContent = '< 14';
                 document.getElementById('ffmi-range-1').textContent = '14 - 16';
@@ -307,57 +442,129 @@
                 const heightMeters = height / 100;
                 const leanMass = weight * (1 - (bf / 100));
                 const ffmi = (leanMass / (heightMeters * heightMeters)).toFixed(1);
-                document.getElementById('out-ffmi-val').textContent = ffmi;
                 
                 let rowIdx = 0;
                 if (gender === 'Female') {
-                    if (ffmi < 14) rowIdx = 0;
-                    else if (ffmi <= 16) rowIdx = 1;
-                    else if (ffmi <= 18) rowIdx = 2;
-                    else if (ffmi <= 20) rowIdx = 3;
-                    else if (ffmi <= 22) rowIdx = 4;
-                    else rowIdx = 5;
+                    if (ffmi < 14) { rowIdx = 0; summaryData.ffmiTxt = "Low"; }
+                    else if (ffmi <= 16) { rowIdx = 1; summaryData.ffmiTxt = "Average"; }
+                    else if (ffmi <= 18) { rowIdx = 2; summaryData.ffmiTxt = "Mod Muscular"; }
+                    else if (ffmi <= 20) { rowIdx = 3; summaryData.ffmiTxt = "Muscular"; }
+                    else if (ffmi <= 22) { rowIdx = 4; summaryData.ffmiTxt = "Elite"; }
+                    else { rowIdx = 5; summaryData.ffmiTxt = "Exceptional"; }
                 } else {
-                    if (ffmi < 18) rowIdx = 0;
-                    else if (ffmi <= 20) rowIdx = 1;
-                    else if (ffmi <= 22) rowIdx = 2;
-                    else if (ffmi <= 24) rowIdx = 3;
-                    else if (ffmi <= 25) rowIdx = 4;
-                    else rowIdx = 5;
+                    if (ffmi < 18) { rowIdx = 0; summaryData.ffmiTxt = "Low"; }
+                    else if (ffmi <= 20) { rowIdx = 1; summaryData.ffmiTxt = "Average"; }
+                    else if (ffmi <= 22) { rowIdx = 2; summaryData.ffmiTxt = "Mod Muscular"; }
+                    else if (ffmi <= 24) { rowIdx = 3; summaryData.ffmiTxt = "Muscular"; }
+                    else if (ffmi <= 25) { rowIdx = 4; summaryData.ffmiTxt = "Elite"; }
+                    else { rowIdx = 5; summaryData.ffmiTxt = "Exceptional"; }
                 }
+                updateBadge('out-ffmi-val', ffmi, "bg-indigo-600 text-white border-indigo-500");
                 setActiveRow(`ffmi-row-${rowIdx}`);
-            } else { document.getElementById('out-ffmi-val').textContent = "-"; }
+            } else { updateBadge('out-ffmi-val', "-"); }
 
-            // 5. Blood Pressure
+            // 6. Blood Pressure
             clearActiveRows('bp');
             if (sys > 0 && dia > 0) {
-                document.getElementById('out-bp-val').textContent = `${sys} / ${dia}`;
-                let catIdx = 0;
-                if (sys >= 180 || dia >= 110) catIdx = 6;
-                else if (sys >= 160 || dia >= 100) catIdx = 5;
-                else if (sys >= 140 || dia >= 90) catIdx = 4;
-                else if (sys >= 130 || dia >= 85) catIdx = 3;
-                else if (sys < 90 || dia < 60) catIdx = 0; 
-                else if (sys >= 120 || dia >= 80) catIdx = 2;
-                else catIdx = 1; 
+                let catIdx = 0; let color = "bg-green-600 text-white border-green-500";
+                if (sys >= 160 || dia >= 100) { catIdx = 5; color = "bg-red-600 text-white border-red-500"; summaryData.bpTxt = "Stage 2/3 HTN"; }
+                else if (sys >= 140 || dia >= 90) { catIdx = 4; color = "bg-orange-600 text-white border-orange-500"; summaryData.bpTxt = "Stage 1 HTN"; }
+                else if (sys >= 130 || dia >= 85) { catIdx = 3; color = "bg-yellow-600 text-white border-yellow-500"; summaryData.bpTxt = "High-Normal"; }
+                else if (sys < 90 || dia < 60) { catIdx = 0; color = "bg-blue-500 text-white border-blue-400"; summaryData.bpTxt = "Low BP"; } 
+                else if (sys >= 120 || dia >= 80) { catIdx = 2; color = "bg-lime-600 text-white border-lime-500"; summaryData.bpTxt = "Normal"; }
+                else { catIdx = 1; summaryData.bpTxt = "Optimal"; }
+                
+                updateBadge('out-bp-val', `${sys} / ${dia}`, color);
                 setActiveRow(`bp-row-${catIdx}`);
-            } else { document.getElementById('out-bp-val').textContent = "-"; }
+            } else { updateBadge('out-bp-val', "-"); }
 
-            // 6. Karvonen Target HR Zones
-            if (age > 0 && rhr > 0) {
-                const maxHr = 220 - age;
-                const hrr = maxHr - rhr;
-                document.getElementById('out-hr-max').textContent = `Max HR: ${maxHr}`;
-                const calcZone = (minPct, maxPct) => `${Math.round(hrr * minPct + rhr)} - ${Math.round(hrr * maxPct + rhr)}`;
-                document.getElementById('kz-1').textContent = calcZone(0.5, 0.6);
-                document.getElementById('kz-2').textContent = calcZone(0.6, 0.7);
-                document.getElementById('kz-3').textContent = calcZone(0.7, 0.8);
-                document.getElementById('kz-4').textContent = calcZone(0.8, 0.9);
-                document.getElementById('kz-5').textContent = calcZone(0.9, 1.0);
-            } else {
-                document.getElementById('out-hr-max').textContent = `Max HR: -`;
-                [1,2,3,4,5].forEach(i => document.getElementById(`kz-${i}`).textContent = "-");
+            // 7. Recovery & Nervous System (RHR, HRV, Stress)
+            clearActiveRows('rec');
+            if (rhr > 0) {
+                let rhrIdx = 0;
+                if(rhr < 60) { rhrIdx = 0; summaryData.recTxt = "Excellent Fitness"; }
+                else if(rhr <= 70) { rhrIdx = 1; summaryData.recTxt = "Good"; }
+                else if(rhr <= 80) { rhrIdx = 2; summaryData.recTxt = "Average"; }
+                else { rhrIdx = 3; summaryData.recTxt = "Poor/High Stress"; }
+                setActiveRow(`rec-row-${rhrIdx}`);
             }
+            if (hrv > 0) {
+                document.getElementById('hrv-status').textContent = `Your HRV: ${hrv} ms`;
+                document.getElementById('hrv-status').className = "text-white mt-2 block font-bold bg-gray-700 rounded px-2 py-1 text-center";
+            } else {
+                document.getElementById('hrv-status').textContent = `Your HRV: -`;
+                document.getElementById('hrv-status').className = "text-gray-500 mt-2 block font-bold";
+            }
+            if (stress > 0) {
+                document.getElementById('out-stress-val').textContent = `Stress: ${stress}/10`;
+            } else {
+                document.getElementById('out-stress-val').textContent = `Stress: -`;
+            }
+            
+            // 8. Calculate BMR & TDEE
+            let bmrCalc = 0; let tdeeCalc = 0;
+            if(age > 0 && height > 0 && weight > 0) {
+                bmrCalc = (10 * weight) + (6.25 * height) - (5 * age);
+                bmrCalc += (gender === 'Male') ? 5 : -161;
+                tdeeCalc = bmrCalc * activity;
+                document.getElementById('out-bmr').textContent = Math.round(bmrCalc).toLocaleString() + " kcal";
+                document.getElementById('out-tdee').textContent = Math.round(tdeeCalc).toLocaleString() + " kcal";
+            } else {
+                document.getElementById('out-bmr').textContent = "- kcal";
+                document.getElementById('out-tdee').textContent = "- kcal";
+            }
+
+            // --- BUILD EXPORT NOTE ---
+            generateExportNote(age, height, weight, waist, hip, bf, sys, dia, rhr, hrv, stress, bmrCalc, tdeeCalc);
+        }
+
+        function generateExportNote(age, height, weight, waist, hip, bf, sys, dia, rhr, hrv, stress, bmr, tdee) {
+            const clientName = document.getElementById('client-name').value || "Unknown Client";
+            const date = document.getElementById('client-date').value || new Date().toISOString().split('T')[0];
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const bmi = document.getElementById('out-bmi-val').textContent;
+            const whr = document.getElementById('out-whr-val').textContent;
+            const whtr = document.getElementById('out-whtr-val').textContent;
+            const ffmi = document.getElementById('out-ffmi-val').textContent;
+
+            const noteStr = `## Client Assessment: ${clientName} (${date})
+
+### Vitals & Core Metrics
+- **Demographics:** ${gender} | ${age || '-'} yrs | ${height || '-'} cm | ${weight || '-'} kg
+- **Body Comp:** 
+  - BMI: ${bmi} (${summaryData.bmiTxt})
+  - Body Fat: ${bf || '-'}%
+  - FFMI: ${ffmi} (${summaryData.ffmiTxt})
+- **Circumferences & Risk:**
+  - Waist: ${waist || '-'} cm | Hip: ${hip || '-'} cm
+  - WHR: ${whr} (${summaryData.whrTxt})
+  - WHtR: ${whtr} (${summaryData.whtrTxt})
+
+### Cardiovascular & Nervous System
+- **Blood Pressure:** ${sys || '-'}/${dia || '-'} (${summaryData.bpTxt})
+- **Resting Heart Rate:** ${rhr || '-'} bpm (${summaryData.recTxt})
+- **Heart Rate Variability (HRV):** ${hrv || '-'} ms
+- **Self-Reported Stress:** ${stress || '-'}/10
+
+### Estimated Energy Expenditure
+- **BMR:** ${bmr ? Math.round(bmr).toLocaleString() + ' kcal' : '-'}
+- **TDEE:** ${tdee ? Math.round(tdee).toLocaleString() + ' kcal' : '-'}
+`;
+            document.getElementById('export-note').value = noteStr;
+            
+            // Reset button styling if they edit data
+            const btn = document.getElementById('copy-btn');
+            btn.textContent = "Copy to Clipboard";
+            btn.className = "bg-gray-700 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded transition-colors";
+        }
+
+        function copyNote() {
+            const noteText = document.getElementById('export-note').value;
+            navigator.clipboard.writeText(noteText).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.textContent = "Copied! ✓";
+                btn.className = "bg-green-600 text-white text-xs font-bold py-1 px-3 rounded transition-colors";
+            });
         }
 
         // Data Management
@@ -396,7 +603,10 @@
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'health_bench_data.json';
+            
+            const clientName = document.getElementById('client-name').value.trim() || 'Client';
+            const date = document.getElementById('client-date').value || new Date().toISOString().split('T')[0];
+            a.download = `${clientName.replace(/\s+/g, '_')}_Biometrics_${date}.json`;
             a.click();
         }
 
@@ -442,7 +652,14 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', initStorage);
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('client-date');
+            if(!localStorage.getItem('client-date')) {
+                dateInput.valueAsDate = new Date();
+                localStorage.setItem('client-date', dateInput.value);
+            }
+            initStorage();
+        });
     </script>
 </body>
 </html>
