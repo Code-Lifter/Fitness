@@ -151,7 +151,7 @@
         <!-- PERCENTAGE REFERENCE -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
             <div class="p-3 bg-slate-950 border-b border-slate-800">
-                    <h3 class="text-white text-sm font-bold brand-font tracking-wide">Percentage Reference</h3>
+                    <h3 class="text-white text-sm font-bold brand-font tracking-wide">Percentage Reference (40% - 100%)</h3>
             </div>
             <table class="w-full text-left text-slate-400">
                 <tbody id="percentage-table-body" class="divide-y divide-slate-800/50"></tbody>
@@ -416,29 +416,45 @@
     function renderTable(oneRM, rounding) {
         const tbody = document.getElementById('percentage-table-body');
         tbody.innerHTML = '';
+        
         const data = [
-            { pct: 100, reps: '1', zone: 'PWR', span: 3, color: 'text-amber-500', border: 'border-l-2 border-amber-500' }, 
-            { pct: 90, reps: '3-4', color: 'text-amber-500' },
-            { pct: 85, reps: '5-6', color: 'text-amber-500' }, 
-            { pct: 80, reps: '7-8', zone: 'HYP', span: 3, color: 'text-blue-400', border: 'border-l-2 border-blue-500' }, 
-            { pct: 75, reps: '9-10', color: 'text-blue-400' },
-            { pct: 70, reps: '11-12', color: 'text-blue-400' }, 
-            { pct: 60, reps: '16+', zone: 'END', span: 1, color: 'text-emerald-400', border: 'border-l-2 border-emerald-500' }
+            // MAX STRENGTH (90-100%)
+            { pct: 100, reps: '1', zone: 'Max Str', span: 3, color: 'text-red-500', border: 'border-l-2 border-red-500' },
+            { pct: 95, reps: '2', color: 'text-red-500' },
+            { pct: 90, reps: '3-4', color: 'text-red-500' },
+            
+            // STRENGTH + HYPERTROPHY (80-85%)
+            { pct: 85, reps: '5-6', zone: 'Str + Hyp', span: 2, color: 'text-amber-500', border: 'border-l-2 border-amber-500' },
+            { pct: 80, reps: '7-8', color: 'text-amber-500' },
+            
+            // HYPERTROPHY (60-75%)
+            { pct: 75, reps: '9-10', zone: 'Hypertrophy', span: 4, color: 'text-blue-400', border: 'border-l-2 border-blue-500' },
+            { pct: 70, reps: '11-12', color: 'text-blue-400' },
+            { pct: 65, reps: '13-15', color: 'text-blue-400' },
+            { pct: 60, reps: '16-20', color: 'text-blue-400' },
+            
+            // HYPERTROPHY + ENDURANCE (50-55%)
+            { pct: 55, reps: '21-25', zone: 'Hyp + End', span: 2, color: 'text-teal-400', border: 'border-l-2 border-teal-500' },
+            { pct: 50, reps: '26-30', color: 'text-teal-400' },
+            
+            // ENDURANCE (40-45%)
+            { pct: 45, reps: '31-40', zone: 'Endurance', span: 2, color: 'text-emerald-400', border: 'border-l-2 border-emerald-500' },
+            { pct: 40, reps: '40+', color: 'text-emerald-400' }
         ];
 
         data.forEach((row, index) => {
             let load = roundTo(oneRM * (row.pct / 100), rounding);
             const tr = document.createElement('tr');
-            tr.className = `hover:bg-slate-800/40 transition-colors ${index%2===0?'bg-slate-800/20':''}`;
+            tr.className = `hover:bg-slate-800/40 transition-colors ${index % 2 === 0 ? 'bg-slate-800/20' : ''}`;
             
-            let zoneHtml = row.zone ? `<td rowspan="${row.span}" class="p-0 text-center bg-slate-900/30 ${row.border}">
-                <div class="vertical-text text-[9px] font-bold tracking-widest uppercase ${row.color}">${row.zone}</div>
+            let zoneHtml = row.zone ? `<td rowspan="${row.span}" class="p-0 text-center bg-slate-900/30 ${row.border} w-8 sm:w-10">
+                <div class="vertical-text text-[9px] font-bold tracking-widest uppercase ${row.color} mx-auto">${row.zone}</div>
             </td>` : '';
 
             tr.innerHTML = `${zoneHtml}
-                <td class="px-3 py-2 font-bold ${row.color} text-xs">${row.pct}%</td>
-                <td class="px-3 py-2 ${row.color} brand-font text-xl">${load}</td>
-                <td class="px-3 py-2 text-right text-xs font-bold ${row.color}">${row.reps}</td>`;
+                <td class="px-3 py-2 font-bold ${row.color} text-sm">${row.pct}%</td>
+                <td class="px-3 py-2 ${row.color} brand-font text-2xl">${load}</td>
+                <td class="px-3 py-2 text-right text-xs font-bold ${row.color}">${row.reps} Reps</td>`;
             tbody.appendChild(tr);
         });
     }
