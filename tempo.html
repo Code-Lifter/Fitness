@@ -37,7 +37,7 @@
             <div class="w-full flex justify-between items-start mb-4 px-2 min-h-[4rem]">
                 <div>
                     <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Reps Left</p>
-                    <div id="rep-display" class="text-4xl font-bold text-white flex flex-col items-start">0</div>
+                    <div id="rep-display" class="text-4xl font-bold text-white flex flex-col items-start transition-all">0</div>
                 </div>
                 <div class="text-right">
                     <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Current Phase</p>
@@ -152,6 +152,9 @@
         let currentTimeout = null;
         let ballTimerInterval = null;
 
+        // Audio Context (initialized on first click to bypass browser autoplay blocks)
+        let audioCtx = null;
+
         // Elements
         const elAnimContainer = document.getElementById('anim-container');
         const elBlock = document.getElementById('weight-block');
@@ -196,6 +199,51 @@
 
             btnStart.addEventListener('click', toggleWorkout);
             btnReset.addEventListener('click', resetWorkout);
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Web Audio Tone Synthesizer
+        function playTone(phaseType) {
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            // Shape the sound based on the movement direction
+            if (phaseType === 'E') { // Eccentric (Down) - Descending pitch
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+            } else if (phaseType === 'C') { // Concentric (Up) - Ascending pitch
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.3);
+            } else if (phaseType === 'T' || phaseType === 'B') { // Pause - Flat beep
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+            } else if (phaseType === 'DONE') { // Finished - Double beep
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.1);
+            }
+            
+            // Fade out to prevent popping
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
         }
 
         function renderAllSegments() {
@@ -298,9 +346,7 @@
             elPhaseDisplay.className = `text-xl font-bold ${colorClass} truncate w-32 right-0`;
         }
 
-        // Dynamically applies Tailwind color classes to the weight block based on the phase
         function setBallStyle(phaseType) {
-            // Remove existing color classes
             elBlock.classList.remove(
                 'bg-blue-500', 'bg-orange-500', 'bg-green-500', 'bg-purple-500',
                 'shadow-[0_0_15px_rgba(59,130,246,0.5)]', 
@@ -310,35 +356,32 @@
                 'shadow-[0_0_20px_rgba(34,197,94,0.7)]'
             );
 
-            // Apply new colors
-            if (phaseType === 'E') { // Eccentric (Blue)
+            if (phaseType === 'E') { 
                 elBlock.classList.add('bg-blue-500', 'shadow-[0_0_15px_rgba(59,130,246,0.5)]');
-            } else if (phaseType === 'B') { // Bottom Pause (Orange)
+            } else if (phaseType === 'B') { 
                 elBlock.classList.add('bg-orange-500', 'shadow-[0_0_15px_rgba(249,115,22,0.5)]');
-            } else if (phaseType === 'C') { // Concentric (Green)
+            } else if (phaseType === 'C') { 
                 elBlock.classList.add('bg-green-500', 'shadow-[0_0_15px_rgba(34,197,94,0.5)]');
-            } else if (phaseType === 'T') { // Top Pause (Purple)
+            } else if (phaseType === 'T') { 
                 elBlock.classList.add('bg-purple-500', 'shadow-[0_0_15px_rgba(168,85,247,0.5)]');
-            } else if (phaseType === 'DONE') { // Finished (Bright Green)
+            } else if (phaseType === 'DONE') {
                 elBlock.classList.add('bg-green-500', 'shadow-[0_0_20px_rgba(34,197,94,0.7)]');
-            } else { // Default (Ready)
+            } else { 
                 elBlock.classList.add('bg-blue-500', 'shadow-[0_0_15px_rgba(59,130,246,0.5)]');
             }
         }
 
         function updateInitialUI() {
-            // Remove end-state classes
             elAnimContainer.classList.remove('ring-4', 'ring-green-500', 'bg-slate-700');
             setBallStyle('READY');
 
             elRepDisplay.innerHTML = settings.reps;
-            elRepDisplay.className = "text-4xl font-bold text-white flex flex-col items-start";
+            elRepDisplay.className = "text-4xl font-bold text-white flex flex-col items-start transition-all";
             
             elPhaseDisplay.textContent = "Ready";
             elPhaseDisplay.className = "text-xl font-bold text-slate-400 truncate w-32";
             elBallTimer.textContent = "";
             
-            // Snap block to correct start position
             elBlock.style.transition = 'none';
             if (settings.startPos === 'Bottom') {
                 elBlock.style.transform = `translateY(${TRAVEL_DISTANCE}px)`;
@@ -353,6 +396,10 @@
             
             const isExplosive = (duration === 'X');
             const numericDuration = isExplosive ? 0.3 : parseFloat(duration);
+
+            if (numericDuration > 0) {
+                playTone(phaseType);
+            }
 
             startBallTimer(duration);
             setBallStyle(phaseType);
@@ -369,15 +416,15 @@
             }
         }
 
-        // Main Workout Loop
         async function toggleWorkout() {
             if (isRunning) {
                 resetWorkout();
                 return;
             }
 
-            isRunning = true;
+            initAudio(); // Required to unlock audio on first interaction
             
+            isRunning = true;
             elAnimContainer.classList.remove('ring-4', 'ring-green-500', 'bg-slate-700');
 
             btnStart.textContent = "Stop";
@@ -387,16 +434,17 @@
             inputReps.disabled = true;
             selectPreset.disabled = true;
 
-            // Optional Countdown Phase
             if (settings.prepTime > 0) {
-                setBallStyle('READY'); // Reset ball visual during countdown
+                setBallStyle('READY'); 
                 for (let i = settings.prepTime; i > 0; i--) {
                     if (!isRunning) return;
                     updateStatus(`Starting in ${i}`, 'text-orange-400');
                     elBallTimer.textContent = i;
+                    playTone('T'); // Small beep for countdown
                     await sleep(1000);
                 }
             }
+            
             if (!isRunning) return;
             elBallTimer.textContent = '';
 
@@ -405,10 +453,16 @@
                 
                 let repsRemaining = settings.reps - rep + 1;
                 
-                if (repsRemaining === 1) {
-                    elRepDisplay.innerHTML = `1 <span class="text-sm text-orange-500 uppercase tracking-widest mt-1 font-bold animate-pulse">Last One!</span>`;
+                // Visual Countdown for the last 3 reps
+                if (repsRemaining === 3) {
+                    elRepDisplay.innerHTML = `<span class="text-5xl text-yellow-400 animate-bounce block">${repsRemaining}</span><span class="text-sm text-yellow-400 uppercase tracking-widest mt-1 font-bold animate-pulse">3 Left!</span>`;
+                } else if (repsRemaining === 2) {
+                    elRepDisplay.innerHTML = `<span class="text-5xl text-orange-500 animate-bounce block">${repsRemaining}</span><span class="text-sm text-orange-500 uppercase tracking-widest mt-1 font-bold animate-pulse">Almost There!</span>`;
+                } else if (repsRemaining === 1) {
+                    elRepDisplay.innerHTML = `<span class="text-5xl text-red-500 animate-bounce block">${repsRemaining}</span><span class="text-sm text-red-500 uppercase tracking-widest mt-1 font-bold animate-pulse block">Last One!</span>`;
                 } else {
-                    elRepDisplay.textContent = repsRemaining;
+                    elRepDisplay.innerHTML = repsRemaining;
+                    elRepDisplay.className = "text-4xl font-bold text-white flex flex-col items-start transition-all";
                 }
 
                 if (settings.startPos === 'Bottom') {
@@ -432,10 +486,11 @@
 
             if (isRunning) {
                 elRepDisplay.innerHTML = "0";
-                elRepDisplay.className = "text-4xl font-bold text-green-400 flex flex-col items-start";
+                elRepDisplay.className = "text-4xl font-bold text-green-400 flex flex-col items-start transition-all";
                 updateStatus("COMPLETE!", "text-green-400 uppercase tracking-widest text-sm text-right");
                 elBallTimer.textContent = "✓";
                 
+                playTone('DONE');
                 elAnimContainer.classList.add('ring-4', 'ring-green-500', 'bg-slate-700');
                 setBallStyle('DONE');
 
