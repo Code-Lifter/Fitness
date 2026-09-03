@@ -4,440 +4,331 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Target Load Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=Teko:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #f5f5f5;
-            --text-muted: #a0a0a0;
-            --accent: #00d2d3;
-            --input-bg: #2a2a2a;
+            --bg: #060a10;
         }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Syne', system-ui, sans-serif; 
+            background: var(--bg); 
+            color: #e2e8f0; 
+            min-height: 100vh; 
+            padding-bottom: 60px; 
+        }
+        .mono { font-family: 'DM Mono', 'Courier New', monospace; }
+        .brand-font { font-family: 'Teko', sans-serif; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: var(--card-bg);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            max-width: 420px;
-            width: 100%;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 1.5rem;
-            color: var(--text-main);
-        }
-
-        p.subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 25px;
-            font-size: 0.9rem;
-        }
-
-        /* Toggle Switch Styles */
-        .toggle-container {
-            display: flex;
-            background-color: var(--input-bg);
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 25px;
-            border: 1px solid #333;
-        }
-
-        .toggle-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .toggle-btn.active {
-            background-color: var(--accent);
-            color: #121212;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .split-group {
-            display: flex;
-            gap: 15px;
-        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        .split-group > div {
-            flex: 1;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #333;
-            background-color: var(--input-bg);
-            color: var(--text-main);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .estimated-1rm {
-            text-align: right;
-            font-size: 0.85rem;
-            color: var(--accent);
-            margin-top: 8px;
-            min-height: 18px;
-        }
-
-        /* RPE Segmented Control */
-        .rpe-category {
-            font-size: 0.75rem;
-            color: var(--accent);
-            margin: 15px 0 6px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-
-        .rpe-category:first-of-type {
-            margin-top: 0;
-        }
-
-        .rpe-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .rpe-btn {
-            flex: 1;
-            padding: 8px 0;
-            background-color: var(--input-bg);
-            border: 1px solid #333;
-            color: var(--text-muted);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .rpe-btn:hover {
-            border-color: var(--text-muted);
-        }
-
-        .rpe-btn.active {
-            background-color: var(--accent);
-            color: #121212;
-            border-color: var(--accent);
-            font-weight: 700;
-        }
-
-        .rpe-desc {
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 15px;
-            min-height: 18px;
-            font-style: italic;
-        }
-
-        .result-box {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: var(--input-bg);
-            border-radius: 6px;
-            text-align: center;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            border-left: 4px solid var(--accent);
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 32px 32px;
             pointer-events: none;
+            z-index: 0;
         }
-
-        .result-box.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .result-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--accent);
-            margin: 10px 0;
-        }
-
-        .calc-method {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
+        .content { position: relative; z-index: 1; }
     </style>
 </head>
-<body>
+<body class="selection:bg-amber-500 selection:text-slate-900">
 
-    <div class="container">
-        <h1>Target Load Generator</h1>
-        <p class="subtitle">Calculate the exact weight to put on the bar.</p>
-
-        <!-- Toggle Switch for 1RM Mode -->
-        <div class="toggle-container">
-            <button class="toggle-btn active" id="btn-known">Known 1RM</button>
-            <button class="toggle-btn" id="btn-calc">Calculate 1RM</button>
+    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🎯</span>
+                <h1 class="text-xl font-semibold tracking-wide text-white brand-font uppercase">Target Load <span class="text-amber-500">Gen</span></h1>
+            </div>
+            <div class="bg-slate-800 p-1 rounded-lg flex text-[10px] sm:text-xs font-bold border border-slate-700">
+                <button onclick="setUnit('kg')" id="btn-kg" class="px-3 py-1 rounded-md transition-all bg-amber-500 text-slate-900 shadow font-bold">KG</button>
+                <button onclick="setUnit('lbs')" id="btn-lbs" class="px-3 py-1 rounded-md transition-all text-slate-400 hover:text-white font-medium">LBS</button>
+            </div>
         </div>
+    </nav>
 
-        <!-- Mode 1: Known 1RM Input -->
-        <div id="section-known" class="input-group">
-            <label for="max">Your Known 1RM (Weight)</label>
-            <input type="number" id="max" placeholder="e.g., 100" step="0.5" required>
-        </div>
-
-        <!-- Mode 2: Calculate 1RM Inputs (Hidden by default) -->
-        <div id="section-calc" class="input-group" style="display: none;">
-            <div class="split-group">
-                <div>
-                    <label for="calc-weight">Weight Lifted</label>
-                    <input type="number" id="calc-weight" placeholder="e.g., 85" step="0.5">
+<div class="content max-w-3xl mx-auto px-4 mt-6">
+    <div class="space-y-6">
+        
+        <!-- 1RM DEFINITION -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-white text-lg uppercase tracking-wide brand-font flex items-center gap-2">
+                    <span class="text-amber-500">1.</span> One Rep Max (1RM)
+                </h2>
+                <div class="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
+                    <button id="mode-known" onclick="setRmMode('known')" class="px-2 py-1 text-[9px] font-bold uppercase rounded bg-slate-800 text-slate-300 transition">Known 1RM</button>
+                    <button id="mode-calc" onclick="setRmMode('calc')" class="px-2 py-1 text-[9px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition">Calculate</button>
                 </div>
-                <div>
-                    <label for="calc-reps">Reps Done</label>
-                    <input type="number" id="calc-reps" placeholder="e.g., 5" min="1">
+            </div>
+
+            <!-- Mode: Known 1RM -->
+            <div id="section-known" class="flex items-center gap-4">
+                <div class="relative w-full">
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1 text-center">Your Max Weight</label>
+                    <input type="number" id="max" oninput="calculateTargetLoad()" step="0.5"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-4xl font-black mono focus:border-amber-500 outline-none transition-all text-white text-center"
+                        placeholder="100">
+                    <span id="unit-label-max" class="absolute right-4 top-10 text-slate-600 text-xs font-bold uppercase">KG</span>
                 </div>
             </div>
-            <div class="estimated-1rm" id="estimated-display"></div>
+
+            <!-- Mode: Calculate 1RM -->
+            <div id="section-calc" class="hidden gap-3">
+                <div class="relative flex-1">
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Weight Lifted</label>
+                    <input type="number" id="calc-weight" oninput="calculateTargetLoad()" step="0.5" placeholder="85" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-amber-500 outline-none text-white text-center">
+                </div>
+                <div class="relative flex-1">
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Reps Done</label>
+                    <input type="number" id="calc-reps" oninput="calculateTargetLoad()" placeholder="5" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-amber-500 outline-none text-white text-center">
+                </div>
+                <div class="flex flex-col items-center justify-center bg-amber-900/10 border border-amber-900/30 rounded-xl px-4 min-w-[100px] mt-5">
+                    <span class="text-[9px] text-amber-500 font-bold uppercase tracking-widest mb-1">Est 1RM</span>
+                    <span id="estimated-display" class="text-2xl font-black mono text-amber-400">—</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Target Goal Inputs -->
-        <div class="input-group">
-            <label for="reps">Target Reps</label>
-            <input type="number" id="reps" placeholder="e.g., 5" min="1" required>
+        <!-- TARGET GOALS -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+            <h2 class="text-white text-lg uppercase tracking-wide brand-font flex items-center gap-2 mb-4">
+                <span class="text-amber-500">2.</span> Target Parameters
+            </h2>
+
+            <div class="mb-6 relative">
+                <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Target Reps</label>
+                <input type="number" id="reps" oninput="calculateTargetLoad()" placeholder="e.g., 5" min="1"
+                       class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-amber-500 outline-none text-white">
+            </div>
+
+            <div>
+                <div class="flex justify-between items-end mb-2">
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest">Target RPE</label>
+                    <span id="rpe-desc" class="text-[10px] text-amber-500 font-bold uppercase tracking-wide text-right italic">2 Reps in Reserve</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 bg-slate-950 border border-slate-800 rounded-xl p-4">
+                    
+                    <div>
+                        <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Strength/Power (90-100%)</div>
+                        <div class="flex gap-1.5">
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="10">10</button>
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="9.5">9.5</button>
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="9">9</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Str-Hypertrophy (85-92%)</div>
+                        <div class="flex gap-1.5">
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="8.5">8.5</button>
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-amber-500 text-slate-900 border border-amber-400 transition active" data-value="8">8</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Hypertrophy (70-85%)</div>
+                        <div class="flex gap-1.5">
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="7.5">7.5</button>
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="7">7</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Endurance/Volume (60-75%)</div>
+                        <div class="flex gap-1.5">
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="6.5">6.5</button>
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="6">6</button>
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="5.5">5.5</button>
+                            <button class="rpe-btn flex-1 py-1.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700 transition" data-value="5">5</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
 
-        <!-- Categorized RPE Buttons -->
-        <div class="input-group">
-            <label>Target RPE</label>
-            
-            <div class="rpe-category">Strength/Power (90-100% 1RM)</div>
-            <div class="rpe-group">
-                <button class="rpe-btn" data-value="10">10</button>
-                <button class="rpe-btn" data-value="9.5">9.5</button>
-                <button class="rpe-btn" data-value="9">9</button>
+        <!-- RESULTS -->
+        <div id="resultBox" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl text-center opacity-50 pointer-events-none transition-opacity">
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Target Weight to Load</div>
+            <div class="flex items-end justify-center gap-2 mb-2">
+                <div id="targetWeight" class="text-6xl font-black mono text-emerald-400 brand-font leading-none">0.0</div>
+                <div id="unit-label-res" class="text-xl text-emerald-600 font-bold mb-1">KG</div>
             </div>
-
-            <div class="rpe-category">Strength-Hypertrophy (85-92% 1RM)</div>
-            <div class="rpe-group">
-                <button class="rpe-btn" data-value="8.5">8.5</button>
-                <button class="rpe-btn active" data-value="8">8</button>
-            </div>
-
-            <div class="rpe-category">Hypertrophy (70-85% 1RM)</div>
-            <div class="rpe-group">
-                <button class="rpe-btn" data-value="7.5">7.5</button>
-                <button class="rpe-btn" data-value="7">7</button>
-            </div>
-
-            <div class="rpe-category">Endurance/Volume (60-75% 1RM)</div>
-            <div class="rpe-group">
-                <button class="rpe-btn" data-value="6.5">6.5</button>
-                <button class="rpe-btn" data-value="6">6</button>
-                <button class="rpe-btn" data-value="5.5">5.5</button>
-                <button class="rpe-btn" data-value="5">5</button>
-            </div>
-
-            <div class="rpe-desc" id="rpe-desc">2 Reps in Reserve (Heavy compound work)</div>
+            <div id="calcMethod" class="text-[10px] text-slate-500 uppercase font-bold tracking-wide mt-2">Waiting for inputs...</div>
         </div>
 
-        <div class="result-box" id="resultBox">
-            <div>Target Weight to Load</div>
-            <div class="result-value" id="targetWeight">0</div>
-            <div class="calc-method" id="calcMethod"></div>
-        </div>
     </div>
+</div>
 
-    <script>
-        const rpeChart = {
-            1:  { "10": 1.00, "9.5": 0.98, "9": 0.96, "8.5": 0.94, "8": 0.92, "7.5": 0.90, "7": 0.88, "6.5": 0.86, "6": 0.84 },
-            2:  { "10": 0.96, "9.5": 0.94, "9": 0.92, "8.5": 0.90, "8": 0.89, "7.5": 0.87, "7": 0.86, "6.5": 0.84, "6": 0.82 },
-            3:  { "10": 0.92, "9.5": 0.90, "9": 0.89, "8.5": 0.87, "8": 0.86, "7.5": 0.84, "7": 0.82, "6.5": 0.80, "6": 0.78 },
-            4:  { "10": 0.89, "9.5": 0.87, "9": 0.86, "8.5": 0.84, "8": 0.82, "7.5": 0.80, "7": 0.78, "6.5": 0.76, "6": 0.74 },
-            5:  { "10": 0.86, "9.5": 0.84, "9": 0.82, "8.5": 0.80, "8": 0.79, "7.5": 0.77, "7": 0.76, "6.5": 0.74, "6": 0.72 },
-            6:  { "10": 0.84, "9.5": 0.82, "9": 0.80, "8.5": 0.78, "8": 0.76, "7.5": 0.74, "7": 0.72, "6.5": 0.70, "6": 0.68 },
-            7:  { "10": 0.82, "9.5": 0.80, "9": 0.78, "8.5": 0.76, "8": 0.74, "7.5": 0.72, "7": 0.70, "6.5": 0.68, "6": 0.66 },
-            8:  { "10": 0.80, "9.5": 0.78, "9": 0.76, "8.5": 0.74, "8": 0.72, "7.5": 0.70, "7": 0.68, "6.5": 0.66, "6": 0.64 },
-            9:  { "10": 0.78, "9.5": 0.76, "9": 0.74, "8.5": 0.72, "8": 0.70, "7.5": 0.68, "7": 0.66, "6.5": 0.64, "6": 0.62 },
-            10: { "10": 0.76, "9.5": 0.74, "9": 0.72, "8.5": 0.70, "8": 0.68, "7.5": 0.66, "7": 0.64, "6.5": 0.62, "6": 0.60 }
-        };
+<script>
+    const rpeChart = {
+        1:  { "10": 1.00, "9.5": 0.98, "9": 0.96, "8.5": 0.94, "8": 0.92, "7.5": 0.90, "7": 0.88, "6.5": 0.86, "6": 0.84 },
+        2:  { "10": 0.96, "9.5": 0.94, "9": 0.92, "8.5": 0.90, "8": 0.89, "7.5": 0.87, "7": 0.86, "6.5": 0.84, "6": 0.82 },
+        3:  { "10": 0.92, "9.5": 0.90, "9": 0.89, "8.5": 0.87, "8": 0.86, "7.5": 0.84, "7": 0.82, "6.5": 0.80, "6": 0.78 },
+        4:  { "10": 0.89, "9.5": 0.87, "9": 0.86, "8.5": 0.84, "8": 0.82, "7.5": 0.80, "7": 0.78, "6.5": 0.76, "6": 0.74 },
+        5:  { "10": 0.86, "9.5": 0.84, "9": 0.82, "8.5": 0.80, "8": 0.79, "7.5": 0.77, "7": 0.76, "6.5": 0.74, "6": 0.72 },
+        6:  { "10": 0.84, "9.5": 0.82, "9": 0.80, "8.5": 0.78, "8": 0.76, "7.5": 0.74, "7": 0.72, "6.5": 0.70, "6": 0.68 },
+        7:  { "10": 0.82, "9.5": 0.80, "9": 0.78, "8.5": 0.76, "8": 0.74, "7.5": 0.72, "7": 0.70, "6.5": 0.68, "6": 0.66 },
+        8:  { "10": 0.80, "9.5": 0.78, "9": 0.76, "8.5": 0.74, "8": 0.72, "7.5": 0.70, "7": 0.68, "6.5": 0.66, "6": 0.64 },
+        9:  { "10": 0.78, "9.5": 0.76, "9": 0.74, "8.5": 0.72, "8": 0.70, "7.5": 0.68, "7": 0.66, "6.5": 0.64, "6": 0.62 },
+        10: { "10": 0.76, "9.5": 0.74, "9": 0.72, "8.5": 0.70, "8": 0.68, "7.5": 0.66, "7": 0.64, "6.5": 0.62, "6": 0.60 }
+    };
 
-        const rpeDescriptions = {
-            "10": "Absolute Max, 0 RIR (Max strength)",
-            "9.5": "Maybe 1 more rep (Heavy singles/doubles)",
-            "9": "1 Rep in Reserve (Strength development)",
-            "8.5": "Maybe 2 more reps (Builds strength/size)",
-            "8": "2 Reps in Reserve (Heavy compound work)",
-            "7.5": "Maybe 3 more reps (Primary muscle building)",
-            "7": "3 Reps in Reserve (Moderate load/reps)",
-            "6.5": "Maybe 4 more reps (Metabolic stress)",
-            "6": "4 Reps in Reserve (Endurance zone)",
-            "5.5": "Maybe 5 more reps (High volume)",
-            "5": "5 Reps in Reserve (High rep work)"
-        };
+    const rpeDescriptions = {
+        "10": "Absolute Max, 0 RIR (Max strength)",
+        "9.5": "Maybe 1 more rep (Heavy singles/doubles)",
+        "9": "1 Rep in Reserve (Strength development)",
+        "8.5": "Maybe 2 more reps (Builds strength/size)",
+        "8": "2 Reps in Reserve (Heavy compound work)",
+        "7.5": "Maybe 3 more reps (Primary muscle building)",
+        "7": "3 Reps in Reserve (Moderate load/reps)",
+        "6.5": "Maybe 4 more reps (Metabolic stress)",
+        "6": "4 Reps in Reserve (Endurance zone)",
+        "5.5": "Maybe 5 more reps (High volume)",
+        "5": "5 Reps in Reserve (High rep work)"
+    };
 
-        // UI Elements
-        const btnKnown = document.getElementById('btn-known');
-        const btnCalc = document.getElementById('btn-calc');
-        const sectionKnown = document.getElementById('section-known');
-        const sectionCalc = document.getElementById('section-calc');
-        const estimatedDisplay = document.getElementById('estimated-display');
+    let currentUnit = 'kg';
+    let inputMode = 'known';
+    let currentRPE = "8";
+
+    // UI Elements
+    const maxInput = document.getElementById('max');
+    const calcWeightInput = document.getElementById('calc-weight');
+    const calcRepsInput = document.getElementById('calc-reps');
+    const repsInput = document.getElementById('reps');
+    const estimatedDisplay = document.getElementById('estimated-display');
+    const rpeButtons = document.querySelectorAll('.rpe-btn');
+    const rpeDesc = document.getElementById('rpe-desc');
+    const resultBox = document.getElementById('resultBox');
+    const resultValue = document.getElementById('targetWeight');
+    const methodText = document.getElementById('calcMethod');
+
+    function setRmMode(mode) {
+        inputMode = mode;
+        document.getElementById('mode-known').className = mode === 'known' 
+            ? 'px-2 py-1 text-[9px] font-bold uppercase rounded bg-slate-800 text-slate-300 transition' 
+            : 'px-2 py-1 text-[9px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition';
+            
+        document.getElementById('mode-calc').className = mode === 'calc' 
+            ? 'px-2 py-1 text-[9px] font-bold uppercase rounded bg-slate-800 text-slate-300 transition' 
+            : 'px-2 py-1 text-[9px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition';
+
+        if (mode === 'known') {
+            document.getElementById('section-known').classList.remove('hidden');
+            document.getElementById('section-known').classList.add('flex');
+            document.getElementById('section-calc').classList.add('hidden');
+            document.getElementById('section-calc').classList.remove('flex');
+        } else {
+            document.getElementById('section-known').classList.add('hidden');
+            document.getElementById('section-known').classList.remove('flex');
+            document.getElementById('section-calc').classList.remove('hidden');
+            document.getElementById('section-calc').classList.add('flex');
+        }
+        calculateTargetLoad();
+    }
+
+    function setUnit(u) {
+        const old = currentUnit;
+        currentUnit = u;
         
-        // Input Elements
-        const maxInput = document.getElementById('max');
-        const calcWeightInput = document.getElementById('calc-weight');
-        const calcRepsInput = document.getElementById('calc-reps');
-        const repsInput = document.getElementById('reps');
-        
-        // RPE Elements
-        const rpeButtons = document.querySelectorAll('.rpe-btn');
-        const rpeDesc = document.getElementById('rpe-desc');
-        let currentRPE = "8"; // Default
-        
-        // Result Elements
-        const resultBox = document.getElementById('resultBox');
-        const resultValue = document.getElementById('targetWeight');
-        const methodText = document.getElementById('calcMethod');
-
-        let inputMode = 'known'; // 'known' or 'calc'
-
-        // Toggle Logic for 1RM
-        btnKnown.addEventListener('click', () => {
-            inputMode = 'known';
-            btnKnown.classList.add('active');
-            btnCalc.classList.remove('active');
-            sectionKnown.style.display = 'block';
-            sectionCalc.style.display = 'none';
-            calculateTargetLoad();
+        ['kg','lbs'].forEach(type => {
+            const btn = document.getElementById('btn-' + type);
+            btn.className = type === u
+                ? 'px-3 py-1 rounded-md transition-all bg-amber-500 text-slate-900 shadow font-bold'
+                : 'px-3 py-1 rounded-md transition-all text-slate-400 hover:text-white font-medium';
         });
 
-        btnCalc.addEventListener('click', () => {
-            inputMode = 'calc';
-            btnCalc.classList.add('active');
-            btnKnown.classList.remove('active');
-            sectionCalc.style.display = 'block';
-            sectionKnown.style.display = 'none';
-            calculateTargetLoad();
-        });
+        document.getElementById('unit-label-max').innerText = u.toUpperCase();
+        document.getElementById('unit-label-res').innerText = u.toUpperCase();
 
-        // RPE Button Logic
-        rpeButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                // Clear active states
-                rpeButtons.forEach(b => b.classList.remove('active'));
-                
-                // Set new active state
-                const clickedBtn = e.target;
-                clickedBtn.classList.add('active');
-                
-                // Update value and description
-                currentRPE = clickedBtn.getAttribute('data-value');
-                rpeDesc.innerText = rpeDescriptions[currentRPE];
-                
-                calculateTargetLoad();
+        const factor = (old === 'kg' && u === 'lbs') ? 2.2046 : (old === 'lbs' && u === 'kg') ? 1/2.2046 : 1;
+
+        if (maxInput.value) maxInput.value = Math.round(parseFloat(maxInput.value) * factor * 2) / 2;
+        if (calcWeightInput.value) calcWeightInput.value = Math.round(parseFloat(calcWeightInput.value) * factor * 2) / 2;
+        
+        calculateTargetLoad();
+    }
+
+    // Initialize RPE Buttons
+    rpeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            rpeButtons.forEach(b => {
+                b.classList.remove('bg-amber-500', 'text-slate-900', 'border-amber-400', 'active');
+                b.classList.add('bg-slate-800', 'text-slate-400', 'border-slate-700');
             });
+            
+            const clickedBtn = e.target;
+            clickedBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700');
+            clickedBtn.classList.add('bg-amber-500', 'text-slate-900', 'border-amber-400', 'active');
+            
+            currentRPE = clickedBtn.getAttribute('data-value');
+            rpeDesc.innerText = rpeDescriptions[currentRPE];
+            
+            calculateTargetLoad();
         });
+    });
 
-        function calculateTargetLoad() {
-            let oneRepMax = 0;
+    function calculateTargetLoad() {
+        let oneRepMax = 0;
 
-            // Determine 1RM based on the active tab
-            if (inputMode === 'known') {
-                oneRepMax = parseFloat(maxInput.value);
-            } else {
-                const w = parseFloat(calcWeightInput.value);
-                const r = parseInt(calcRepsInput.value);
-                
-                if (!isNaN(w) && !isNaN(r) && r > 0 && w > 0) {
-                    // Epley Formula for estimating 1RM
-                    oneRepMax = w * (1 + (0.0333 * r));
-                    estimatedDisplay.innerText = `Est. 1RM: ${oneRepMax.toFixed(1)}`;
-                } else {
-                    estimatedDisplay.innerText = '';
-                    oneRepMax = NaN;
-                }
-            }
-
-            const reps = parseInt(repsInput.value);
-            const rpe = parseFloat(currentRPE);
+        if (inputMode === 'known') {
+            oneRepMax = parseFloat(maxInput.value);
+        } else {
+            const w = parseFloat(calcWeightInput.value);
+            const r = parseInt(calcRepsInput.value);
             
-            // Hide results if inputs are invalid or missing
-            if (isNaN(oneRepMax) || isNaN(reps) || reps < 1 || oneRepMax <= 0) {
-                resultBox.classList.remove('active');
-                return;
-            }
-
-            let percentage = 0;
-            let usedFormula = false;
-
-            // Check if exact match exists in the established table
-            if (rpeChart[reps] && rpeChart[reps][currentRPE]) {
-                percentage = rpeChart[reps][currentRPE];
-                usedFormula = false;
+            if (!isNaN(w) && !isNaN(r) && r > 0 && w > 0) {
+                // Epley Formula for estimating 1RM
+                oneRepMax = w * (1 + (0.0333 * r));
+                estimatedDisplay.innerText = oneRepMax.toFixed(1);
             } else {
-                // Fallback: Modified Epley Formula (Handles our new RPE 5 and 5.5 smoothly!)
-                const rir = 10 - rpe;
-                const maxReps = reps + rir;
-                percentage = 1 / (1 + (0.0333 * maxReps));
-                usedFormula = true;
+                estimatedDisplay.innerText = '—';
+                oneRepMax = NaN;
             }
-
-            // Calculate Target Weight (1RM * Percentage)
-            const targetWeight = oneRepMax * percentage;
-
-            // Update UI
-            resultValue.innerText = targetWeight.toFixed(1);
-            methodText.innerText = usedFormula 
-                ? `Loading ${(percentage * 100).toFixed(1)}% of 1RM using Modified Epley Formula` 
-                : `Loading ${(percentage * 100).toFixed(1)}% of 1RM using Standard RPE Table`;
-            
-            resultBox.classList.add('active');
         }
 
-        // Attach event listeners for live updates on inputs
-        [maxInput, calcWeightInput, calcRepsInput, repsInput].forEach(element => {
-            element.addEventListener('input', calculateTargetLoad);
-        });
-    </script>
+        const reps = parseInt(repsInput.value);
+        const rpe = parseFloat(currentRPE);
+        
+        if (isNaN(oneRepMax) || isNaN(reps) || reps < 1 || oneRepMax <= 0) {
+            resultBox.classList.add('opacity-50', 'pointer-events-none');
+            resultValue.innerText = "0.0";
+            methodText.innerText = "Waiting for inputs...";
+            return;
+        }
+
+        let percentage = 0;
+        let usedFormula = false;
+
+        // Check if exact match exists in the established table
+        if (rpeChart[reps] && rpeChart[reps][currentRPE]) {
+            percentage = rpeChart[reps][currentRPE];
+            usedFormula = false;
+        } else {
+            // Modified Epley Formula fallback
+            const rir = 10 - rpe;
+            const maxReps = reps + rir;
+            percentage = 1 / (1 + (0.0333 * maxReps));
+            usedFormula = true;
+        }
+
+        const targetWeight = oneRepMax * percentage;
+
+        resultValue.innerText = targetWeight.toFixed(1);
+        methodText.innerText = usedFormula 
+            ? `Loading ${(percentage * 100).toFixed(1)}% of 1RM via Modified Epley Formula` 
+            : `Loading ${(percentage * 100).toFixed(1)}% of 1RM via Standard RPE Table`;
+        
+        resultBox.classList.remove('opacity-50', 'pointer-events-none');
+    }
+</script>
 </body>
 </html>
