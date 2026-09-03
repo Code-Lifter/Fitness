@@ -40,6 +40,10 @@
             z-index: 0;
         }
         .content { position: relative; z-index: 1; }
+        
+        /* Custom scrollbar for tabs */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="selection:bg-blue-500 selection:text-slate-900">
@@ -121,41 +125,21 @@
                 + Add Working Set
             </button>
             
-            <!-- DROPDOWN PRESETS -->
-            <div class="mt-5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 relative">
-                <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <!-- PROGRAMMING STRUCTURE PILLS (FILE SORT TABS) -->
+            <div class="mt-8 bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Load Programming Structure</span>
                 </div>
-                <select id="scheme-dropdown" onchange="handlePresetSelection(this)" class="w-full bg-transparent text-center text-slate-300 text-[11px] font-bold py-2.5 px-4 rounded-lg appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-colors cursor-pointer uppercase tracking-wider">
-                    <option value="">-- Load Programming Structure --</option>
-                    
-                    <optgroup label="Strength Foundation">
-                        <option value="5x5">5×5 — Classic Strength</option>
-                        <option value="3x5">3×5 — Efficient Strength</option>
-                        <option value="6x2">6×2 — Neural Strength</option>
-                        <option value="10x3">10×3 — Explosive Power</option>
-                    </optgroup>
-                    
-                    <optgroup label="Hypertrophy & Bodybuilding">
-                        <option value="3x8">3×8 — Strength + Hypertrophy</option>
-                        <option value="3x10">3×10 — Traditional</option>
-                        <option value="3x12">3×12 — Moderate / Endurance</option>
-                        <option value="4x8">4×8 — Heavy Hypertrophy</option>
-                        <option value="4x12">4×12 — High Volume</option>
-                        <option value="5x10">5×10 — Brutal Volume</option>
-                    </optgroup>
-                    
-                    <optgroup label="Advanced Tactics">
-                        <option value="pyramid">Pyramid Sets (12/10/8/6)</option>
-                        <option value="rpt">Reverse Pyramid (6/8/10)</option>
-                        <option value="top_backoff">Top Set + Back-Offs</option>
-                        <option value="amrap">3×5 + AMRAP</option>
-                        <option value="cluster">Cluster Sets</option>
-                        <option value="restpause">Rest-Pause Training</option>
-                        <option value="dropset">Drop Sets</option>
-                        <option value="20rep">20-Rep Squats</option>
-                    </optgroup>
-                </select>
+                
+                <!-- Tabs -->
+                <div id="category-tabs" class="flex gap-4 border-b border-slate-800 mb-4 overflow-x-auto no-scrollbar">
+                    <!-- Tabs rendered via JS -->
+                </div>
+                
+                <!-- Pills -->
+                <div id="pills-container" class="flex flex-wrap gap-2">
+                    <!-- Pills rendered via JS -->
+                </div>
             </div>
         </div>
 
@@ -358,8 +342,77 @@
         '20rep': [[0.70, 20, 10]]
     };
 
-    function handlePresetSelection(selectElement) {
-        const key = selectElement.value;
+    const PRESET_CATEGORIES = {
+        strength: {
+            title: 'Strength Foundation',
+            items: [
+                { id: '5x5', label: '5×5 Classic' },
+                { id: '3x5', label: '3×5 Efficient' },
+                { id: '6x2', label: '6×2 Neural' },
+                { id: '10x3', label: '10×3 Explosive' }
+            ]
+        },
+        hypertrophy: {
+            title: 'Hypertrophy',
+            items: [
+                { id: '3x8', label: '3×8 Strength+' },
+                { id: '3x10', label: '3×10 Traditional' },
+                { id: '3x12', label: '3×12 Moderate' },
+                { id: '4x8', label: '4×8 Heavy Vol' },
+                { id: '4x12', label: '4×12 High Vol' },
+                { id: '5x10', label: '5×10 Brutal' }
+            ]
+        },
+        advanced: {
+            title: 'Advanced Tactics',
+            items: [
+                { id: 'pyramid', label: 'Pyramid (12/10/8/6)' },
+                { id: 'rpt', label: 'Reverse (6/8/10)' },
+                { id: 'top_backoff', label: 'Top + Back-Offs' },
+                { id: 'amrap', label: '3×5 + AMRAP' },
+                { id: 'cluster', label: 'Cluster Sets' },
+                { id: 'restpause', label: 'Rest-Pause' },
+                { id: 'dropset', label: 'Drop Sets' },
+                { id: '20rep', label: '20-Rep Squats' }
+            ]
+        }
+    };
+
+    let activeCategory = 'strength';
+
+    function renderPresetTabs() {
+        const tabsContainer = document.getElementById('category-tabs');
+        tabsContainer.innerHTML = '';
+        
+        Object.keys(PRESET_CATEGORIES).forEach(key => {
+            const isActive = key === activeCategory;
+            const btn = document.createElement('button');
+            btn.innerText = PRESET_CATEGORIES[key].title;
+            btn.onclick = () => { activeCategory = key; renderPresetTabs(); renderPills(); };
+            
+            if (isActive) {
+                btn.className = 'pb-2 border-b-2 border-blue-500 text-blue-400 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap -mb-[1px] transition-all';
+            } else {
+                btn.className = 'pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap -mb-[1px] transition-all';
+            }
+            tabsContainer.appendChild(btn);
+        });
+    }
+
+    function renderPills() {
+        const pillsContainer = document.getElementById('pills-container');
+        pillsContainer.innerHTML = '';
+        
+        PRESET_CATEGORIES[activeCategory].items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.innerText = item.label;
+            btn.onclick = () => applyPreset(item.id);
+            btn.className = 'px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-500 hover:bg-slate-800 text-[10px] font-bold uppercase transition-all whitespace-nowrap';
+            pillsContainer.appendChild(btn);
+        });
+    }
+
+    function applyPreset(key) {
         if (!key) return;
         
         let oneRM = 0;
@@ -368,15 +421,12 @@
 
         if (!oneRM || isNaN(oneRM)) { 
             alert('Establish a Target 1RM Baseline first to auto-calculate load.'); 
-            selectElement.selectedIndex = 0;
             return; 
         }
 
         document.getElementById('sets-container').innerHTML = '';
         PRESETS[key].forEach(s => addSetRow(Math.round(oneRM * s[0]), s[1], s[2]));
         masterCalculate();
-        
-        selectElement.selectedIndex = 0;
     }
 
     function calculateINOL(oneRm) {
@@ -477,6 +527,9 @@
         document.getElementById('rx-note').innerHTML = noteHtml;
     }
 
+    // Initialize tabs, pills and UI
+    renderPresetTabs();
+    renderPills();
     addSetRow();
     masterCalculate();
 </script>
