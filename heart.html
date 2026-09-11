@@ -149,131 +149,112 @@
             </div>
         </div>
 
-        <!-- 3. PROTOCOLS (Your original cards) -->
-        <h2 class="text-white text-xl uppercase tracking-wide brand-font mb-4 flex items-center gap-2 fade-in">
-            <span class="text-rose-500">3.</span> Training Protocols
-        </h2>
+        <!-- 3. CARDIO MODALITIES & WORKOUT BUILDER -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 fade-in">
+            <h2 class="text-white text-xl uppercase tracking-wide brand-font mb-4 flex items-center gap-2">
+                <span class="text-rose-500">3.</span> Select Cardio Modality
+            </h2>
 
-        <div id="results-area" class="space-y-6 fade-in">
-            
-            <div class="zone-card bg-gradient-to-r from-slate-900 to-slate-900 border-l-4 border-l-emerald-500 rounded-r-xl p-6 relative overflow-hidden">
-                <div class="absolute right-0 top-0 text-9xl opacity-[0.03] grayscale">🚶</div>
-                <div class="relative z-10">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-2xl text-emerald-400 font-bold brand-font">L.I.S.S.</h3>
-                            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Low-Intensity Steady-State</p>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-3xl font-black text-white brand-font"><span id="liss-min">--</span> - <span id="liss-max">--</span> <span class="text-sm text-slate-500">BPM</span></div>
-                            <div class="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded inline-block">50-70% MAX HR</div>
-                        </div>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-4 text-sm text-slate-300">
-                        <ul class="space-y-2">
-                            <li class="flex gap-2"><span class="text-emerald-500">✓</span> <span><strong>Type:</strong> Walking, incline treadmill, cycling</span></li>
-                            <li class="flex gap-2"><span class="text-emerald-500">✓</span> <span><strong>Purpose:</strong> Pure fat burning, keeping muscle</span></li>
-                            <li class="flex gap-2"><span class="text-emerald-500">✓</span> <span><strong>Timing:</strong> Fasted morning or post-workout</span></li>
-                        </ul>
-                        <div class="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
-                            <p class="text-xs text-slate-400 mb-1 font-bold uppercase">Example Workout</p>
-                            <p class="text-white text-sm">30-90 min incline treadmill walk (5-6 km/h).</p>
-                        </div>
-                    </div>
-                </div>
+            <!-- Pill Selectors -->
+            <div class="flex flex-wrap gap-2 mb-8" id="pill-container">
+                <button onclick="selectCardio('incline_walk')" id="pill-incline_walk" class="cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200">
+                    🚶 Incline Walk
+                </button>
+                <button onclick="selectCardio('zone2_cycle')" id="pill-zone2_cycle" class="cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200">
+                    🚴 Zone 2 Cycle
+                </button>
+                <button onclick="selectCardio('miss_jog')" id="pill-miss_jog" class="cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200">
+                    🏃 Steady Jog
+                </button>
+                <button onclick="selectCardio('hiit_sprints')" id="pill-hiit_sprints" class="cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200">
+                    🔥 Track Sprints
+                </button>
+                <button onclick="selectCardio('tabata')" id="pill-tabata" class="cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200">
+                    ⚡ Tabata Ergs
+                </button>
+                <button onclick="selectCardio('sled_push')" id="pill-sled_push" class="cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200">
+                    🛷 Heavy Sled
+                </button>
+                <button onclick="selectCardio('row_pyramid')" id="pill-row_pyramid" class="cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200">
+                    🚣 Rowing Pyramid
+                </button>
             </div>
 
-            <div class="zone-card bg-gradient-to-r from-slate-900 to-slate-900 border-l-4 border-l-amber-500 rounded-r-xl p-6 relative overflow-hidden">
-                <div class="absolute right-0 top-0 text-9xl opacity-[0.03] grayscale">🏃</div>
-                <div class="relative z-10">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-2xl text-amber-500 font-bold brand-font">M.I.S.S.</h3>
-                            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Moderate-Intensity Steady-State</p>
+            <!-- Protocol Detail Box -->
+            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-6 space-y-6">
+                
+                <!-- Modality Header -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span id="protocol-badge" class="text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">--</span>
                         </div>
-                        <div class="text-right">
-                            <div class="text-3xl font-black text-white brand-font"><span id="miss-min">--</span> - <span id="miss-max">--</span> <span class="text-sm text-slate-500">BPM</span></div>
-                            <div class="text-[10px] font-bold bg-amber-500/20 text-amber-500 px-2 py-1 rounded inline-block">70-80% MAX HR</div>
-                        </div>
+                        <h3 id="protocol-title" class="text-3xl text-white font-bold brand-font tracking-wide">--</h3>
+                        <p id="protocol-desc" class="text-xs text-slate-400 max-w-xl">--</p>
                     </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-4 text-sm text-slate-300">
-                        <ul class="space-y-2">
-                            <li class="flex gap-2"><span class="text-amber-500">✓</span> <span><strong>Type:</strong> Jogging, swimming, rowing</span></li>
-                            <li class="flex gap-2"><span class="text-amber-500">✓</span> <span><strong>Purpose:</strong> Fat loss + Endurance</span></li>
-                            <li class="flex gap-2"><span class="text-amber-500">✓</span> <span><strong>Timing:</strong> Off-days or separate sessions</span></li>
-                        </ul>
-                        <div class="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
-                            <p class="text-xs text-slate-400 mb-1 font-bold uppercase">Example Workout</p>
-                            <p class="text-white text-sm">30 min cycling at moderate intensity.</p>
-                        </div>
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl min-w-[180px]">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-0.5">Target Heart Rate</span>
+                        <div class="text-2xl font-black text-rose-500 brand-font" id="protocol-target-bpm">-- BPM</div>
+                        <span id="protocol-target-zone" class="text-[10px] text-slate-400 block font-semibold">--</span>
                     </div>
                 </div>
-            </div>
 
-            <div class="zone-card bg-gradient-to-r from-slate-900 to-slate-900 border-l-4 border-l-rose-600 rounded-r-xl p-6 relative overflow-hidden">
-                <div class="absolute right-0 top-0 text-9xl opacity-[0.03] grayscale">🔥</div>
-                <div class="relative z-10">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-2xl text-rose-500 font-bold brand-font">H.I.I.T.</h3>
-                            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Fat Loss Accelerator</p>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-3xl font-black text-white brand-font"><span id="hiit-min">--</span> - <span id="hiit-max">--</span> <span class="text-sm text-slate-500">BPM</span></div>
-                            <div class="text-[10px] font-bold bg-rose-500/20 text-rose-500 px-2 py-1 rounded inline-block">80-100% MAX HR</div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4 text-sm text-slate-300">
-                        <div class="flex gap-4 mb-2">
-                            <div class="flex-1 bg-slate-950/30 p-2 rounded border border-slate-800">
-                                <span class="block text-rose-500 font-bold text-xs uppercase">Type</span>
-                                Sprints, Ropes, Sled
+                <!-- Structured Workflow Pipeline: Warm up -> Session -> Cooldown -->
+                <div>
+                    <h4 class="text-slate-400 font-bold uppercase text-[11px] tracking-widest mb-4 flex items-center gap-2">
+                        <span>📋 Workout Blueprint</span>
+                    </h4>
+
+                    <div class="grid md:grid-cols-3 gap-4 relative">
+                        
+                        <!-- Step 1: Warm Up -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between relative group hover:border-slate-700 transition-colors">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">Phase 1</span>
+                                    <span class="text-lg">🔥</span>
+                                </div>
+                                <h5 class="text-white font-bold text-sm mb-1 uppercase brand-font tracking-wide">Warm Up</h5>
+                                <p id="protocol-warmup" class="text-xs text-slate-300 leading-relaxed">--</p>
                             </div>
-                            <div class="flex-1 bg-slate-950/30 p-2 rounded border border-slate-800">
-                                <span class="block text-rose-500 font-bold text-xs uppercase">Limit</span>
-                                1-2x per week max
+                            <div class="mt-4 pt-2 border-t border-slate-800/60 text-[10px] text-slate-500 font-medium">
+                                Target: Elevate core temp & joint fluid
                             </div>
                         </div>
 
-                        <div class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4">
-                            <h4 class="text-rose-400 font-bold uppercase text-xs mb-3 tracking-widest">🦁 The Protocol</h4>
-                            <ol class="space-y-3 relative border-l border-rose-500/30 ml-2 pl-4">
-                                <li>
-                                    <span class="text-white font-bold block">1. Warm Up</span>
-                                    <span class="text-xs text-rose-200">5 mins light jog + Dynamic Stretches.</span>
-                                </li>
-                                <li>
-                                    <span class="text-white font-bold block">2. The Sprint (30s)</span>
-                                    <span class="text-xs text-rose-200">High intensity. Run like a lion is chasing you.</span>
-                                </li>
-                                <li>
-                                    <span class="text-white font-bold block">3. The Rest (60s)</span>
-                                    <span class="text-xs text-rose-200">Walk/Slow movement. Recover.</span>
-                                </li>
-                                <li>
-                                    <span class="text-white font-bold block">4. Repeat</span>
-                                    <span class="text-xs text-rose-200">Do 3 to 10 cycles.</span>
-                                </li>
-                                <li>
-                                    <span class="text-white font-bold block">5. Cool Down</span>
-                                    <span class="text-xs text-rose-200">2-3 mins walking.</span>
-                                </li>
-                            </ol>
+                        <!-- Step 2: Main Session -->
+                        <div class="bg-slate-900/90 border border-rose-500/30 rounded-xl p-4 flex flex-col justify-between relative group hover:border-rose-500/50 transition-colors shadow-lg shadow-rose-950/20">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">Phase 2</span>
+                                    <span class="text-lg">⚡</span>
+                                </div>
+                                <h5 class="text-rose-400 font-bold text-sm mb-1 uppercase brand-font tracking-wide">Main Session</h5>
+                                <p id="protocol-session" class="text-xs text-slate-200 leading-relaxed font-normal">--</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800/60 text-[10px] text-rose-400/70 font-medium">
+                                Target: Primary training stimulus
+                            </div>
                         </div>
+
+                        <!-- Step 3: Cool Down -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between relative group hover:border-slate-700 transition-colors">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">Phase 3</span>
+                                    <span class="text-lg">🧊</span>
+                                </div>
+                                <h5 class="text-white font-bold text-sm mb-1 uppercase brand-font tracking-wide">Cool Down</h5>
+                                <p id="protocol-cooldown" class="text-xs text-slate-300 leading-relaxed">--</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800/60 text-[10px] text-slate-500 font-medium">
+                                Target: Flush metabolites & lower HR
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-            </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6">
-                 <div class="text-4xl">👟</div>
-                 <div class="flex-1">
-                     <h3 class="text-lg text-white font-bold brand-font uppercase">The 10,000 Step Approach</h3>
-                     <p class="text-xs text-slate-400 mb-2">Low-Stress Daily Movement</p>
-                     <p class="text-sm text-slate-300">Popular for staying lean without fatigue. Aim for <strong>8,000 - 12,000 steps</strong> (4-6km) spread throughout the day.</p>
-                 </div>
             </div>
 
         </div>
@@ -282,16 +263,95 @@
 
     <script>
         let method = 'basic'; // basic, karvonen_age, karvonen_real
+        let activeCardioKey = 'incline_walk';
+
+        const cardioProtocols = {
+            incline_walk: {
+                title: "Incline Treadmill Walk",
+                badge: "L.I.S.S. / Low Stress",
+                zoneLabel: "Zone 1-2 (50-70% Max HR)",
+                minPct: 0.50,
+                maxPct: 0.70,
+                desc: "High calorie burn with zero impact on muscle recovery or joint health. The ultimate fat loss tool for lifters.",
+                warmup: "3-5 mins flat walk (0% incline at 3.8-4.2 km/h) to warm up knees and hips.",
+                session: "30-45 mins continuous walk at 10-12% incline, 4.8-5.5 km/h. Maintain a speed where you can talk in full sentences.",
+                cooldown: "2-3 mins flat walk (0% incline at 3.0 km/h) until breathing returns to normal baseline."
+            },
+            zone2_cycle: {
+                title: "Zone 2 Stationary Cycle",
+                badge: "Aerobic Engine Builder",
+                zoneLabel: "Zone 2 (60-70% Max HR)",
+                minPct: 0.60,
+                maxPct: 0.70,
+                desc: "Triggers mitochondrial biogenesis without causing muscle soreness or leg fatigue for lifting sessions.",
+                warmup: "5 mins easy spinning with light resistance (<100 Watts, 70-80 RPM).",
+                session: "40-60 mins smooth, steady pedaling (80-90 RPM). Stay strictly inside Zone 2 heart rate range.",
+                cooldown: "3 mins zero-resistance light spinning to clear leg fatigue."
+            },
+            miss_jog: {
+                title: "Steady-State Outdoor Jog",
+                badge: "M.I.S.S. / Stamina",
+                zoneLabel: "Zone 3 (70-80% Max HR)",
+                minPct: 0.70,
+                maxPct: 0.80,
+                desc: "Classic moderate intensity steady cardio. Strengthens cardiac output, stroke volume, and mental toughness.",
+                warmup: "5 mins brisk walking + dynamic ankle and hip mobility drills.",
+                session: "20-35 mins continuous moderate run. Pushing a steady rhythm where speech is limited to short phrases.",
+                cooldown: "5 mins easy walk + light calf and hamstring stretches."
+            },
+            hiit_sprints: {
+                title: "High-Intensity Track Sprints",
+                badge: "H.I.I.T. / Anaerobic",
+                zoneLabel: "Zone 4-5 (80-100% Max HR)",
+                minPct: 0.80,
+                maxPct: 1.00,
+                desc: "Maximal effort sprints that trigger post-exercise oxygen consumption (EPOC/afterburn) and build explosive leg power.",
+                warmup: "5 mins easy jog + 3 progressive stride-outs (50%, 70%, 85% effort).",
+                session: "8-10 rounds: 30 seconds ALL-OUT sprint ➔ 60 seconds walking recovery.",
+                cooldown: "5 mins casual walking until heart rate settles below Zone 1."
+            },
+            tabata: {
+                title: "Tabata Protocol (Assault Bike / Rower)",
+                badge: "Ultra-Dense / VO2 Max",
+                zoneLabel: "Zone 5 (90-100% Max HR)",
+                minPct: 0.90,
+                maxPct: 1.00,
+                desc: "4 minutes of maximum effort agony that yields massive VO2 max gains in minimum total time.",
+                warmup: "5 mins progressive effort build-up on the ergometer.",
+                session: "8 total rounds: 20 seconds MAXIMUM output ➔ 10 seconds complete rest (Total: 4 minutes).",
+                cooldown: "5 mins light pedaling/rowing to clear accumulated lactate."
+            },
+            sled_push: {
+                title: "Heavy Sled / Prowler Pushes",
+                badge: "Concentric-Only / Hypertrophy Safe",
+                zoneLabel: "Zone 4 (80-90% Max HR)",
+                minPct: 0.80,
+                maxPct: 0.90,
+                desc: "Concentric-only resistance means zero eccentric muscle damage, giving high conditioning without leg soreness.",
+                warmup: "3 mins unweighted walking + 1 light warm-up trip with empty sled.",
+                session: "6-8 rounds: 25-meter heavy sled push ➔ Rest 90 seconds between pushes.",
+                cooldown: "3-5 mins casual walk around the room."
+            },
+            row_pyramid: {
+                title: "Rowing Machine Pyramid",
+                badge: "Full Body Conditioning",
+                zoneLabel: "Zone 3-4 (70-90% Max HR)",
+                minPct: 0.70,
+                maxPct: 0.90,
+                desc: "Engages 85% of body muscles. Builds back endurance, grip strength, and core stability simultaneously.",
+                warmup: "500m easy paddle at 18-20 strokes per minute.",
+                session: "Interval pyramid: 250m / 500m / 750m / 500m / 250m hard effort with 60 seconds paddle rest between sets.",
+                cooldown: "400m light paddle with zero drag resistance."
+            }
+        };
 
         function setMethod(m) {
             method = m;
             
-            // Reset styles
             document.getElementById('tab-basic').className = "flex-1 py-3 px-4 rounded-lg text-sm font-bold text-slate-500 hover:text-white transition-all whitespace-nowrap";
             document.getElementById('tab-karvonen-age').className = "flex-1 py-3 px-4 rounded-lg text-sm font-bold text-slate-500 hover:text-white transition-all whitespace-nowrap";
             document.getElementById('tab-karvonen-real').className = "flex-1 py-3 px-4 rounded-lg text-sm font-bold text-slate-500 hover:text-white transition-all whitespace-nowrap";
 
-            // Set active style
             if(m === 'basic') {
                 document.getElementById('tab-basic').className = "flex-1 py-3 px-4 rounded-lg text-sm font-bold bg-slate-800 text-white transition-all whitespace-nowrap";
                 toggleInputs(true, false, false);
@@ -343,7 +403,7 @@
                 useReserve = true;
             }
 
-            // 1. The 5 Standard Heart Rate Zones
+            // 1. Update 5 Standard Heart Rate Zones
             const standardZones = {
                 z1: { min: 0.50, max: 0.60 },
                 z2: { min: 0.60, max: 0.70 },
@@ -358,16 +418,8 @@
             updateZoneDisplay('z4', standardZones.z4, maxHeartRate, heartRateReserve, rhr, useReserve);
             updateZoneDisplay('z5', standardZones.z5, maxHeartRate, heartRateReserve, rhr, useReserve);
 
-            // 2. Training Protocol Zones (Your custom groupings)
-            const protocolZones = {
-                liss: { min: 0.50, max: 0.70 },
-                miss: { min: 0.70, max: 0.80 },
-                hiit: { min: 0.80, max: 1.00 }
-            };
-
-            updateZoneDisplay('liss', protocolZones.liss, maxHeartRate, heartRateReserve, rhr, useReserve);
-            updateZoneDisplay('miss', protocolZones.miss, maxHeartRate, heartRateReserve, rhr, useReserve);
-            updateZoneDisplay('hiit', protocolZones.hiit, maxHeartRate, heartRateReserve, rhr, useReserve);
+            // 2. Update Selected Cardio Protocol Target HR
+            updateSelectedCardioTarget(maxHeartRate, heartRateReserve, rhr, useReserve);
         }
 
         function updateZoneDisplay(idPrefix, range, mhr, hrr, rhr, useReserve) {
@@ -387,9 +439,57 @@
             if(minElement) minElement.innerText = valMin;
             if(maxElement) maxElement.innerText = valMax;
         }
+
+        function selectCardio(key) {
+            activeCardioKey = key;
+            const data = cardioProtocols[key];
+            if (!data) return;
+
+            // Update Pill button styles
+            const pills = document.querySelectorAll('.cardio-pill');
+            pills.forEach(pill => {
+                pill.className = "cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200 bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white";
+            });
+
+            const activePill = document.getElementById(`pill-${key}`);
+            if (activePill) {
+                activePill.className = "cardio-pill py-2.5 px-4 rounded-full text-xs font-bold border transition-all duration-200 bg-rose-500 text-white border-rose-400 shadow-lg shadow-rose-500/20";
+            }
+
+            // Populate content
+            document.getElementById('protocol-title').innerText = data.title;
+            document.getElementById('protocol-badge').innerText = data.badge;
+            document.getElementById('protocol-desc').innerText = data.desc;
+            document.getElementById('protocol-target-zone').innerText = data.zoneLabel;
+            
+            document.getElementById('protocol-warmup').innerText = data.warmup;
+            document.getElementById('protocol-session').innerText = data.session;
+            document.getElementById('protocol-cooldown').innerText = data.cooldown;
+
+            calculate();
+        }
+
+        function updateSelectedCardioTarget(mhr, hrr, rhr, useReserve) {
+            const data = cardioProtocols[activeCardioKey];
+            if (!data) return;
+
+            let valMin, valMax;
+            if (useReserve && hrr) {
+                valMin = Math.round((hrr * data.minPct) + rhr);
+                valMax = Math.round((hrr * data.maxPct) + rhr);
+            } else if (mhr) {
+                valMin = Math.round(mhr * data.minPct);
+                valMax = Math.round(mhr * data.maxPct);
+            } else {
+                valMin = '--';
+                valMax = '--';
+            }
+
+            document.getElementById('protocol-target-bpm').innerText = `${valMin} - ${valMax} BPM`;
+        }
         
-        // Init
-        calculate();
+        // Init default selection
+        selectCardio('incline_walk');
 
     </script>
 </body>
