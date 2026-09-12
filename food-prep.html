@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Macro & Meal Tally</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: { brand: '#38bdf8' }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans p-4 sm:p-6 pb-12">
+
+  <div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+      <h1 class="font-bold text-lg text-slate-100">Macro Tally Pro</h1>
+      <a href="./index.html" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors border border-slate-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+    </header>
+
+    <!-- 1. Daily-to-Multi-Day Calculator -->
+    <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">1. Target Multiplier Calculator</h2>
+        <div class="flex items-center gap-2">
+          <label for="calc-days" class="text-xs text-slate-400 font-semibold uppercase">Days:</label>
+          <input type="number" id="calc-days" value="7" min="1" class="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-100 text-center font-bold focus:outline-none focus:border-brand">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Cals</label>
+          <input type="number" id="calc-cals" placeholder="2000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Protein (g)</label>
+          <input type="number" id="calc-pro" placeholder="150" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Carbs (g)</label>
+          <input type="number" id="calc-carbs" placeholder="200" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Fat (g)</label>
+          <input type="number" id="calc-fat" placeholder="65" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 flex flex-wrap justify-between items-center text-xs text-slate-300 gap-2">
+        <span>Calculated Target:</span>
+        <div class="flex gap-3 font-semibold text-brand">
+          <span id="mult-out-cals">0 kcal</span>
+          <span id="mult-out-pro">0g P</span>
+          <span id="mult-out-carbs">0g C</span>
+          <span id="mult-out-fat">0g F</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Targets & Progress -->
+    <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">2. Active Period Targets & Progress</h2>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Cals</label>
+          <input type="number" id="target-cals" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Protein (g)</label>
+          <input type="number" id="target-protein" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Carbs (g)</label>
+          <input type="number" id="target-carbs" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Fat (g)</label>
+          <input type="number" id="target-fat" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
+        </div>
+      </div>
+
+      <!-- Traffic Light Progress Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+        <div id="card-cals" class="p-3 rounded-lg border transition-colors duration-300">
+          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Calories Left</span>
+          <span id="stat-cals-left" class="text-lg font-bold transition-colors">0</span>
+        </div>
+        <div id="card-pro" class="p-3 rounded-lg border transition-colors duration-300">
+          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Protein Left</span>
+          <span id="stat-protein-left" class="text-lg font-bold transition-colors">0 g</span>
+        </div>
+        <div id="card-carbs" class="p-3 rounded-lg border transition-colors duration-300">
+          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Carbs Left</span>
+          <span id="stat-carbs-left" class="text-lg font-bold transition-colors">0 g</span>
+        </div>
+        <div id="card-fat" class="p-3 rounded-lg border transition-colors duration-300">
+          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Fat Left</span>
+          <span id="stat-fat-left" class="text-lg font-bold transition-colors">0 g</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Food Database & Entry -->
+    <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">3. Add Food</h2>
+        
+        <div class="flex items-center gap-2 relative group">
+          <label class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 py-1.5 px-3 rounded border border-slate-600 cursor-pointer transition-colors flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Load Food DB (JSON)
+            <input type="file" id="db-import" accept=".json" class="hidden">
+          </label>
+          
+          <div class="w-6 h-6 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs font-bold text-slate-300 cursor-help hover:bg-slate-600 transition-colors">?</div>
+          
+          <div class="absolute right-0 top-full mt-2 w-64 md:w-72 bg-slate-900 border border-slate-600 shadow-xl rounded-lg p-3 z-50 hidden group-hover:block pointer-events-none">
+            <p class="text-xs text-slate-300 mb-2 font-medium">Your JSON must be an array of objects. <strong class="text-brand">Values must be per 100g.</strong></p>
+            <pre class="text-[10px] md:text-xs text-emerald-400 bg-slate-950 p-2 rounded overflow-x-auto border border-slate-800">
+[
+  {
+    "name": "Chicken Breast (Raw)",
+    "cals": 120,
+    "protein": 22.5,
+    "carbs": 0,
+    "fat": 2.6
+  }
+]</pre>
+          </div>
+        </div>
+      </div>
+
+      <form id="food-form" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Select Preset (Per 100g)</label>
+            <select id="food-preset" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+              <option value="">-- Custom Entry --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Food Name</label>
+            <input type="text" id="food-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 text-brand">Weight (g)</label>
+            <input type="number" id="food-weight" step="any" required class="w-full bg-slate-900 border border-brand/50 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base placeholder-slate-500" placeholder="e.g. 250">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Calories</label>
+            <input type="number" id="food-cals" step="any" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Protein</label>
+            <input type="number" id="food-protein" step="any" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Carbs</label>
+            <input type="number" id="food-carbs" step="any" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Fat</label>
+            <input type="number" id="food-fat" step="any" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-brand hover:bg-sky-400 text-slate-950 font-bold py-2.5 rounded-lg transition-colors text-base">
+          Add to Log
+        </button>
+      </form>
+    </section>
+
+    <!-- 4. Two-Column Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Logged Items -->
+      <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-3 flex flex-col">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">4. Logged Items</h2>
+          <span id="item-count" class="text-xs text-slate-400">0 items</span>
+        </div>
+        <div id="food-list" class="space-y-2 overflow-y-auto max-h-[400px] pr-1"></div>
+      </section>
+
+      <!-- Shopping List -->
+      <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md flex flex-col space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">5. Shopping List</h2>
+          <button id="btn-copy-list" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 py-1 px-2 rounded border border-slate-600 transition-colors flex gap-1 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy List
+          </button>
+        </div>
+        <textarea id="shopping-list-area" readonly class="w-full flex-grow min-h-[200px] bg-slate-900 border border-slate-700 rounded-lg p-3 text-emerald-400 text-sm focus:outline-none resize-none font-mono"></textarea>
+      </section>
+
+    </div>
+
+    <!-- Data Management Toolbar -->
+    <footer class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md space-y-3">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">State Management</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <button id="btn-export" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium py-2 px-3 rounded-lg border border-slate-600 transition-colors">
+          Save Session JSON
+        </button>
+        <label class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium py-2 px-3 rounded-lg border border-slate-600 transition-colors text-center cursor-pointer">
+          Load Session JSON
+          <input type="file" id="file-import" accept=".json" class="hidden">
+        </label>
+        <button id="btn-reset" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-sm font-medium py-2 px-3 rounded-lg border border-rose-800/60 transition-colors">
+          Reset Log
+        </button>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    let state = {
+      dailyInputs: { cals: 0, protein: 0, carbs: 0, fat: 0, days: 7 },
+      targets: { cals: 0, protein: 0, carbs: 0, fat: 0 },
+      items: []
+    };
+    let foodDatabase = []; 
+
+    const STORAGE_KEY = 'macro_tally_v4';
+    const DB_KEY = 'macro_tally_db_v1';
+
+    // Multiplier Inputs
+    const calcDays = document.getElementById('calc-days');
+    const calcCals = document.getElementById('calc-cals');
+    const calcPro = document.getElementById('calc-pro');
+    const calcCarbs = document.getElementById('calc-carbs');
+    const calcFat = document.getElementById('calc-fat');
+
+    // Targets Inputs
+    const inputTCals = document.getElementById('target-cals');
+    const inputTPro = document.getElementById('target-protein');
+    const inputTCarbs = document.getElementById('target-carbs');
+    const inputTFat = document.getElementById('target-fat');
+
+    // Entry Inputs
+    const presetSelect = document.getElementById('food-preset');
+    const fName = document.getElementById('food-name');
+    const fWeight = document.getElementById('food-weight');
+    const fCals = document.getElementById('food-cals');
+    const fPro = document.getElementById('food-protein');
+    const fCarbs = document.getElementById('food-carbs');
+    const fFat = document.getElementById('food-fat');
+
+    function fmt(num) {
+      return (Math.round(num * 10) / 10).toLocaleString();
+    }
+
+    function init() {
+      const rawState = localStorage.getItem(STORAGE_KEY);
+      if (rawState) state = { ...state, ...JSON.parse(rawState) };
+      
+      const rawDb = localStorage.getItem(DB_KEY);
+      if (rawDb) foodDatabase = JSON.parse(rawDb);
+
+      calcDays.value = state.dailyInputs?.days || 7;
+      calcCals.value = state.dailyInputs?.cals || '';
+      calcPro.value = state.dailyInputs?.protein || '';
+      calcCarbs.value = state.dailyInputs?.carbs || '';
+      calcFat.value = state.dailyInputs?.fat || '';
+
+      inputTCals.value = state.targets.cals || '';
+      inputTPro.value = state.targets.protein || '';
+      inputTCarbs.value = state.targets.carbs || '';
+      inputTFat.value = state.targets.fat || '';
+
+      updatePresetDropdown();
+      runMultiplierCalc();
+      render();
+    }
+
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(foodDatabase)); updatePresetDropdown(); }
+
+    // Multiplier calculation listener
+    function runMultiplierCalc() {
+      const days = parseFloat(calcDays.value) || 0;
+      const cals = parseFloat(calcCals.value) || 0;
+      const pro = parseFloat(calcPro.value) || 0;
+      const carbs = parseFloat(calcCarbs.value) || 0;
+      const fat = parseFloat(calcFat.value) || 0;
+
+      state.dailyInputs = { cals, protein: pro, carbs, fat, days };
+
+      const totCals = cals * days;
+      const totPro = pro * days;
+      const totCarbs = carbs * days;
+      const totFat = fat * days;
+
+      document.getElementById('mult-out-cals').innerText = fmt(totCals) + ' kcal';
+      document.getElementById('mult-out-pro').innerText = fmt(totPro) + 'g P';
+      document.getElementById('mult-out-carbs').innerText = fmt(totCarbs) + 'g C';
+      document.getElementById('mult-out-fat').innerText = fmt(totFat) + 'g F';
+
+      // Auto sync to active targets if daily inputs are present
+      if (cals || pro || carbs || fat) {
+        state.targets = { cals: totCals, protein: totPro, carbs: totCarbs, fat: totFat };
+        inputTCals.value = totCals || '';
+        inputTPro.value = totPro || '';
+        inputTCarbs.value = totCarbs || '';
+        inputTFat.value = totFat || '';
+      }
+
+      saveState();
+      render();
+    }
+
+    [calcDays, calcCals, calcPro, calcCarbs, calcFat].forEach(el => {
+      el.addEventListener('input', runMultiplierCalc);
+    });
+
+    [inputTCals, inputTPro, inputTCarbs, inputTFat].forEach(el => {
+      el.addEventListener('input', () => {
+        state.targets = {
+          cals: Number(inputTCals.value) || 0,
+          protein: Number(inputTPro.value) || 0,
+          carbs: Number(inputTCarbs.value) || 0,
+          fat: Number(inputTFat.value) || 0,
+        };
+        saveState();
+        render();
+      });
+    });
+
+    presetSelect.addEventListener('change', (e) => {
+      const idx = e.target.value;
+      if (idx === "") { fName.value = ""; return; }
+      fName.value = foodDatabase[idx].name;
+      calculateMacrosFromPreset();
+    });
+
+    fWeight.addEventListener('input', calculateMacrosFromPreset);
+
+    function calculateMacrosFromPreset() {
+      const idx = presetSelect.value;
+      const weight = Number(fWeight.value) || 0;
+      
+      if (idx !== "" && weight > 0) {
+        const item = foodDatabase[idx];
+        const multiplier = weight / 100;
+        
+        fCals.value = +(item.cals * multiplier).toFixed(1);
+        fPro.value = +(item.protein * multiplier).toFixed(1);
+        fCarbs.value = +(item.carbs * multiplier).toFixed(1);
+        fFat.value = +(item.fat * multiplier).toFixed(1);
+      }
+    }
+
+    function updatePresetDropdown() {
+      presetSelect.innerHTML = '<option value="">-- Custom Entry --</option>';
+      foodDatabase.forEach((food, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${food.name} (per 100g)`;
+        presetSelect.appendChild(opt);
+      });
+    }
+
+    document.getElementById('food-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      state.items.unshift({
+        name: fName.value.trim(),
+        weight: Number(fWeight.value) || 0,
+        cals: Number(fCals.value) || 0,
+        protein: Number(fPro.value) || 0,
+        carbs: Number(fCarbs.value) || 0,
+        fat: Number(fFat.value) || 0,
+      });
+      saveState();
+      render();
+
+      fWeight.value = ''; fCals.value = ''; fPro.value = ''; fCarbs.value = ''; fFat.value = '';
+      if(!presetSelect.value) fName.value = '';
+      fWeight.focus();
+    });
+
+    window.removeItem = function(index) {
+      state.items.splice(index, 1);
+      saveState();
+      render();
+    };
+
+    function applyTrafficLight(cardId, textId, leftAmount, targetAmount, suffix) {
+      const card = document.getElementById(cardId);
+      const text = document.getElementById(textId);
+      
+      card.className = "p-3 rounded-lg border transition-colors duration-300";
+      
+      if (!targetAmount || targetAmount === 0) {
+        card.classList.add("bg-slate-900/60", "border-slate-700/50");
+        text.className = "text-lg font-bold text-slate-200 transition-colors";
+      } else {
+        const percentageLeft = leftAmount / targetAmount;
+        
+        if (leftAmount < 0) {
+          card.classList.add("bg-rose-950/40", "border-rose-800/60");
+          text.className = "text-lg font-bold text-rose-400 transition-colors";
+        } else if (percentageLeft <= 0.15) {
+          card.classList.add("bg-amber-950/40", "border-amber-800/60");
+          text.className = "text-lg font-bold text-amber-400 transition-colors";
+        } else {
+          card.classList.add("bg-emerald-950/30", "border-emerald-800/50");
+          text.className = "text-lg font-bold text-emerald-400 transition-colors";
+        }
+      }
+      
+      text.textContent = `${fmt(leftAmount)} ${suffix}`;
+    }
+
+    function render() {
+      const totals = state.items.reduce((acc, item) => {
+        acc.cals += item.cals; acc.protein += item.protein;
+        acc.carbs += item.carbs; acc.fat += item.fat;
+        return acc;
+      }, { cals: 0, protein: 0, carbs: 0, fat: 0 });
+
+      applyTrafficLight('card-cals', 'stat-cals-left', state.targets.cals - totals.cals, state.targets.cals, 'kcal');
+      applyTrafficLight('card-pro', 'stat-protein-left', state.targets.protein - totals.protein, state.targets.protein, 'g');
+      applyTrafficLight('card-carbs', 'stat-carbs-left', state.targets.carbs - totals.carbs, state.targets.carbs, 'g');
+      applyTrafficLight('card-fat', 'stat-fat-left', state.targets.fat - totals.fat, state.targets.fat, 'g');
+
+      const listEl = document.getElementById('food-list');
+      document.getElementById('item-count').textContent = `${state.items.length.toLocaleString()} items`;
+      
+      if (state.items.length === 0) {
+        listEl.innerHTML = `<p class="text-sm text-slate-500 italic text-center py-8">Eat something.</p>`;
+      } else {
+        listEl.innerHTML = state.items.map((item, i) => `
+          <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 flex justify-between items-center group hover:border-slate-500 transition-colors">
+            <div class="space-y-1 w-full">
+              <div class="font-bold text-slate-200 text-sm flex gap-2">
+                <span>${item.name}</span>
+                ${item.weight ? `<span class="text-brand font-normal">(${fmt(item.weight)}g)</span>` : ''}
+              </div>
+              <div class="text-[11px] text-slate-400 flex gap-4">
+                <span class="text-emerald-400 font-bold">${fmt(item.cals)} kcal</span>
+                <span>P: ${fmt(item.protein)}</span> <span>C: ${fmt(item.carbs)}</span> <span>F: ${fmt(item.fat)}</span>
+              </div>
+            </div>
+            <button onclick="removeItem(${i})" class="text-slate-600 hover:text-rose-400 p-2 hover:bg-slate-800 rounded transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      generateShoppingList();
+    }
+
+    function generateShoppingList() {
+      const shopMap = {};
+      state.items.forEach(item => {
+        if (item.weight > 0) {
+          const key = item.name.trim().toLowerCase();
+          if (!shopMap[key]) {
+            shopMap[key] = { name: item.name.trim(), weight: 0 };
+          }
+          shopMap[key].weight += item.weight;
+        }
+      });
+
+      const shoppingOutput = Object.values(shopMap)
+        .sort((a,b) => a.name.localeCompare(b.name))
+        .map(i => `${i.name} - ${fmt(i.weight)}g`)
+        .join('\n');
+
+      document.getElementById('shopping-list-area').value = shoppingOutput || "Add food with weights to generate list.";
+    }
+
+    document.getElementById('btn-copy-list').addEventListener('click', (e) => {
+      const txt = document.getElementById('shopping-list-area').value;
+      navigator.clipboard.writeText(txt).then(() => {
+        const originalHtml = e.target.innerHTML;
+        e.target.textContent = "Copied!";
+        e.target.classList.replace('text-slate-200', 'text-emerald-400');
+        setTimeout(() => {
+          e.target.innerHTML = originalHtml;
+          e.target.classList.replace('text-emerald-400', 'text-slate-200');
+        }, 2000);
+      });
+    });
+
+    document.getElementById('db-import').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (Array.isArray(data)) {
+            foodDatabase = data;
+            saveDB();
+            alert("Database loaded successfully!");
+          } else {
+            alert("JSON must be an array of objects.");
+          }
+        } catch (err) { alert('Error parsing DB JSON.'); }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('btn-export').addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", `macro-log.json`);
+      anchor.click();
+    });
+
+    document.getElementById('file-import').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          state = JSON.parse(ev.target.result);
+          saveState();
+          init();
+        } catch (err) { alert('Error reading Session file.'); }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (confirm('Wipe the log and start fresh? (Database presets will remain intact)')) {
+        state.items = [];
+        saveState();
+        render();
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
