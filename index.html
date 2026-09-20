@@ -91,11 +91,11 @@
     <main class="flex-grow overflow-y-auto custom-scroll relative">
         
       <!-- --- Sticky Search Bar Section --- -->
-      <div class="sticky top-0 z-30 pt-4 pb-4 px-4 sm:px-8 border-b border-stone-800 shadow-sm" style="background-color: rgba(28, 25, 23, 0.95); backdrop-filter: blur(8px);">
+      <div class="sticky top-0 z-30 pt-3 pb-3 px-3 sm:px-8 border-b border-stone-800 shadow-sm" style="background-color: rgba(28, 25, 23, 0.95); backdrop-filter: blur(8px);">
         <div class="relative max-w-md mx-auto">
             <!-- Search Icon -->
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
@@ -104,245 +104,245 @@
                 type="text" 
                 id="gameSearch" 
                 placeholder="Find a module..." 
-                class="block w-full pl-10 pr-3 py-2 sm:py-3 border border-stone-600 rounded-xl leading-5 bg-stone-800 text-stone-200 placeholder-stone-500 focus:outline-none focus:bg-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm sm:text-base transition-colors shadow-lg"
+                class="block w-full pl-9 sm:pl-10 pr-3 py-1.5 sm:py-3 border border-stone-600 rounded-xl leading-5 bg-stone-800 text-stone-200 placeholder-stone-500 focus:outline-none focus:bg-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-xs sm:text-base transition-colors shadow-lg"
             >
         </div>
       </div>
 
       <!-- --- Cards Grid Container --- -->
-      <div class="p-4 sm:p-8 max-w-[1400px] mx-auto">
-        <!-- Grid: 2 cols on mobile, 3 tablet, up to 6 on very large screens -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5">
+      <div class="p-3 sm:p-8 max-w-[1400px] mx-auto">
+        <!-- Grid: 3 cols on mobile, scaling up for tablet/desktop -->
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-5">
           
           <!-- 1RM Max Test (Trending Up) -->
-          <a href="1-rep-max.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="1-rep-max.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-indigo relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <div class="w-full aspect-square bg-indigo relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 1RM Max Test
               </h2>
             </div>
           </a>
           
           <!-- Working Set (Layers) -->
-          <a href="1rm-working-sets.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="1rm-working-sets.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-indigo relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <div class="w-full aspect-square bg-indigo relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Working Set
               </h2>
             </div>
           </a>
 
           <!-- Body Ratio (Measurement) -->
-          <a href="body-ratio.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="body-ratio.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-teal relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <div class="w-full aspect-square bg-teal relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Body Ratio
               </h2>
             </div>
           </a>
 
           <!-- Breathing (Cloud/Air) -->
-          <a href="breathing.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="breathing.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-blue relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+            <div class="w-full aspect-square bg-blue relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Breathing
               </h2>
             </div>
           </a>
 
           <!-- Cardio (Lightning) -->
-          <a href="cardio.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="cardio.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Cardio
               </h2>
             </div>
           </a>
 
           <!-- Nutrition (Calories/Flame) -->
-          <a href="food.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="food.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-green relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+            <div class="w-full aspect-square bg-green relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Nutrition
               </h2>
             </div>
           </a>
 
-         <!-- Food Prep -->
-          <a href="food-prep.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <!-- Food Prep -->
+          <a href="food-prep.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-green relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+            <div class="w-full aspect-square bg-green relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Food Prep
               </h2>
             </div>
           </a>
 
           <!-- Heart (Heart) -->
-          <a href="heart.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="heart.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-red relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <div class="w-full aspect-square bg-red relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Heart
               </h2>
             </div>
           </a>
 
           <!-- Balance (Scales) -->
-          <a href="strength-balance.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="strength-balance.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-pink relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+            <div class="w-full aspect-square bg-pink relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Balance
               </h2>
             </div>
           </a>
 
           <!-- Timer (Clock) -->
-          <a href="timer.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="timer.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Timer
               </h2>
             </div>
           </a>
 
           <!-- Plate Cal (Calculator) -->
-          <a href="rack-master.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="rack-master.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Plate Cal
               </h2>
             </div>
           </a>
 
           <!-- RPE (Bar Chart) -->
-          <a href="rpe.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="rpe.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 RPE
               </h2>
             </div>
           </a>
 
           <!-- Strength Test (Shield Check) -->
-          <a href="strength-test.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="strength-test.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Strength Test
               </h2>
             </div>
           </a>
 
           <!-- Drop Set (Trending Down) -->
-          <a href="drop-set.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="drop-set.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Drop Set
               </h2>
             </div>
           </a>
 
           <!-- Hypertrophy Plan (Calendar) -->
-          <a href="hypertrophy-plan.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="hypertrophy-plan.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Hypertrophy Plan
               </h2>
             </div>
           </a>
 
           <!-- Tempo (Adjustments) -->
-          <a href="tempo.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="tempo.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Tempo
               </h2>
             </div>
           </a>
-          
+
           <!-- Health Bench ALG (Beaker) -->
-          <a href="health-bench.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="health-bench.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Health Bench ALG
               </h2>
             </div>
           </a>
 
           <!-- Workout Sheet ALG (Document) -->
-          <a href="workout-sheet.html" class="game-card bg-stone-800 rounded-xl flex flex-col group relative overflow-hidden">
+          <a href="workout-sheet.html" class="game-card bg-stone-800 rounded-lg sm:rounded-xl flex flex-col group relative overflow-hidden">
             <div class="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 transition-opacity z-10 pointer-events-none"></div>
-            <div class="w-full aspect-[2/3] bg-orange relative flex items-center justify-center">
-              <svg class="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="w-full aspect-square bg-orange relative flex items-center justify-center p-2">
+              <svg class="w-8 h-8 sm:w-16 sm:h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
-            <div class="p-2 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
-              <h2 class="fantasy-font text-sm sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
+            <div class="p-1.5 sm:p-3 flex-grow flex items-center justify-center text-center bg-stone-800 border-t border-stone-700 z-20">
+              <h2 class="fantasy-font text-xs sm:text-base font-bold text-stone-200 group-hover:text-amber-500 transition-colors leading-tight">
                 Workout Sheet ALG
               </h2>
             </div>
