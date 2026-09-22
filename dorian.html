@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood & Guts Tracker</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        blood: { 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 900: '#7f1d1d' },
+                        warning: { 400: '#facc15', 500: '#eab308', 700: '#a16207', 900: '#713f12' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Hide scrollbars for clean UI, but keep functionality */
+        .hide-scrollbars {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .hide-scrollbars::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* Accordion transition */
+        .accordion-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-content.open {
+            max-height: 2000px; /* Arbitrary large max-height for CSS transition */
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen antialiased flex flex-col">
+
+    <div class="px-4 py-6 md:py-8 w-full max-w-7xl mx-auto flex-shrink-0">
+        <!-- Home Button (Not Fixed) -->
+        <a href="#" class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-white transition-colors mb-6 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg shadow-sm border border-gray-700">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            Home
+        </a>
+
+        <!-- Header Titles -->
+        <header class="text-center md:text-left mb-8">
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">
+                <span class="text-blood-500">Blood & Guts</span> Tracker
+            </h1>
+            
+            <!-- Cardio Instruction -->
+            <div class="mt-4 bg-blue-900/30 border border-blue-800 text-blue-300 px-5 py-3 rounded-xl inline-block text-sm md:text-base font-semibold shadow-lg backdrop-blur-sm">
+                <svg class="w-5 h-5 inline-block mr-2 -mt-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Cardio on Off days - Zone 2, 3 times a week for 30 minutes
+            </div>
+        </header>
+
+        <!-- Master Configuration Accordion -->
+        <div class="w-full bg-gray-800 border border-gray-700 rounded-2xl shadow-xl overflow-hidden mb-10">
+            <button id="accordion-toggle" class="w-full px-6 py-4 flex justify-between items-center bg-gray-750 hover:bg-gray-700 transition-colors focus:outline-none">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-blood-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    <h2 class="text-xl font-bold text-white">1RM Master Configuration</h2>
+                </div>
+                <svg id="accordion-icon" class="w-6 h-6 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="accordion-content" class="accordion-content bg-gray-900 border-t border-gray-700">
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="master-inputs-container">
+                    <!-- JS will inject inputs here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="w-full flex-grow flex flex-col justify-center pb-12 relative overflow-hidden">
+        <!-- Carousel Arrows -->
+        <div class="absolute inset-y-0 left-0 flex items-center justify-start z-20 pl-2 md:pl-8 pointer-events-none">
+            <button onclick="scrollCarousel(-1)" class="pointer-events-auto bg-gray-800/80 hover:bg-gray-700 text-white p-3 rounded-full border border-gray-600 shadow-xl backdrop-blur-md transform transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-blood-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+        </div>
+        <div class="absolute inset-y-0 right-0 flex items-center justify-end z-20 pr-2 md:pr-8 pointer-events-none">
+            <button onclick="scrollCarousel(1)" class="pointer-events-auto bg-gray-800/80 hover:bg-gray-700 text-white p-3 rounded-full border border-gray-600 shadow-xl backdrop-blur-md transform transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-blood-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+
+        <!-- Carousel Track -->
+        <div id="carousel-track" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbars space-x-6 px-[5vw] md:px-[20vw] py-4 items-start h-full">
+            <!-- JS will inject day cards here -->
+        </div>
+    </main>
+
+    <script>
+        const workoutData = [
+            {
+                id: "day1",
+                dayTitle: "Day 1: Shoulders, Traps, Triceps",
+                exercises: [
+                    { id: "d1e1", name: "Smith Machine Shoulder Press", reps: "8-10", pct: 0.75 },
+                    { id: "d1e2", name: "Seated Dumbbell Lateral Raise", reps: "8-10", pct: 0.75 },
+                    { id: "d1e3", name: "One-Arm Cable Lateral Raise", reps: "8-10", pct: 0.75 },
+                    { id: "d1e4", name: "Dumbbell Shrugs", reps: "10-12", pct: 0.70 },
+                    { id: "d1e5", name: "Triceps Pushdowns", reps: "8-10", pct: 0.75 },
+                    { id: "d1e6", name: "Lying EZ-Bar Extensions", reps: "8-10", pct: 0.75 },
+                    { id: "d1e7", name: "Reverse-Grip One-Arm Cable Pushdowns", reps: "10-12", pct: 0.70 }
+                ]
+            },
+            {
+                id: "day2",
+                dayTitle: "Day 2: Back & Rear Delts",
+                exercises: [
+                    { id: "d2e1", name: "Dumbbell Pullover", reps: "8-10", pct: 0.75 },
+                    { id: "d2e2", name: "Hammer Strength Lat Pulldown", reps: "8-10", pct: 0.75 },
+                    { id: "d2e3", name: "Barbell Row", reps: "8-10", pct: 0.75 },
+                    { id: "d2e4", name: "One-Arm Hammer Strength Row", reps: "8-10", pct: 0.75 },
+                    { id: "d2e5", name: "Rear Delt Flyes", reps: "8-10", pct: 0.75 },
+                    { id: "d2e6", name: "Bent Over Dumbbell Raise", reps: "8-10", pct: 0.75 },
+                    { id: "d2e7", name: "Weighted Hyperextension", reps: "10-12", pct: 0.70 },
+                    { id: "d2e8", name: "Deadlifts", reps: "8", pct: 0.80 } // Treated as 6-8 range, 80%
+                ]
+            },
+            {
+                id: "day3",
+                dayTitle: "Day 3: Chest, Biceps",
+                exercises: [
+                    { id: "d3e1", name: "Incline Barbell Press", reps: "6-8", pct: 0.80 },
+                    { id: "d3e2", name: "Hammer Strength Seated Chest Press", reps: "6-8", pct: 0.80 },
+                    { id: "d3e3", name: "Incline Dumbbell Flyes", reps: "6-8", pct: 0.80 },
+                    { id: "d3e4", name: "Incline Dumbbell Curl", reps: "6-8", pct: 0.80 },
+                    { id: "d3e5", name: "EZ-Bar Curl", reps: "6-8", pct: 0.80 }
+                ]
+            },
+            {
+                id: "day4",
+                dayTitle: "Day 4: Legs",
+                exercises: [
+                    { id: "d4e1", name: "Leg Extensions", reps: "10-12", pct: 0.70 },
+                    { id: "d4e2", name: "Leg Press", reps: "10-12", pct: 0.70 },
+                    { id: "d4e3", name: "Hack Squat", reps: "8-10", pct: 0.75 },
+                    { id: "d4e4", name: "Lying Leg Curl", reps: "8-10", pct: 0.75 },
+                    { id: "d4e5", name: "Stiff-Leg Deadlift", reps: "8-10", pct: 0.75 },
+                    { id: "d4e6", name: "Standing Calf Raise", reps: "10-12", pct: 0.70 }
+                ]
+            }
+        ];
+
+        function initApp() {
+            renderMasterConfig();
+            renderCarousel();
+            setupAccordion();
+            setupInputs();
+        }
+
+        function renderMasterConfig() {
+            const container = document.getElementById('master-inputs-container');
+            let html = '';
+
+            workoutData.forEach(day => {
+                html += `
+                    <div class="flex flex-col space-y-3">
+                        <h3 class="text-blood-400 font-bold uppercase text-sm border-b border-gray-700 pb-1 mb-2">${day.dayTitle}</h3>
+                `;
+                
+                day.exercises.forEach(ex => {
+                    html += `
+                        <div class="flex flex-col">
+                            <label for="input-${ex.id}" class="text-xs text-gray-400 mb-1 leading-tight">${ex.name}</label>
+                            <div class="relative">
+                                <input type="number" id="input-${ex.id}" data-ex-id="${ex.id}" placeholder="Enter 1RM"
+                                    class="rm-master-input w-full bg-gray-800 border border-gray-600 rounded-md py-1.5 px-3 text-white text-sm focus:border-blood-500 focus:ring-1 focus:ring-blood-500 outline-none transition-all">
+                                <span class="absolute right-3 top-1.5 text-xs text-gray-500 font-medium pointer-events-none">lbs/kg</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function renderCarousel() {
+            const track = document.getElementById('carousel-track');
+            let html = '';
+
+            workoutData.forEach(day => {
+                html += `
+                    <div class="snap-center shrink-0 w-[90vw] md:w-[60vw] max-w-[800px] bg-gray-800 rounded-3xl border border-gray-700 shadow-2xl overflow-hidden flex flex-col h-[75vh] md:h-[65vh]">
+                        
+                        <!-- Card Header -->
+                        <div class="bg-gray-800 px-6 py-5 border-b border-gray-700 sticky top-0 z-10">
+                            <h2 class="text-xl md:text-3xl font-black text-white uppercase tracking-tight">${day.dayTitle}</h2>
+                        </div>
+                        
+                        <!-- Card Body (Scrollable) -->
+                        <div class="divide-y divide-gray-700 overflow-y-auto hide-scrollbars flex-grow p-2 md:p-4">
+                `;
+
+                day.exercises.forEach(ex => {
+                    const pctDisplay = Math.round(ex.pct * 100) + '%';
+                    
+                    html += `
+                        <div class="p-4 md:p-6 flex flex-col gap-5 hover:bg-gray-750/50 transition-colors rounded-2xl group">
+                            <!-- Exercise Title -->
+                            <div>
+                                <h4 class="font-bold text-gray-100 text-lg md:text-xl leading-tight">${ex.name}</h4>
+                            </div>
+                            
+                            <!-- Display Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                                
+                                <!-- Warm up Sets (Span 7 cols on desktop) -->
+                                <div class="md:col-span-7 grid grid-cols-2 gap-3">
+                                    <!-- Warm up 1 -->
+                                    <div class="bg-warning-900/20 p-3 rounded-xl border border-warning-700/40 flex flex-col items-center justify-center text-center">
+                                        <span class="text-[10px] uppercase text-warning-400 font-bold tracking-wider mb-1">Warm-up 1 (50%)</span>
+                                        <span class="text-sm text-yellow-100/70 font-medium mb-1">12 Reps</span>
+                                        <span id="wu1-${ex.id}" class="text-2xl font-black text-warning-400">--</span>
+                                    </div>
+                                    
+                                    <!-- Warm up 2 -->
+                                    <div class="bg-warning-900/20 p-3 rounded-xl border border-warning-700/40 flex flex-col items-center justify-center text-center">
+                                        <span class="text-[10px] uppercase text-warning-400 font-bold tracking-wider mb-1">Warm-up 2 (70%)</span>
+                                        <span class="text-sm text-yellow-100/70 font-medium mb-1">8 Reps</span>
+                                        <span id="wu2-${ex.id}" class="text-2xl font-black text-warning-400">--</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Working Set + Button (Span 5 cols on desktop) -->
+                                <div class="md:col-span-5 flex flex-col gap-3">
+                                    <div class="bg-blood-900/20 p-3 rounded-xl border border-blood-600/50 flex flex-col items-center justify-center text-center flex-grow relative overflow-hidden">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-blood-900/20 to-transparent pointer-events-none"></div>
+                                        <span class="text-[10px] uppercase text-blood-400 font-bold tracking-wider mb-1 relative z-10">Working (${pctDisplay})</span>
+                                        <span class="text-sm text-red-100/70 font-medium mb-1 relative z-10">${ex.reps} Reps</span>
+                                        <span id="work-${ex.id}" class="text-3xl font-black text-blood-500 drop-shadow-md relative z-10">--</span>
+                                    </div>
+                                    
+                                    <!-- Rest Pause Button -->
+                                    <button class="timer-btn flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-3 px-4 rounded-xl border border-gray-600 transition-all active:scale-95 shadow-md w-full"
+                                        onclick="startTimer(this)">
+                                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <span class="btn-text whitespace-nowrap">Start Rest Pause</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+            });
+
+            track.innerHTML = html;
+        }
+
+        function setupAccordion() {
+            const toggle = document.getElementById('accordion-toggle');
+            const content = document.getElementById('accordion-content');
+            const icon = document.getElementById('accordion-icon');
+            
+            toggle.addEventListener('click', () => {
+                content.classList.toggle('open');
+                if (content.classList.contains('open')) {
+                    icon.classList.add('rotate-180');
+                } else {
+                    icon.classList.remove('rotate-180');
+                }
+            });
+        }
+
+        function setupInputs() {
+            // Find exercise data by ID helper
+            const getExData = (id) => {
+                for (const day of workoutData) {
+                    const ex = day.exercises.find(e => e.id === id);
+                    if (ex) return ex;
+                }
+                return null;
+            };
+
+            const formatWeight = (val) => {
+                const num = val.toFixed(1);
+                return num.endsWith('.0') ? parseInt(num) : num;
+            };
+
+            document.getElementById('master-inputs-container').addEventListener('input', (e) => {
+                if (e.target.classList.contains('rm-master-input')) {
+                    const input = e.target;
+                    const exId = input.getAttribute('data-ex-id');
+                    const oneRM = parseFloat(input.value);
+                    const exData = getExData(exId);
+
+                    const elWu1 = document.getElementById(`wu1-${exId}`);
+                    const elWu2 = document.getElementById(`wu2-${exId}`);
+                    const elWork = document.getElementById(`work-${exId}`);
+
+                    if (!isNaN(oneRM) && oneRM > 0 && exData) {
+                        elWu1.textContent = formatWeight(oneRM * 0.50);
+                        elWu2.textContent = formatWeight(oneRM * 0.70);
+                        elWork.textContent = formatWeight(oneRM * exData.pct);
+                    } else {
+                        elWu1.textContent = '--';
+                        elWu2.textContent = '--';
+                        elWork.textContent = '--';
+                    }
+                }
+            });
+        }
+
+        function scrollCarousel(direction) {
+            const track = document.getElementById('carousel-track');
+            // Scroll by one card width (approx)
+            const scrollAmount = window.innerWidth * 0.8; 
+            track.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+
+        let audioCtx;
+        function playBeep() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'square'; // harsher, more noticeable beep for gym
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+                gainNode.gain.setValueAtTime(1, audioCtx.currentTime + 0.4);
+                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.error("Audio beep failed:", e);
+            }
+        }
+
+        function startTimer(btnElement) {
+            if (btnElement.disabled) return;
+            
+            const textSpan = btnElement.querySelector('.btn-text');
+            const originalText = "Start Rest Pause";
+            let timeLeft = 10;
+            
+            // Visual state change to Active Timer
+            btnElement.disabled = true;
+            btnElement.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'border-gray-600');
+            btnElement.classList.add('bg-warning-600', 'text-black', 'border-warning-500');
+            
+            textSpan.textContent = `Resting: ${timeLeft}s`;
+
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                
+                if (timeLeft > 0) {
+                    textSpan.textContent = `Resting: ${timeLeft}s`;
+                } else {
+                    // Time is up!
+                    clearInterval(timerInterval);
+                    playBeep();
+                    
+                    // State change to GO
+                    textSpan.textContent = "GO! (1-3 Reps)";
+                    btnElement.classList.remove('bg-warning-600', 'text-black', 'border-warning-500');
+                    btnElement.classList.add('bg-blood-600', 'text-white', 'border-blood-500', 'animate-pulse');
+                    
+                    // Reset button after 4 seconds
+                    setTimeout(() => {
+                        btnElement.disabled = false;
+                        btnElement.classList.remove('bg-blood-600', 'border-blood-500', 'animate-pulse');
+                        btnElement.classList.add('bg-gray-700', 'hover:bg-gray-600', 'border-gray-600');
+                        textSpan.textContent = originalText;
+                    }, 4000);
+                }
+            }, 1000);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
