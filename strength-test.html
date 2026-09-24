@@ -62,7 +62,7 @@
                 <!-- Gender Toggle -->
                 <div>
                     <label class="block text-sm font-bold text-white mb-3">Gender</label>
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3 mt-2">
                         <span class="text-sm font-bold text-white transition-colors duration-200" id="label-male">Male</span>
                         <label for="gender-toggle" class="flex items-center cursor-pointer">
                             <div class="relative">
@@ -79,10 +79,16 @@
                     <label for="bw-input" class="block text-sm font-bold text-white mb-2">Bodyweight (kg)</label>
                     <input type="number" id="bw-input" placeholder="e.g. 80" class="w-full bg-gray-700 border-gray-600 border rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
                 </div>
+
+                <!-- Reps Input -->
+                <div class="w-full sm:w-1/3">
+                    <label for="reps-input" class="block text-sm font-bold text-white mb-2">Target Reps</label>
+                    <input type="number" id="reps-input" value="1" min="1" max="30" class="w-full bg-gray-700 border-gray-600 border rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                </div>
             </div>
 
             <div>
-                <h3 class="text-sm font-bold text-white mb-3">Enter your 1RM</h3>
+                <h3 class="text-sm font-bold text-white mb-3">Enter your Lifts <span class="text-gray-400 font-normal ml-1">(Based on target reps above)</span></h3>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-400 mb-1">Bench Press</label>
@@ -145,6 +151,20 @@
             </section>
         </div>
 
+        <!-- Obsidian Markdown Export Module -->
+        <section class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6 mb-12">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Obsidian Markdown Export</h2>
+                    <p class="text-sm text-gray-400 mt-1">Copy this table directly into Obsidian or any markdown editor to track your progress.</p>
+                </div>
+                <button id="copy-obsidian-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
+                    Copy Table
+                </button>
+            </div>
+            <textarea id="obsidian-textarea" readonly class="w-full h-48 bg-gray-900 border-gray-700 border rounded-lg p-4 text-gray-300 font-mono text-sm focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
+        </section>
+
     </main>
 
     <script>
@@ -192,6 +212,9 @@
         // Retrieve user data from DOM inputs
         function getUserData() {
             const bw = parseFloat(document.getElementById('bw-input').value) || null;
+            let reps = parseInt(document.getElementById('reps-input').value) || 1;
+            if (reps < 1) reps = 1;
+            
             const isFemale = document.getElementById('gender-toggle').checked;
             const lifts = {};
             document.querySelectorAll('.lift-input').forEach(input => {
@@ -201,7 +224,7 @@
                     lifts[liftName] = val;
                 }
             });
-            return { bw, lifts, isFemale };
+            return { bw, lifts, isFemale, reps };
         }
 
         // Table Generator with Highlighting Logic
@@ -224,20 +247,20 @@
                 let userRatio = null;
                 let achievedIndex = -1;
 
+                // Adjust multiplier using Brzycki formula for N-rep maxes (if R=1, it stays 1.0)
+                const repMod = (37 - userData.reps) / 36;
+
                 if (userVal !== undefined) {
                     if (isRepsBased) {
-                        // For bodyweight pull-ups, direct comparison of reps
                         userRatio = userVal; 
-                    } else if (userData.bw) {
-                        // For standard lifts, it's a bodyweight multiplier
-                        userRatio = userVal / userData.bw;
-                    }
-
-                    if (userRatio !== null) {
                         for (let i = 1; i < row.length; i++) {
-                            if (userRatio >= row[i]) {
-                                achievedIndex = i;
-                            }
+                            if (userRatio >= row[i]) achievedIndex = i;
+                        }
+                    } else if (userData.bw) {
+                        userRatio = userVal / userData.bw;
+                        for (let i = 1; i < row.length; i++) {
+                            const adjMult = row[i] * repMod;
+                            if (userRatio >= adjMult) achievedIndex = i;
                         }
                     }
                 }
@@ -253,20 +276,25 @@
                             ? 'px-4 py-3 whitespace-nowrap bg-green-900/30 ring-2 ring-inset ring-green-500/70 relative z-10' 
                             : 'px-4 py-3 whitespace-nowrap text-gray-300';
 
-                        let displayVal = `${cell}x`;
+                        let displayVal = `${cell}x BW`;
                         
                         if (isRepsBased) {
                             displayVal = `
                                 <span class="${isHighlighted ? 'text-green-400 font-extrabold' : 'font-bold'}">${cell}</span> 
                                 <span class="text-xs ${isHighlighted ? 'text-green-500' : 'text-gray-400'}">reps</span>
                             `;
-                        } else if (userData.bw) {
-                            const targetWeight = (cell * userData.bw).toFixed(1);
-                            displayVal = `
-                                <span class="${isHighlighted ? 'text-green-400 font-extrabold' : 'font-bold text-gray-200'}">${targetWeight}</span> 
-                                <span class="text-xs ${isHighlighted ? 'text-green-500' : 'text-gray-400'}">kg</span><br>
-                                <span class="text-xs ${isHighlighted ? 'text-green-400/80 font-semibold' : 'text-gray-500'}">(${cell}x)</span>
-                            `;
+                        } else {
+                            const adjMult = cell * repMod;
+                            if (userData.bw) {
+                                const targetWeight = (adjMult * userData.bw).toFixed(1);
+                                displayVal = `
+                                    <span class="${isHighlighted ? 'text-green-400 font-extrabold' : 'font-bold text-gray-200'}">${targetWeight}</span> 
+                                    <span class="text-xs ${isHighlighted ? 'text-green-500' : 'text-gray-400'}">kg</span><br>
+                                    <span class="text-xs ${isHighlighted ? 'text-green-400/80 font-semibold' : 'text-gray-500'}">(${cell}x 1RM std)</span>
+                                `;
+                            } else {
+                                displayVal = `<span class="font-medium">${adjMult.toFixed(2)}x</span> <span class="text-xs text-gray-500">BW</span>`;
+                            }
                         }
                         
                         html += `<td class="${tdClasses}">${displayVal}</td>`;
@@ -279,6 +307,63 @@
             return html;
         }
 
+        // Markdown Generator
+        function updateObsidianExport(userData) {
+            let md = `| Lift | Weight | Reps | Est. 1RM | Standard Level |\n`;
+            md += `|---|---|---|---|---|\n`;
+            
+            const activeStandards = userData.isFemale ? femaleStandards : maleStandards;
+            let liftsFound = false;
+            
+            activeStandards.forEach(row => {
+                const liftName = row[0];
+                const userVal = userData.lifts[liftName];
+                
+                if (userVal !== undefined) {
+                    liftsFound = true;
+                    const isRepsBased = liftName.includes('(reps)');
+                    let oneRmEst = "-";
+                    let level = "< Beginner";
+                    let achievedIndex = 0;
+                    
+                    if (isRepsBased) {
+                        for (let i = 1; i < row.length; i++) {
+                            if (userVal >= row[i]) achievedIndex = i;
+                        }
+                    } else {
+                        // Brzycki formula 1RM estimation
+                        oneRmEst = (userVal * 36 / (37 - userData.reps)).toFixed(1) + " kg";
+                        
+                        if (userData.bw) {
+                            let userRatio = userVal / userData.bw;
+                            const repMod = (37 - userData.reps) / 36;
+                            for (let i = 1; i < row.length; i++) {
+                                let adjMult = row[i] * repMod;
+                                if (userRatio >= adjMult) achievedIndex = i;
+                            }
+                        } else {
+                            level = "BW Required";
+                        }
+                    }
+                    
+                    if (achievedIndex > 0) {
+                        level = standardsHeaders[achievedIndex]; 
+                    }
+                    
+                    const weightStr = isRepsBased ? userVal : `${userVal} kg`;
+                    const repStr = isRepsBased ? "BW" : userData.reps;
+                    
+                    md += `| **${liftName}** | ${weightStr} | ${repStr} | ${isRepsBased ? '-' : oneRmEst} | ${level} |\n`;
+                }
+            });
+            
+            if (!liftsFound) {
+                md = `_Enter your bodyweight, reps, and lifts above to generate a markdown tracking table._`;
+            }
+            
+            document.getElementById('obsidian-textarea').value = md;
+        }
+
         // Render function
         function renderAllTables() {
             const userData = getUserData();
@@ -288,6 +373,9 @@
             document.getElementById('female-standards-container').innerHTML = generateTableHTML(standardsHeaders, femaleStandards, userData);
             document.getElementById('male-percentiles-container').innerHTML = generateTableHTML(percentileHeaders, malePercentiles, userData);
             document.getElementById('female-percentiles-container').innerHTML = generateTableHTML(percentileHeaders, femalePercentiles, userData);
+
+            // Generate Markdown
+            updateObsidianExport(userData);
 
             // Handle Section Visibility
             const isFemale = userData.isFemale;
@@ -313,6 +401,7 @@
                 const savedData = JSON.parse(localStorage.getItem('strength_app_data'));
                 if (savedData) {
                     if (savedData.bw) document.getElementById('bw-input').value = savedData.bw;
+                    if (savedData.reps) document.getElementById('reps-input').value = savedData.reps;
                     if (savedData.isFemale !== undefined) document.getElementById('gender-toggle').checked = savedData.isFemale;
                     
                     document.querySelectorAll('.lift-input').forEach(input => {
@@ -337,6 +426,7 @@
         function resetData() {
             localStorage.removeItem('strength_app_data');
             document.getElementById('bw-input').value = '';
+            document.getElementById('reps-input').value = '1';
             document.getElementById('gender-toggle').checked = false;
             document.querySelectorAll('.lift-input').forEach(input => input.value = '');
             renderAllTables();
@@ -347,12 +437,31 @@
             loadFromStorage();
             
             document.getElementById('bw-input').addEventListener('input', saveToStorage);
+            document.getElementById('reps-input').addEventListener('input', saveToStorage);
             document.getElementById('gender-toggle').addEventListener('change', saveToStorage);
             document.querySelectorAll('.lift-input').forEach(input => {
                 input.addEventListener('input', saveToStorage);
             });
             
             document.getElementById('reset-btn').addEventListener('click', resetData);
+
+            document.getElementById('copy-obsidian-btn').addEventListener('click', () => {
+                const textarea = document.getElementById('obsidian-textarea');
+                textarea.select();
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    const btn = document.getElementById('copy-obsidian-btn');
+                    const origText = btn.innerText;
+                    btn.innerText = "Copied!";
+                    btn.classList.replace('bg-blue-600', 'bg-green-600');
+                    btn.classList.replace('hover:bg-blue-500', 'hover:bg-green-500');
+                    
+                    setTimeout(() => {
+                        btn.innerText = origText;
+                        btn.classList.replace('bg-green-600', 'bg-blue-600');
+                        btn.classList.replace('hover:bg-green-500', 'hover:bg-blue-500');
+                    }, 2000);
+                });
+            });
         });
     </script>
 </body>
