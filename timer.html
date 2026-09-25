@@ -3,592 +3,511 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Loop Timer</title>
+    <title>Pro Loop Timer - Dark Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=Teko:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --bg-work: #FF6B6B;
-            --bg-rest: #4ECDC4;
-            --bg-warmup: #F7B731;
-            --bg-done: #6AB04C;
-            --bg-idle: #2C3E50;
-            --bg-paused: #8395a7;
-            --text-color: #ffffff;
-            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: var(--font-main);
-            background-color: var(--bg-idle);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.4s ease;
-            overflow-x: hidden;
-        }
-
-        /* --- THE DISPLAY --- */
-        #timer-display {
-            font-size: 20vw;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin: 5px 0;
-            transition: transform 0.1s;
-        }
-
-        .countdown-pulse {
-            transform: scale(1.1);
-            color: #fff3cd;
-        }
-
-        #status-label {
-            font-size: 2rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 0px;
-            text-align: center;
-        }
-
-        /* Upgraded for Mobile Clarity */
-        #loop-counter {
-            font-size: 6vw; 
-            font-weight: 700;
-            opacity: 0.9;
-            margin-bottom: 15px;
-            background: rgba(0,0,0,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-        }
-
-        /* --- PRESETS --- */
-        .preset-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 380px;
-        }
-
-        .preset-dropdown {
-            width: 100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            outline: none;
-            backdrop-filter: blur(10px);
-            appearance: none;
-            text-align: center;
-            /* Custom dropdown arrow */
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 1rem top 50%;
-            background-size: 0.65rem auto;
-        }
-
-        .preset-dropdown:focus {
-            background-color: rgba(255,255,255,0.15);
-        }
-
-        .preset-dropdown option, .preset-dropdown optgroup {
-            background-color: var(--bg-idle);
-            color: white;
-            font-weight: 600;
-        }
-
-        /* --- THE CONTROLS --- */
-        .controls-container {
-            width: 100%;
-            max-width: 380px;
-            background: rgba(0,0,0,0.2);
-            padding: 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
-            max-height: 600px;
-            overflow: hidden;
-        }
-
-        .controls-container.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.95);
-            max-height: 0;
-            padding: 0;
-            margin: 0;
-        }
-
-        .section-title {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-            margin-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 4px;
-            margin-top: 10px;
-        }
-
-        .time-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .input-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .input-wrapper label {
-            font-size: 0.7rem;
-            opacity: 0.6;
-            margin-bottom: 4px;
-        }
-
-        input[type="number"] {
-            width: 100%;
-            padding: 10px 5px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            text-align: center;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            font-weight: 600;
+            --bg: #060a10;
+            --surface: #0d1420;
+            --border: #1a2336;
+            --accent: #f59e0b; 
+            
+            /* Phase Colors */
+            --color-idle: #f59e0b;    /* Amber */
+            --color-warmup: #eab308;  /* Yellow */
+            --color-work: #ef4444;    /* Red */
+            --color-rest: #14b8a6;    /* Teal */
+            --color-done: #10b981;    /* Emerald */
         }
         
-        input[type="number"]:focus {
-            background: rgba(255,255,255,0.3);
-            outline: none;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Syne', system-ui, sans-serif; background: var(--bg); color: #e2e8f0; min-height: 100vh; padding-bottom: 60px; overflow-x: hidden; }
+        .mono { font-family: 'DM Mono', 'Courier New', monospace; font-variant-numeric: tabular-nums; }
+        .brand-font { font-family: 'Teko', sans-serif; }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Dynamic Theme Glowing */
+        .timer-glow { transition: all 0.4s ease; }
+        .theme-idle .timer-glow { box-shadow: 0 0 40px rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); }
+        .theme-warmup .timer-glow { box-shadow: 0 0 40px rgba(234, 179, 8, 0.15); border-color: rgba(234, 179, 8, 0.4); }
+        .theme-work .timer-glow { box-shadow: 0 0 60px rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); }
+        .theme-rest .timer-glow { box-shadow: 0 0 50px rgba(20, 184, 166, 0.15); border-color: rgba(20, 184, 166, 0.4); }
+        .theme-done .timer-glow { box-shadow: 0 0 50px rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); }
+
+        .theme-idle .text-theme { color: var(--color-idle); }
+        .theme-warmup .text-theme { color: var(--color-warmup); }
+        .theme-work .text-theme { color: var(--color-work); }
+        .theme-rest .text-theme { color: var(--color-rest); }
+        .theme-done .text-theme { color: var(--color-done); }
+
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
         }
+        .content { position: relative; z-index: 1; }
 
-        /* --- ACTION BUTTONS --- */
-        .action-row {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 380px;
-            margin-top: 20px;
-        }
-
-        .btn-main {
-            flex: 2;
-            background-color: white;
-            color: var(--bg-idle);
-            border: none;
-            padding: 18px;
-            font-size: 1.3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            transition: transform 0.1s, background-color 0.2s;
-        }
-        .btn-main:active { transform: scale(0.96); }
-
-        .btn-secondary {
-            flex: 1;
-            background-color: transparent;
-            color: white;
-            border: 2px solid rgba(255,255,255,0.6);
-            padding: 18px;
-            font-size: 1.1rem;
-            font-weight: 800;
-            border-radius: 50px;
-            cursor: pointer;
-            display: none; /* Hidden until running */
-            align-items: center;
-            justify-content: center;
-        }
-
-        body.running .btn-secondary { display: flex; }
-        body.paused .btn-main { background-color: #f1c40f; color: #000; }
-
-        /* Hide specific elements dynamically */
-        body.running .preset-container { display: none; }
-        body.running .btn-main { 
-            background-color: transparent; 
-            color: white; 
-            border: 2px solid white; 
-            box-shadow: none;
-        }
-
+        /* Animations */
+        .countdown-pulse { transform: scale(1.05); color: #fff; transition: transform 0.1s ease, color 0.1s ease; }
+        
+        .transition-panel { transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, transform 0.4s ease; overflow: hidden; }
+        .panel-hidden { max-height: 0; opacity: 0; transform: translateY(-10px); pointer-events: none; margin: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; border-width: 0 !important;}
+        .panel-visible { max-height: 800px; opacity: 1; transform: translateY(0); }
     </style>
 </head>
-<body>
+<body class="selection:bg-amber-500 selection:text-slate-900 theme-idle" id="app-body">
 
-    <div class="preset-container" id="presets">
-        <select id="preset-selector" class="preset-dropdown">
-            <option value="" disabled selected>Load a popular timer...</option>
-            
-            <optgroup label="Productivity & Study">
-                <!-- Value format: WorkMin, WorkSec, RestMin, RestSec, Loops -->
-                <option value="25,0,5,0,4">Pomodoro (25m / 5m) x 4</option>
-                <option value="50,0,10,0,2">Deep Work (50m / 10m) x 2</option>
-                <option value="45,0,15,0,4">Focus Block (45m / 15m) x 4</option>
-            </optgroup>
+<div id="nav-placeholder"></div>
 
-            <optgroup label="Fitness & HIIT">
-                <option value="0,20,0,10,8">Tabata (20s / 10s) x 8</option>
-                <option value="0,30,0,30,10">HIIT Sprints (30s / 30s) x 10</option>
-                <option value="0,45,0,15,10">EMOM-style (45s / 15s) x 10</option>
-                <option value="3,0,1,0,12">Boxing Rounds (3m / 1m) x 12</option>
-                <option value="4,0,3,0,4">4x4 VO2 Max (4m / 3m) x 4</option>
-            </optgroup>
-        </select>
-    </div>
-
-    <div id="status-label">TOTAL TIME</div>
-    <div id="loop-counter">Configure Timer</div>
-    <div id="timer-display">00:00:00</div>
-
-    <div class="controls-container" id="settings">
+<div class="content max-w-lg mx-auto px-4 mt-6">
+    <div class="space-y-6">
         
-        <div class="section-title">Work Duration</div>
-        <div class="time-row">
-            <div class="input-wrapper"><label>Min</label><input type="number" id="w-m" value="0"></div>
-            <div class="input-wrapper"><label>Sec</label><input type="number" id="w-s" value="30"></div>
-        </div>
-
-        <div class="section-title">Rest Duration</div>
-        <div class="time-row">
-            <div class="input-wrapper"><label>Min</label><input type="number" id="r-m" value="0"></div>
-            <div class="input-wrapper"><label>Sec</label><input type="number" id="r-s" value="10"></div>
-        </div>
-
-        <div class="time-row">
-            <div class="input-wrapper" style="flex: 1.5;">
-                <label>Countdown (Sec)</label>
-                <input type="number" id="warmup-input" value="5">
+        <!-- HEADER / MAIN DISPLAY -->
+        <div class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl timer-glow text-center flex flex-col items-center justify-center min-h-[280px]">
+            <h2 id="status-label" class="text-theme text-2xl sm:text-3xl uppercase tracking-[0.2em] brand-font font-bold mb-2 transition-colors">TOTAL TIME</h2>
+            
+            <div id="loop-counter" class="bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 transition-colors">
+                Configure Timer
             </div>
-            <div class="input-wrapper" style="flex: 1.5;">
-                <label>Rounds (0=∞)</label>
-                <input type="number" id="loops-input" value="4">
+            
+            <div id="timer-display" class="text-7xl sm:text-8xl md:text-9xl font-black mono text-white leading-none tracking-tighter drop-shadow-lg transition-transform duration-100">
+                00:00
             </div>
         </div>
-    </div>
 
-    <div class="action-row">
-        <button class="btn-secondary" id="btn-skip-back">⏮</button>
-        <button class="btn-main" id="action-btn">START</button>
-        <button class="btn-secondary" id="btn-skip-fwd">⏭</button>
-    </div>
-    <button class="btn-secondary" id="btn-stop" style="width: 100%; max-width: 380px; margin-top: 10px; border-color: #ff6b6b; color: #ff6b6b;">STOP WORKOUT</button>
-
-    <script>
-        // --- STATE ---
-        let timerInterval = null;
-        let state = 'IDLE'; // IDLE, WARMUP, WORK, REST, FINISHED
-        let isPaused = false;
-        let timeLeft = 0;
-        let currentLoop = 1;
-        let totalLoops = 0; 
-
-        // DOM Elements
-        const display = document.getElementById('timer-display');
-        const statusLabel = document.getElementById('status-label');
-        const loopDisplay = document.getElementById('loop-counter');
-        const btnMain = document.getElementById('action-btn');
-        const btnStop = document.getElementById('btn-stop');
-        const btnSkipFwd = document.getElementById('btn-skip-fwd');
-        const btnSkipBack = document.getElementById('btn-skip-back');
-        const settings = document.getElementById('settings');
-        const body = document.body;
-        const inputs = document.querySelectorAll('input');
-        const presetSelector = document.getElementById('preset-selector');
-
-        // Audio Context
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        // --- HELPERS ---
-        function getSeconds(prefix) {
-            const m = parseInt(document.getElementById(prefix + '-m').value) || 0;
-            const s = parseInt(document.getElementById(prefix + '-s').value) || 0;
-            return (m * 60) + s;
-        }
-
-        function formatTime(totalSeconds) {
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = totalSeconds % 60;
-            if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        // --- DYNAMIC TOTAL TIME ---
-        function calculateTotalIdleTime() {
-            if (state !== 'IDLE') return;
-            const w = getSeconds('w');
-            const r = getSeconds('r');
-            const loops = parseInt(document.getElementById('loops-input').value) || 0;
-            const warmup = parseInt(document.getElementById('warmup-input').value) || 0;
-
-            if (loops === 0) {
-                display.innerText = "∞";
-                statusLabel.innerText = "INFINITE LOOPS";
-            } else {
-                // Total time = warmup + (all work) + (all rest except after last work)
-                const total = warmup + (w * loops) + (r * (loops - 1));
-                display.innerText = formatTime(Math.max(0, total));
-                statusLabel.innerText = "TOTAL WORKOUT TIME";
-            }
-        }
-
-        // Update idle time when user types
-        inputs.forEach(input => input.addEventListener('input', calculateTotalIdleTime));
-
-        // Handle Dropdown Presets
-        presetSelector.addEventListener('change', function(e) {
-            if (e.target.value) {
-                // Split the comma separated string back into numbers
-                const values = e.target.value.split(',').map(Number);
-                applyPreset(values[0], values[1], values[2], values[3], values[4]);
-            }
-        });
-
-        function applyPreset(wm, ws, rm, rs, loops) {
-            document.getElementById('w-m').value = wm;
-            document.getElementById('w-s').value = ws;
-            document.getElementById('r-m').value = rm;
-            document.getElementById('r-s').value = rs;
-            document.getElementById('loops-input').value = loops;
-            calculateTotalIdleTime();
-        }
-
-        // --- AUDIO ---
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-
-            if (type === 'work') {
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.setValueAtTime(0, now + 0.1);
-                osc.frequency.setValueAtTime(800, now + 0.2);
-                gain.gain.setValueAtTime(0.5, now);
-                osc.start(now);
-                osc.stop(now + 0.4);
-            } else if (type === 'rest') {
-                osc.frequency.setValueAtTime(400, now);
-                gain.gain.setValueAtTime(0.5, now);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            } else if (type === 'countdown') {
-                osc.frequency.setValueAtTime(600, now);
-                gain.gain.setValueAtTime(0.3, now);
-                osc.start(now);
-                osc.stop(now + 0.1);
-            } else if (type === 'finish') {
-                osc.frequency.setValueAtTime(523.25, now); 
-                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); 
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
-                osc.start(now);
-                osc.stop(now + 1);
-            }
-        }
-
-        // --- CORE LOGIC ---
-        function updateUI() {
-            if (state !== 'IDLE') display.innerText = formatTime(timeLeft);
+        <!-- SETTINGS PANEL -->
+        <div id="settings-panel" class="transition-panel panel-visible space-y-4">
             
-            let loopText = totalLoops > 0 ? `ROUND ${currentLoop} OF ${totalLoops}` : `ROUND ${currentLoop} (∞)`;
-            
-            if (isPaused) {
-                body.classList.add('paused');
-                statusLabel.innerText = "PAUSED";
-                btnMain.innerText = "RESUME";
-            } else {
-                body.classList.remove('paused');
+            <!-- PRESETS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+                <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-2 ml-1">Quick Presets</label>
+                <div class="relative">
+                    <select id="preset-selector" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm font-bold text-slate-200 focus:border-amber-500 outline-none appearance-none cursor-pointer">
+                        <option value="" disabled selected>Load a popular timer...</option>
+                        <optgroup label="Productivity & Study" class="bg-slate-900 text-slate-300">
+                            <option value="25,0,5,0,4">Pomodoro (25m / 5m) x 4</option>
+                            <option value="50,0,10,0,2">Deep Work (50m / 10m) x 2</option>
+                            <option value="45,0,15,0,4">Focus Block (45m / 15m) x 4</option>
+                        </optgroup>
+                        <optgroup label="Fitness & HIIT" class="bg-slate-900 text-slate-300">
+                            <option value="0,20,0,10,8">Tabata (20s / 10s) x 8</option>
+                            <option value="0,30,0,30,10">HIIT Sprints (30s / 30s) x 10</option>
+                            <option value="0,45,0,15,10">EMOM-style (45s / 15s) x 10</option>
+                            <option value="3,0,1,0,12">Boxing Rounds (3m / 1m) x 12</option>
+                            <option value="4,0,3,0,4">4x4 VO2 Max (4m / 3m) x 4</option>
+                        </optgroup>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">▼</div>
+                </div>
+            </div>
+
+            <!-- CUSTOM INTERVALS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
                 
-                if (state === 'IDLE') {
-                    body.style.backgroundColor = 'var(--bg-idle)';
-                    loopDisplay.innerText = "Configure Timer";
-                    calculateTotalIdleTime();
-                } else if (state === 'WARMUP') {
-                    body.style.backgroundColor = 'var(--bg-warmup)';
-                    statusLabel.innerText = "GET READY";
-                    loopDisplay.innerText = "Starting in...";
-                    btnMain.innerText = "PAUSE";
-                } else if (state === 'WORK') {
-                    body.style.backgroundColor = 'var(--bg-work)';
-                    statusLabel.innerText = "WORK";
-                    loopDisplay.innerText = loopText;
-                    btnMain.innerText = "PAUSE";
-                } else if (state === 'REST') {
-                    body.style.backgroundColor = 'var(--bg-rest)';
-                    statusLabel.innerText = "REST";
-                    loopDisplay.innerText = loopText;
-                    btnMain.innerText = "PAUSE";
-                } else if (state === 'FINISHED') {
-                    body.style.backgroundColor = 'var(--bg-done)';
-                    statusLabel.innerText = "DONE!";
-                    loopDisplay.innerText = "Workout Complete";
-                    display.innerText = "00:00";
-                    btnMain.innerText = "NEW TIMER";
-                    btnStop.style.display = 'none';
-                }
+                <h3 class="text-white font-bold brand-font text-xl mb-4 flex items-center gap-2">
+                    <span class="text-amber-500">⚙</span> Interval Setup
+                </h3>
+
+                <!-- Work Row -->
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-16 text-slate-400 text-xs font-bold uppercase tracking-widest text-right">Work</div>
+                    <div class="flex-1 relative">
+                        <input type="number" id="w-m" value="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-red-500 outline-none text-white text-center transition-colors">
+                        <span class="absolute right-3 top-4 text-[9px] font-bold text-slate-600 uppercase">Min</span>
+                    </div>
+                    <div class="flex-1 relative">
+                        <input type="number" id="w-s" value="30" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-red-500 outline-none text-white text-center transition-colors">
+                        <span class="absolute right-3 top-4 text-[9px] font-bold text-slate-600 uppercase">Sec</span>
+                    </div>
+                </div>
+
+                <!-- Rest Row -->
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-16 text-slate-400 text-xs font-bold uppercase tracking-widest text-right">Rest</div>
+                    <div class="flex-1 relative">
+                        <input type="number" id="r-m" value="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-teal-500 outline-none text-white text-center transition-colors">
+                        <span class="absolute right-3 top-4 text-[9px] font-bold text-slate-600 uppercase">Min</span>
+                    </div>
+                    <div class="flex-1 relative">
+                        <input type="number" id="r-s" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-teal-500 outline-none text-white text-center transition-colors">
+                        <span class="absolute right-3 top-4 text-[9px] font-bold text-slate-600 uppercase">Sec</span>
+                    </div>
+                </div>
+
+                <div class="h-px w-full bg-slate-800 mb-5"></div>
+
+                <!-- Warmup / Loops -->
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Warmup (Sec)</label>
+                        <input type="number" id="warmup-input" value="5" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xl font-black mono focus:border-yellow-500 outline-none text-white text-center transition-colors">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Rounds (0=∞)</label>
+                        <input type="number" id="loops-input" value="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xl font-black mono focus:border-amber-500 outline-none text-white text-center transition-colors">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex gap-3 mt-4">
+            <button id="btn-skip-back" class="hidden flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xl rounded-2xl border border-slate-700 transition-colors items-center justify-center">
+                ⏮
+            </button>
+            <button id="action-btn" class="flex-[3] bg-amber-500 hover:bg-amber-400 text-slate-900 border border-amber-400 p-5 text-xl font-black brand-font tracking-widest uppercase rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                <span>START WORKOUT</span>
+            </button>
+            <button id="btn-skip-fwd" class="hidden flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xl rounded-2xl border border-slate-700 transition-colors items-center justify-center">
+                ⏭
+            </button>
+        </div>
+        
+        <button id="btn-stop" class="hidden w-full bg-red-900/10 hover:bg-red-900/30 text-red-400 border border-red-500/30 p-4 text-sm font-bold uppercase tracking-widest rounded-2xl transition-all mt-2">
+            ⏹ STOP & RESET
+        </button>
+
+    </div>
+</div>
+
+<script>
+    // --- STATE ---
+    let timerInterval = null;
+    let state = 'IDLE'; // IDLE, WARMUP, WORK, REST, FINISHED
+    let isPaused = false;
+    let timeLeft = 0;
+    let currentLoop = 1;
+    let totalLoops = 0; 
+
+    // DOM Elements
+    const display = document.getElementById('timer-display');
+    const statusLabel = document.getElementById('status-label');
+    const loopDisplay = document.getElementById('loop-counter');
+    const btnMain = document.getElementById('action-btn');
+    const btnStop = document.getElementById('btn-stop');
+    const btnSkipFwd = document.getElementById('btn-skip-fwd');
+    const btnSkipBack = document.getElementById('btn-skip-back');
+    const settingsPanel = document.getElementById('settings-panel');
+    const appBody = document.getElementById('app-body');
+    const inputs = document.querySelectorAll('input');
+    const presetSelector = document.getElementById('preset-selector');
+
+    // Audio Context
+    let audioCtx;
+
+    // --- HELPERS ---
+    function getSeconds(prefix) {
+        const m = parseInt(document.getElementById(prefix + '-m').value) || 0;
+        const s = parseInt(document.getElementById(prefix + '-s').value) || 0;
+        return (m * 60) + s;
+    }
+
+    function formatTime(totalSeconds) {
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function setTheme(themeName) {
+        appBody.className = `selection:bg-amber-500 selection:text-slate-900 theme-${themeName}`;
+    }
+
+    // --- DYNAMIC TOTAL TIME ---
+    function calculateTotalIdleTime() {
+        if (state !== 'IDLE') return;
+        const w = getSeconds('w');
+        const r = getSeconds('r');
+        const loops = parseInt(document.getElementById('loops-input').value) || 0;
+        const warmup = parseInt(document.getElementById('warmup-input').value) || 0;
+
+        if (loops === 0) {
+            display.innerText = "∞";
+            statusLabel.innerText = "INFINITE LOOPS";
+        } else {
+            const total = warmup + (w * loops) + (r * (loops - 1));
+            display.innerText = formatTime(Math.max(0, total));
+            statusLabel.innerText = "TOTAL TIME";
+        }
+    }
+
+    inputs.forEach(input => input.addEventListener('input', calculateTotalIdleTime));
+
+    // Handle Dropdown Presets
+    presetSelector.addEventListener('change', function(e) {
+        if (e.target.value) {
+            const values = e.target.value.split(',').map(Number);
+            applyPreset(values[0], values[1], values[2], values[3], values[4]);
+        }
+    });
+
+    function applyPreset(wm, ws, rm, rs, loops) {
+        document.getElementById('w-m').value = wm;
+        document.getElementById('w-s').value = ws;
+        document.getElementById('r-m').value = rm;
+        document.getElementById('r-s').value = rs;
+        document.getElementById('loops-input').value = loops;
+        calculateTotalIdleTime();
+    }
+
+    // --- AUDIO ---
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'work') {
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.setValueAtTime(0, now + 0.1);
+            osc.frequency.setValueAtTime(800, now + 0.2);
+            gain.gain.setValueAtTime(0.5, now);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        } else if (type === 'rest') {
+            osc.frequency.setValueAtTime(400, now);
+            gain.gain.setValueAtTime(0.5, now);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (type === 'countdown') {
+            osc.frequency.setValueAtTime(600, now);
+            gain.gain.setValueAtTime(0.3, now);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === 'finish') {
+            osc.frequency.setValueAtTime(523.25, now); 
+            osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); 
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
+            osc.start(now);
+            osc.stop(now + 1);
+        }
+    }
+
+    // --- CORE LOGIC ---
+    function updateUI() {
+        if (state !== 'IDLE') display.innerText = formatTime(timeLeft);
+        
+        let loopText = totalLoops > 0 ? `ROUND ${currentLoop} OF ${totalLoops}` : `ROUND ${currentLoop} (∞)`;
+        
+        if (isPaused) {
+            statusLabel.innerText = "PAUSED";
+            btnMain.innerHTML = "▶ RESUME";
+            btnMain.className = "flex-[3] bg-transparent text-white border-2 border-slate-500 p-4 text-xl font-black brand-font tracking-widest uppercase rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2";
+        } else {
+            if (state === 'IDLE') {
+                setTheme('idle');
+                loopDisplay.innerText = "Configure Timer";
+                loopDisplay.className = "bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 transition-colors";
+                btnMain.innerHTML = "START WORKOUT";
+                btnMain.className = "flex-[3] bg-amber-500 hover:bg-amber-400 text-slate-900 border border-amber-400 p-5 text-xl font-black brand-font tracking-widest uppercase rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all transform active:scale-95 flex items-center justify-center gap-2";
+                calculateTotalIdleTime();
+            } else if (state === 'WARMUP') {
+                setTheme('warmup');
+                statusLabel.innerText = "GET READY";
+                loopDisplay.innerText = "Starting in...";
+                loopDisplay.className = "bg-yellow-900/30 border border-yellow-500/50 text-yellow-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 transition-colors";
+                setRunningBtnState();
+            } else if (state === 'WORK') {
+                setTheme('work');
+                statusLabel.innerText = "WORK";
+                loopDisplay.innerText = loopText;
+                loopDisplay.className = "bg-red-900/30 border border-red-500/50 text-red-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 transition-colors";
+                setRunningBtnState();
+            } else if (state === 'REST') {
+                setTheme('rest');
+                statusLabel.innerText = "REST";
+                loopDisplay.innerText = loopText;
+                loopDisplay.className = "bg-teal-900/30 border border-teal-500/50 text-teal-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 transition-colors";
+                setRunningBtnState();
+            } else if (state === 'FINISHED') {
+                setTheme('done');
+                statusLabel.innerText = "DONE!";
+                loopDisplay.innerText = "Workout Complete";
+                loopDisplay.className = "bg-emerald-900/30 border border-emerald-500/50 text-emerald-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 transition-colors";
+                display.innerText = "00:00";
+                
+                btnMain.innerHTML = "NEW TIMER";
+                btnMain.className = "flex-[3] bg-emerald-500 hover:bg-emerald-400 text-slate-900 border border-emerald-400 p-5 text-xl font-black brand-font tracking-widest uppercase rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all transform active:scale-95 flex items-center justify-center gap-2";
+                
+                btnStop.classList.add('hidden');
+                btnSkipFwd.classList.replace('flex', 'hidden');
+                btnSkipBack.classList.replace('flex', 'hidden');
             }
         }
+    }
 
-        function switchPhase() {
-            if (state === 'WARMUP') {
-                state = 'WORK';
-                timeLeft = getSeconds('w');
-                playSound('work');
-            } else if (state === 'WORK') {
-                if (totalLoops > 0 && currentLoop >= totalLoops && getSeconds('r') === 0) {
-                     finish();
-                     return;
-                }
-                const restTime = getSeconds('r');
-                if (restTime > 0) {
-                    state = 'REST';
-                    timeLeft = restTime;
-                    playSound('rest');
-                } else {
-                    nextLoop();
-                }
-            } else if (state === 'REST') {
+    function setRunningBtnState() {
+        btnMain.innerHTML = "⏸ PAUSE";
+        btnMain.className = "flex-[3] bg-transparent text-white border-2 border-white p-4 text-xl font-black brand-font tracking-widest uppercase rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2";
+    }
+
+    function switchPhase() {
+        if (state === 'WARMUP') {
+            state = 'WORK';
+            timeLeft = getSeconds('w');
+            playSound('work');
+        } else if (state === 'WORK') {
+            if (totalLoops > 0 && currentLoop >= totalLoops && getSeconds('r') === 0) {
+                 finish();
+                 return;
+            }
+            const restTime = getSeconds('r');
+            if (restTime > 0) {
+                state = 'REST';
+                timeLeft = restTime;
+                playSound('rest');
+            } else {
                 nextLoop();
             }
+        } else if (state === 'REST') {
+            nextLoop();
+        }
+        updateUI();
+    }
+
+    function nextLoop() {
+        if (totalLoops > 0 && currentLoop >= totalLoops) {
+            finish();
+        } else {
+            currentLoop++;
+            state = 'WORK';
+            timeLeft = getSeconds('w');
+            playSound('work');
             updateUI();
         }
+    }
 
-        function nextLoop() {
-            if (totalLoops > 0 && currentLoop >= totalLoops) {
-                finish();
-            } else {
-                currentLoop++;
-                state = 'WORK';
-                timeLeft = getSeconds('w');
-                playSound('work');
-                updateUI();
-            }
-        }
+    function finish() {
+        state = 'FINISHED';
+        clearInterval(timerInterval);
+        playSound('finish');
+        settingsPanel.classList.replace('panel-hidden', 'panel-visible');
+        updateUI();
+    }
 
-        function finish() {
-            state = 'FINISHED';
-            clearInterval(timerInterval);
-            playSound('finish');
-            body.classList.remove('running');
-            updateUI();
-        }
+    function tick() {
+        if (isPaused) return;
 
-        function tick() {
-            if (isPaused) return;
-
-            if (timeLeft > 0) {
-                timeLeft--;
-                
-                // 3-2-1 Countdown Logic
-                if (timeLeft <= 3 && timeLeft > 0) {
-                    playSound('countdown');
-                    display.classList.add('countdown-pulse');
-                    setTimeout(() => display.classList.remove('countdown-pulse'), 200);
-                }
-
-                updateUI();
-            } else {
-                switchPhase();
-            }
-        }
-
-        function stop() {
-            clearInterval(timerInterval);
-            state = 'IDLE';
-            isPaused = false;
-            body.classList.remove('running');
-            settings.classList.remove('hidden');
-            btnMain.innerText = "START";
-            btnStop.style.display = 'none';
-            // Reset dropdown to default visually
-            presetSelector.value = "";
-            updateUI();
-        }
-
-        function start() {
-            const workSecs = getSeconds('w');
-            if (workSecs === 0) return alert("Please set a Work time.");
-
-            totalLoops = parseInt(document.getElementById('loops-input').value) || 0;
-            const warmupSecs = parseInt(document.getElementById('warmup-input').value) || 0;
-            currentLoop = 1;
-            isPaused = false;
-
-            body.classList.add('running');
-            settings.classList.add('hidden');
-            btnStop.style.display = 'flex';
-
-            if (warmupSecs > 0) {
-                state = 'WARMUP';
-                timeLeft = warmupSecs;
-            } else {
-                state = 'WORK';
-                timeLeft = workSecs;
-                playSound('work');
-            }
-
-            updateUI();
-            timerInterval = setInterval(tick, 1000);
-        }
-
-        // --- EVENT LISTENERS ---
-        btnMain.addEventListener('click', () => {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (timeLeft > 0) {
+            timeLeft--;
             
-            if (state === 'IDLE') {
-                start();
-            } else if (state === 'FINISHED') {
-                stop(); // Reset to idle
-            } else {
-                // Toggle Pause
-                isPaused = !isPaused;
-                updateUI();
+            // 3-2-1 Countdown Logic
+            if (timeLeft < 3 && timeLeft > 0) {
+                playSound('countdown');
+                display.classList.add('countdown-pulse');
+                setTimeout(() => display.classList.remove('countdown-pulse'), 150);
+            } else if (timeLeft === 0) {
+                // Pre-switch pulse
+                display.classList.add('countdown-pulse');
+                setTimeout(() => display.classList.remove('countdown-pulse'), 150);
             }
-        });
 
-        btnStop.addEventListener('click', stop);
+            updateUI();
+        } else {
+            switchPhase();
+        }
+    }
 
-        btnSkipFwd.addEventListener('click', () => {
-            if(state !== 'FINISHED' && state !== 'IDLE') {
-                timeLeft = 0; // Force immediate phase switch
-                tick();
-            }
-        });
+    function stop() {
+        clearInterval(timerInterval);
+        state = 'IDLE';
+        isPaused = false;
+        
+        // Show settings, hide extra controls
+        settingsPanel.classList.replace('panel-hidden', 'panel-visible');
+        btnStop.classList.add('hidden');
+        btnSkipFwd.classList.replace('flex', 'hidden');
+        btnSkipBack.classList.replace('flex', 'hidden');
+        
+        presetSelector.value = "";
+        updateUI();
+    }
 
-        btnSkipBack.addEventListener('click', () => {
-            if(state !== 'FINISHED' && state !== 'IDLE') {
-                // Simple rollback: reset current phase timer
-                if (state === 'WORK') timeLeft = getSeconds('w');
-                if (state === 'REST') timeLeft = getSeconds('r');
-                if (state === 'WARMUP') timeLeft = parseInt(document.getElementById('warmup-input').value) || 0;
-                updateUI();
-            }
-        });
+    function start() {
+        const workSecs = getSeconds('w');
+        if (workSecs === 0) return alert("Please set a Work time.");
 
-        // Init
-        calculateTotalIdleTime();
+        initAudio(); // Required to unlock audio on first interaction
 
-    </script>
+        totalLoops = parseInt(document.getElementById('loops-input').value) || 0;
+        const warmupSecs = parseInt(document.getElementById('warmup-input').value) || 0;
+        currentLoop = 1;
+        isPaused = false;
+
+        // Hide settings, show extra controls
+        settingsPanel.classList.replace('panel-visible', 'panel-hidden');
+        btnStop.classList.remove('hidden');
+        btnSkipFwd.classList.replace('hidden', 'flex');
+        btnSkipBack.classList.replace('hidden', 'flex');
+
+        if (warmupSecs > 0) {
+            state = 'WARMUP';
+            timeLeft = warmupSecs;
+        } else {
+            state = 'WORK';
+            timeLeft = workSecs;
+            playSound('work');
+        }
+
+        updateUI();
+        timerInterval = setInterval(tick, 1000);
+    }
+
+    // --- EVENT LISTENERS ---
+    btnMain.addEventListener('click', () => {
+        initAudio();
+        
+        if (state === 'IDLE') {
+            start();
+        } else if (state === 'FINISHED') {
+            stop(); // Reset to idle
+        } else {
+            // Toggle Pause
+            isPaused = !isPaused;
+            updateUI();
+        }
+    });
+
+    btnStop.addEventListener('click', stop);
+
+    btnSkipFwd.addEventListener('click', () => {
+        if(state !== 'FINISHED' && state !== 'IDLE') {
+            timeLeft = 0; // Force immediate phase switch
+            tick();
+        }
+    });
+
+    btnSkipBack.addEventListener('click', () => {
+        if(state !== 'FINISHED' && state !== 'IDLE') {
+            // Simple rollback: reset current phase timer
+            if (state === 'WORK') timeLeft = getSeconds('w');
+            if (state === 'REST') timeLeft = getSeconds('r');
+            if (state === 'WARMUP') timeLeft = parseInt(document.getElementById('warmup-input').value) || 0;
+            updateUI();
+        }
+    });
+
+    // Init display
+    calculateTotalIdleTime();
+
+</script>
 </body>
 </html>
