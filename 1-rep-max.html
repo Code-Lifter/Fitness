@@ -49,6 +49,18 @@
 </head>
 <body class="selection:bg-amber-500 selection:text-slate-900">
 
+<!-- Your placeholder -->
+<div id="nav-placeholder"></div>
+
+<!-- The magic trick -->
+<script>
+  fetch('./navbar.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+</script>
+    
     <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
            <div class="flex items-center gap-2">
