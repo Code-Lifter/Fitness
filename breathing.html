@@ -260,12 +260,9 @@
     </style>
 </head>
 
-    <!-- Your placeholder -->
-<div id="nav-placeholder"></div>
 <body class="show-rhythm">
 
-
-    
+    <!-- NAV TABS -->
     <div class="nav-tabs" id="nav">
         <button class="nav-btn active" id="btn-rhythm" onclick="switchView('rhythm')">Rhythm</button>
         <button class="nav-btn" id="btn-power" onclick="switchView('power')">Wim Hof</button>
@@ -379,18 +376,9 @@
     </div>
 
 <script>
-
-    // --- NAV ---
-  fetch('nav.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('nav-placeholder').innerHTML = data;
-    });
-    
         // --- STATE & AUDIO ---
         let audioCtx = null;
-        let mainInterval = null;
-        let transitionTimeout = null; 
+        let mainInterval = null;        let transitionTimeout = null; 
         let wakeLock = null;
         let isRunning = false;
         let currentView = 'rhythm';
