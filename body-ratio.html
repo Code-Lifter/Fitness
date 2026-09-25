@@ -34,24 +34,8 @@
 </head>
 <body class="min-h-screen pb-20 selection:bg-amber-500 selection:text-slate-900">
 
-    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-y-2">
-            
-<a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
-    <span class="text-2xl md:text-3xl">🏛️</span>
-    <div>
-        <h1 class="text-sm md:text-xl font-bold tracking-widest text-white brand-font leading-tight">
-            PHYSIQUE<span class="text-amber-500">ARCHITECT</span>
-        </h1>
-    </div>
-</a>
-            
-            <div class="bg-slate-800 p-1 rounded-lg flex text-[10px] md:text-xs font-bold border border-slate-700 shrink-0">
-                <button onclick="setUnit('cm')" id="btn-cm" class="px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95">CM/KG</button>
-                <button onclick="setUnit('in')" id="btn-in" class="px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95">IN/LBS</button>
-            </div>
-        </div>
-    </nav>
+<!-- Your placeholder -->
+<div id="nav-placeholder"></div>
 
     <div class="max-w-4xl mx-auto px-4 md:px-6 mt-6 space-y-8">
 
@@ -168,6 +152,14 @@
     </div>
 
     <script>
+
+        // --- NAV ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+        
         // --- CONFIG ---
         let unit = 'cm';
         let massMultiplier = 1.0; // 100%
