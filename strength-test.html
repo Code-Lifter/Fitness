@@ -29,6 +29,9 @@
 </head>
 <body class="bg-gray-900 text-gray-200 font-sans leading-relaxed">
 
+<!-- Navbar -->
+<div id="nav-placeholder"></div>
+    
     <!-- Non-fixed Home Button -->
     <div class="max-w-5xl mx-auto px-4 pt-6">
         <a href="/" class="inline-flex items-center text-blue-400 hover:text-blue-300 font-semibold transition-colors">
@@ -168,6 +171,14 @@
     </main>
 
     <script>
+
+// --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+        
         // Data Structures
         const standardsHeaders = ['Exercise', 'Beginner', 'Novice', 'Intermediate', 'Advanced', 'Elite'];
         const maleStandards = [
