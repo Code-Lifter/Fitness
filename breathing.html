@@ -123,6 +123,9 @@
 </head>
 <body class="show-rhythm selection:bg-amber-500 selection:text-slate-900">
 
+    <!-- Navbar -->
+<div id="nav-placeholder"></div>
+
 <div class="content max-w-lg mx-auto flex flex-col items-center">
 
     <!-- TOP NAVIGATION -->
@@ -266,6 +269,14 @@
 </div>
 
 <script>
+
+    // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+    
     // --- STATE & AUDIO ---
     let audioCtx = null;
     let mainInterval = null; 
