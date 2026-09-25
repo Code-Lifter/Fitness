@@ -259,15 +259,10 @@
 
     </style>
 </head>
-
 <body class="show-rhythm">
 
-    <!-- NAV TABS -->
-    <div class="nav-tabs" id="nav">
-        <button class="nav-btn active" id="btn-rhythm" onclick="switchView('rhythm')">Rhythm</button>
-        <button class="nav-btn" id="btn-power" onclick="switchView('power')">Wim Hof</button>
-        <button class="nav-btn" id="btn-test" onclick="switchView('test')">CO2 Test</button>
-    </div>
+    <!-- Navbar Placeholder -->
+    <div id="nav-placeholder"></div>
 
     <div id="exit-btn" onclick="stopAll()">EXIT SESSION</div>
 
@@ -376,9 +371,18 @@
     </div>
 
 <script>
+        // --- Navbar Fetch ---
+        fetch('nav.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('nav-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading navbar:', error));
+
         // --- STATE & AUDIO ---
         let audioCtx = null;
-        let mainInterval = null;        let transitionTimeout = null; 
+        let mainInterval = null; 
+    let transitionTimeout = null; 
         let wakeLock = null;
         let isRunning = false;
         let currentView = 'rhythm';
