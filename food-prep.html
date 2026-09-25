@@ -16,6 +16,8 @@
     }
   </script>
 </head>
+  <!-- Navbar -->
+<div id="nav-placeholder"></div>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans p-4 sm:p-6 pb-12">
 
   <div class="max-w-3xl mx-auto space-y-6">
@@ -232,6 +234,14 @@
   </div>
 
   <script>
+
+    // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+    
     let state = {
       dailyInputs: { cals: 0, protein: 0, carbs: 0, fat: 0, days: 7 },
       targets: { cals: 0, protein: 0, carbs: 0, fat: 0 },
