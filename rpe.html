@@ -39,18 +39,8 @@
 </head>
 <body class="selection:bg-amber-500 selection:text-slate-900">
 
-    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">🎯</span>
-                <h1 class="text-xl font-semibold tracking-wide text-white brand-font uppercase">Target Load <span class="text-amber-500">Gen</span></h1>
-            </div>
-            <div class="bg-slate-800 p-1 rounded-lg flex text-[10px] sm:text-xs font-bold border border-slate-700">
-                <button onclick="setUnit('kg')" id="btn-kg" class="px-3 py-1 rounded-md transition-all bg-amber-500 text-slate-900 shadow font-bold">KG</button>
-                <button onclick="setUnit('lbs')" id="btn-lbs" class="px-3 py-1 rounded-md transition-all text-slate-400 hover:text-white font-medium">LBS</button>
-            </div>
-        </div>
-    </nav>
+<!-- Navbar -->
+<div id="nav-placeholder"></div>
 
 <div class="content max-w-3xl mx-auto px-4 mt-6">
     <div class="space-y-6">
@@ -168,6 +158,14 @@
 </div>
 
 <script>
+
+    // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+    
     const rpeChart = {
         1:  { "10": 1.00, "9.5": 0.98, "9": 0.96, "8.5": 0.94, "8": 0.92, "7.5": 0.90, "7": 0.88, "6.5": 0.86, "6": 0.84 },
         2:  { "10": 0.96, "9.5": 0.94, "9": 0.92, "8.5": 0.90, "8": 0.89, "7.5": 0.87, "7": 0.86, "6.5": 0.84, "6": 0.82 },
