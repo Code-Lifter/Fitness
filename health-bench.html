@@ -67,6 +67,8 @@
         }
     </style>
 </head>
+    <!-- Navbar -->
+<div id="nav-placeholder"></div>
 <body class="bg-gray-900 text-gray-200 font-sans p-4 md:p-8">
 
     <div class="print-container max-w-[95rem] mx-auto bg-gray-800 shadow-2xl p-6 md:p-8 rounded-xl border border-gray-700">
@@ -296,6 +298,14 @@
     </div>
 
     <script>
+
+        // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+        
         const allInputs = document.querySelectorAll('input, select');
         allInputs.forEach((input, index) => {
             if (!input.id && input.type !== 'file') input.id = 'health_input_' + index;
