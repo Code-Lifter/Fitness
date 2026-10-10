@@ -45,6 +45,33 @@
             z-index: 0;
         }
         .content { position: relative; z-index: 1; }
+
+        /* ---- Plate breakdown drawer ---- */
+        .plate-rack { position: relative; display: flex; align-items: center; min-height: 92px; padding-left: 14px; }
+        .plate-rack .sleeve {
+            position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            height: 16px; width: 100%;
+            background: linear-gradient(to bottom, #9ca3af, #4b5563, #9ca3af);
+            border-radius: 0 3px 3px 0;
+            border-left: 8px solid #cbd5e1;
+            z-index: 0;
+        }
+        .plate-rack .plate {
+            position: relative; z-index: 1; flex-shrink: 0; margin-right: 2px;
+            border: 2px solid rgba(0,0,0,0.35); border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+            writing-mode: vertical-rl; text-orientation: mixed;
+            font-family: 'DM Mono', monospace; font-weight: 500; line-height: 1;
+            box-shadow: inset -2px 0 4px rgba(0,0,0,0.25), 2px 0 3px rgba(0,0,0,0.4);
+        }
+        .drawer-in { animation: drawer-in 0.18s ease-out; }
+        @keyframes drawer-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+        /* ---- Tempo ---- */
+        #t-settings summary { list-style: none; }
+        #t-settings summary::-webkit-details-marker { display: none; }
+        #t-settings .t-chev { transition: transform 0.2s; }
+        #t-settings[open] .t-chev { transform: rotate(180deg); }
     </style>
 </head>
 <body class="selection:bg-amber-500 selection:text-slate-900">
@@ -97,9 +124,12 @@
         <div id="warmup-panel" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20 opacity-50 pointer-events-none transition-opacity">
             <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800">
                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                    <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
-                        <span class="text-amber-500">2.</span> Rep Max Test Set
-                    </h3>
+                    <div>
+                        <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+                            <span class="text-amber-500">2.</span> Rep Max Test Set
+                        </h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Tap a side weight to see the plates.</p>
+                    </div>
                     
                     <div class="flex flex-wrap items-end gap-2">
                         <div class="w-24">
@@ -136,6 +166,117 @@
                 </div>
             </div>
             <div class="flex flex-col bg-slate-900" id="warmup-container"></div>
+        </div>
+
+        <!-- TEMPO -->
+        <div id="tempo-panel" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+            <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3">
+                <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+                    <span class="text-amber-500">3.</span> Tempo
+                </h3>
+                <div class="text-right leading-tight">
+                    <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-widest">E-B-C-T</span>
+                    <span id="t-summary" class="mono text-sm font-medium text-amber-400">3-0-1-2</span>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-5 flex gap-5">
+                <!-- Track -->
+                <div class="relative w-14 h-48 bg-slate-950 rounded-full border-2 border-slate-700 overflow-hidden shrink-0">
+                    <div id="t-block" class="absolute top-0 left-0 w-full h-12 rounded-full flex items-center justify-center">
+                        <span id="t-ball" class="text-white font-black text-2xl brand-font select-none" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5)"></span>
+                    </div>
+                </div>
+
+                <!-- Status + controls -->
+                <div class="flex-1 min-w-0 flex flex-col">
+                    <div class="flex justify-between items-start gap-3 min-h-[5.5rem]">
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Reps left</p>
+                            <div id="t-reps-left" class="text-5xl font-black text-white brand-font leading-none">0</div>
+                        </div>
+                        <div class="text-right min-w-0">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Phase</p>
+                            <p id="t-phase" class="text-lg font-bold text-slate-400 truncate">Ready</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto">
+                        <div class="flex items-end gap-2">
+                            <div class="w-16 shrink-0">
+                                <label for="t-reps" class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Reps</label>
+                                <input type="number" id="t-reps" min="1" class="w-full bg-slate-950 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-10 px-1 transition-colors disabled:opacity-50">
+                            </div>
+                            <button id="t-reset" type="button" class="h-10 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[10px] font-bold uppercase tracking-wider transition-colors">Reset</button>
+                            <button id="t-start" type="button" class="flex-1 h-10 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-lg bg-amber-500 hover:bg-amber-400 text-slate-900 shadow-amber-500/20">Start set</button>
+                        </div>
+                        <button id="t-link" type="button" class="hidden"></button>
+                    </div>
+                </div>
+            </div>
+
+            <details id="t-settings" class="border-t border-slate-800">
+                <summary class="px-4 sm:px-5 py-3 cursor-pointer select-none flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-200 transition-colors">
+                    <span>Tempo settings</span>
+                    <span class="t-chev text-slate-600 text-xs">▾</span>
+                </summary>
+                <div class="px-4 sm:px-5 pb-5 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label for="t-preset" class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Preset</label>
+                            <select id="t-preset" class="w-full bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-lg px-2 h-9 outline-none focus:border-amber-500 transition-colors disabled:opacity-50">
+                                <option value="" selected>Custom</option>
+                                <optgroup label="Hypertrophy / Tension">
+                                    <option value="3-1-1-0">3-1-1-0</option>
+                                    <option value="4-1-1-0">4-1-1-0</option>
+                                </optgroup>
+                                <optgroup label="Explosive Power">
+                                    <option value="2-0-X-0">2-0-X-0</option>
+                                    <option value="1-0-X-0">1-0-X-0</option>
+                                </optgroup>
+                                <optgroup label="Pause Heavy">
+                                    <option value="3-3-1-0">3-3-1-0</option>
+                                    <option value="2-2-1-1">2-2-1-1</option>
+                                </optgroup>
+                                <optgroup label="Continuous Tension">
+                                    <option value="2-0-2-0">2-0-2-0</option>
+                                </optgroup>
+                                <optgroup label="Eccentric Overload">
+                                    <option value="5-0-1-0">5-0-1-0</option>
+                                    <option value="6-1-1-0">6-1-1-0</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Start position</label>
+                            <div id="t-seg-start" class="flex bg-slate-950 rounded-lg p-0.5 border border-slate-700 h-9 gap-0.5"></div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Countdown</label>
+                            <div id="t-seg-prep" class="flex bg-slate-950 rounded-lg p-0.5 border border-slate-700 h-9 gap-0.5"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800">
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5"><span class="text-blue-400">↓</span> Eccentric</label>
+                            <div id="t-seg-E" class="flex bg-slate-950 rounded-lg p-0.5 border border-slate-700 h-9 gap-0.5"></div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5"><span class="text-orange-400">—</span> Bottom pause</label>
+                            <div id="t-seg-B" class="flex bg-slate-950 rounded-lg p-0.5 border border-slate-700 h-9 gap-0.5"></div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5"><span class="text-green-400">↑</span> Concentric</label>
+                            <div id="t-seg-C" class="flex bg-slate-950 rounded-lg p-0.5 border border-slate-700 h-9 gap-0.5"></div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5"><span class="text-purple-400">—</span> Top pause</label>
+                            <div id="t-seg-T" class="flex bg-slate-950 rounded-lg p-0.5 border border-slate-700 h-9 gap-0.5"></div>
+                        </div>
+                    </div>
+                </div>
+            </details>
         </div>
 
         <!-- PERCENTAGE REFERENCE -->
@@ -183,6 +324,11 @@
     let remainingTime = 0;
     let audioCtx;
     window.activeStep = 0;
+    window.openPlateRow = null;   // which test-set row has its plate drawer open
+    window.currentSteps = null;   // last rendered test-set steps (tempo reads reps from here)
+    let plateDrawerAnimate = false;
+
+    const fmt = n => Math.round(n * 1000) / 1000;   // trims float noise like 27.500000001
 
     function setSegment(groupId, value) {
         document.getElementById(groupId).value = value;
@@ -246,6 +392,8 @@
             warmupPanel.classList.add('opacity-50', 'pointer-events-none');
             document.getElementById('warmup-container').innerHTML = '';
             document.getElementById('percentage-table-body').innerHTML = '';
+            window.currentSteps = null;
+            tRenderLink();
         }
     }
 
@@ -303,6 +451,7 @@
 
     function setActiveStep(index) {
         window.activeStep = index;
+        tFollowSet = true;   // picking a set points the tempo player back at that set's reps
         masterCalculate();
     }
 
@@ -317,7 +466,7 @@
         header.innerHTML = `
             <div class="w-8 text-center">Set</div>
             <div class="flex-1 pl-2 text-left">Strategy</div>
-            <div class="w-14 text-center">Side</div>
+            <div class="w-14 text-center" title="Plates per side - tap a number for the breakdown">Side</div>
             <div class="w-12 text-center">Load</div>
             <div class="w-10 text-center">Reps</div>
             <div class="w-16 text-center">Rest</div>
@@ -335,11 +484,13 @@
             { title: "Warm up 4", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: Math.round(180 * restMult) },
             { title: `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: Math.round(240 * restMult) }
         ];
+        window.currentSteps = steps;
 
         steps.forEach((step, index) => {
             let rawLoad = targetLoad * step.pct;
             let finalLoad = 0;
             let sideBoxText = "—";
+            let sideVal = null;   // per-side plate weight, when there are plates to show
 
             if (barWeight === 0) {
                 finalLoad = roundTo(rawLoad, rounding);
@@ -351,9 +502,15 @@
                     let idealSide = (rawLoad - barWeight) / 2;
                     let roundedSide = roundTo(idealSide, rounding);
                     finalLoad = barWeight + (roundedSide * 2);
-                    sideBoxText = roundedSide > 0 ? roundedSide : "Bar";
+                    if (roundedSide > 0) {
+                        sideVal = fmt(roundedSide);
+                        sideBoxText = sideVal;
+                    } else {
+                        sideBoxText = "Bar";
+                    }
                 }
             }
+            finalLoad = fmt(finalLoad);
             
             let isActive = index === window.activeStep;
             let isPast = index < window.activeStep;
@@ -385,6 +542,14 @@
                     ${restLabel}
                 </button>` : `<div class="text-slate-500 text-xs text-center">—</div>`;
 
+            // Side box: a tappable button when there are plates to break down
+            const plateOpen = sideVal !== null && window.openPlateRow === index;
+            const sideCell = sideVal !== null
+                ? `<button onclick="togglePlates(${index})" title="Show plates per side" class="font-bold text-xs py-1 px-2 rounded border transition-colors underline decoration-dotted underline-offset-2 ${plateOpen
+                        ? 'bg-amber-500/15 text-amber-400 border-amber-500 decoration-amber-500/60'
+                        : 'bg-slate-950 text-slate-300 border-slate-700 decoration-slate-500 hover:border-amber-500/60 hover:text-amber-400'}">${sideVal}</button>`
+                : `<div class="bg-slate-950 text-slate-300 font-bold text-xs py-1 px-2 rounded border border-slate-700">${sideBoxText}</div>`;
+
             const row = document.createElement('div');
             row.className = `flex items-center px-3 sm:px-5 py-3 transition-all duration-300 border-b border-slate-800/50 ${rowBg} ${opacityClass} ${cursor}`;
             row.onclick = (e) => { if (!e.target.closest('button')) setActiveStep(index); };
@@ -396,9 +561,7 @@
                 <div class="flex-1 pl-2">
                     <span class="text-sm font-bold ${titleClass}">${step.title}</span>
                 </div>
-                <div class="w-14 flex justify-center">
-                    <div class="bg-slate-950 text-slate-300 font-bold text-xs py-1 px-2 rounded border border-slate-700">${sideBoxText}</div>
-                </div>
+                <div class="w-14 flex justify-center">${sideCell}</div>
                 <div class="w-12 text-center">
                     <span class="text-lg font-black ${numColor} brand-font">${finalLoad}</span>
                 </div>
@@ -408,7 +571,12 @@
                 <div class="w-16 pl-2">${timerButton}</div>
             `;
             container.appendChild(row);
+
+            if (plateOpen) container.appendChild(buildPlateDrawer(sideVal, barWeight));
         });
+        plateDrawerAnimate = false;
+
+        syncTempoReps();
     }
 
     function renderTable(oneRM, rounding) {
@@ -457,6 +625,139 @@
         });
     }
 
+    // =====================================================================
+    // PLATE BREAKDOWN (opens when you tap a Side number)
+    // =====================================================================
+
+    // h/wd = drawn height/width in px, fs = label font size
+    const PLATE_SETS = {
+        kg: [
+            { w: 25,   bg: '#e11d48', fg: '#ffffff', h: 84, wd: 22, fs: 10 },
+            { w: 20,   bg: '#2563eb', fg: '#ffffff', h: 84, wd: 19, fs: 10 },
+            { w: 15,   bg: '#eab308', fg: '#111111', h: 72, wd: 17, fs: 10 },
+            { w: 10,   bg: '#16a34a', fg: '#ffffff', h: 62, wd: 15, fs: 10 },
+            { w: 5,    bg: '#f1f5f9', fg: '#111111', h: 48, wd: 13, fs: 9 },
+            { w: 2.5,  bg: '#1f2937', fg: '#e2e8f0', h: 40, wd: 12, fs: 8 },
+            { w: 1.25, bg: '#64748b', fg: '#ffffff', h: 34, wd: 11, fs: 7 },
+            { w: 0.5,  bg: '#94a3b8', fg: '#111111', h: 28, wd: 10, fs: 6 },
+            { w: 0.25, bg: '#cbd5e1', fg: '#111111', h: 24, wd: 9,  fs: 6 }
+        ],
+        lbs: [
+            { w: 45,  bg: '#1d4ed8', fg: '#ffffff', h: 84, wd: 22, fs: 10 },
+            { w: 35,  bg: '#ca8a04', fg: '#111111', h: 76, wd: 19, fs: 10 },
+            { w: 25,  bg: '#15803d', fg: '#ffffff', h: 66, wd: 17, fs: 10 },
+            { w: 10,  bg: '#f1f5f9', fg: '#111111', h: 52, wd: 14, fs: 9 },
+            { w: 5,   bg: '#1f2937', fg: '#e2e8f0', h: 42, wd: 12, fs: 8 },
+            { w: 2.5, bg: '#64748b', fg: '#ffffff', h: 34, wd: 11, fs: 7 }
+        ]
+    };
+
+    // Micro plates (0.5 / 0.25) start switched off - most gyms don't have them
+    const INV_KEY = 'rmPlateInventory';
+    const INV_DEFAULT = { kg: [25, 20, 15, 10, 5, 2.5, 1.25], lbs: [45, 35, 25, 10, 5, 2.5] };
+    let plateInv = (() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem(INV_KEY));
+            if (saved && typeof saved === 'object') return Object.assign(JSON.parse(JSON.stringify(INV_DEFAULT)), saved);
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(INV_DEFAULT));
+    })();
+
+    function plateUnit() { return PLATE_SETS[currentUnit] ? currentUnit : 'kg'; }
+
+    function togglePlates(index) {
+        window.openPlateRow = window.openPlateRow === index ? null : index;
+        plateDrawerAnimate = window.openPlateRow !== null;
+        masterCalculate();
+    }
+
+    function togglePlateInventory(w) {
+        const list = plateInv[plateUnit()];
+        const i = list.indexOf(w);
+        if (i >= 0) list.splice(i, 1); else list.push(w);
+        try { localStorage.setItem(INV_KEY, JSON.stringify(plateInv)); } catch (e) {}
+        masterCalculate();
+    }
+
+    // Fewest plates that make `side` exactly (heaviest plates first on ties).
+    // If it can't be made exactly, returns the heaviest load that fits under it.
+    function solvePlates(side, plates) {
+        const S = 100;   // work in hundredths so 1.25 / 0.25 are whole numbers
+        const target = Math.round(side * S);
+        const units = plates.map(p => Math.round(p * S)).filter(u => u > 0).sort((a, b) => b - a);
+        if (!isFinite(target) || target <= 0 || target > 100000 || !units.length) return { plates: [], loaded: 0 };
+
+        const INF = 1e9;
+        const best = new Array(target + 1).fill(INF);
+        const pick = new Array(target + 1).fill(0);
+        best[0] = 0;
+        for (let a = 1; a <= target; a++) {
+            for (const u of units) {
+                if (u <= a && best[a - u] + 1 < best[a]) { best[a] = best[a - u] + 1; pick[a] = u; }
+            }
+        }
+
+        let a = target;
+        while (a > 0 && best[a] === INF) a--;
+        const out = [];
+        for (let r = a; r > 0; r -= pick[r]) out.push(pick[r] / S);
+        out.sort((x, y) => y - x);
+        return { plates: out, loaded: a / S };
+    }
+
+    function buildPlateDrawer(side, barWeight) {
+        const unit = plateUnit();
+        const set = PLATE_SETS[unit];
+        const inv = plateInv[unit];
+        const avail = set.filter(p => inv.includes(p.w)).map(p => p.w);
+        const res = solvePlates(side, avail);
+        const short = fmt(side - res.loaded);
+
+        const platesHtml = res.plates.map(w => {
+            const p = set.find(x => x.w === w);
+            return `<div class="plate" style="height:${p.h}px;width:${p.wd}px;background:${p.bg};color:${p.fg};font-size:${p.fs}px">${w}</div>`;
+        }).join('');
+
+        const counts = {};
+        res.plates.forEach(w => { counts[w] = (counts[w] || 0) + 1; });
+        const countText = Object.keys(counts).map(Number).sort((x, y) => y - x)
+            .map(w => counts[w] > 1 ? `${counts[w]}×${w}` : `${w}`).join(' + ');
+
+        let status;
+        if (short <= 0) {
+            status = `<span class="text-slate-400">Bar ${barWeight} + 2 × ${side} = <span class="text-white font-medium">${fmt(barWeight + side * 2)} ${unit}</span></span>`;
+        } else if (!res.plates.length) {
+            status = `<span class="text-red-400">None of your plates fit ${side} ${unit} per side.</span>`;
+        } else {
+            status = `<span class="text-amber-400">⚠ Can't make ${side} exactly with your plates. Closest is ${fmt(barWeight + res.loaded * 2)} ${unit} (${short} short per side).</span>`;
+        }
+
+        const chips = set.map(p => {
+            const on = inv.includes(p.w);
+            return `<button onclick="togglePlateInventory(${p.w})" class="px-2 py-0.5 rounded text-[10px] font-bold mono border transition-colors ${on
+                ? 'bg-slate-800 text-white border-slate-600 hover:border-amber-500/60'
+                : 'text-slate-600 border-slate-800 line-through hover:text-slate-400'}">${p.w}</button>`;
+        }).join('');
+
+        const d = document.createElement('div');
+        d.className = `${plateDrawerAnimate ? 'drawer-in ' : ''}px-3 sm:px-5 py-4 bg-slate-950/70 border-b border-slate-800`;
+        d.innerHTML = `
+            <div class="flex items-center justify-between gap-3">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Per side</span>
+                <span class="mono text-xs text-slate-300">${countText || '—'}</span>
+            </div>
+            <div class="plate-rack"><div class="sleeve"></div>${platesHtml}</div>
+            <p class="text-[11px] mono leading-snug">${status}</p>
+            <div class="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-slate-800/70">
+                <span class="text-[9px] font-bold uppercase tracking-widest text-slate-500 mr-1">My plates</span>${chips}
+            </div>`;
+        return d;
+    }
+
+    // =====================================================================
+    // AUDIO + REST TIMER
+    // =====================================================================
+
     function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -468,6 +769,37 @@
         osc.connect(gainNode); gainNode.connect(audioCtx.destination);
         gainNode.gain.value = 0.3; osc.frequency.value = 1000; osc.type = 'square';
         osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.15);
+    }
+    // Tempo cues: falling pitch down, rising pitch up, flat beep on pauses
+    function playTone(phaseType) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (phaseType === 'E') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, t);
+            osc.frequency.exponentialRampToValueAtTime(150, t + 0.3);
+        } else if (phaseType === 'C') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(200, t);
+            osc.frequency.exponentialRampToValueAtTime(600, t + 0.3);
+        } else if (phaseType === 'T' || phaseType === 'B') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(350, t);
+        } else if (phaseType === 'DONE') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, t);
+            osc.frequency.setValueAtTime(800, t + 0.1);
+        }
+
+        gainNode.gain.setValueAtTime(0.1, t);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        osc.start();
+        osc.stop(t + 0.3);
     }
     function playAlarm() {
         initAudio(); beep(); setTimeout(beep, 300);
@@ -501,6 +833,288 @@
         document.getElementById('timer-progress').style.width = `${totalTime > 0 ? (remainingTime / totalTime) * 100 : 0}%`;
     }
 
+    // =====================================================================
+    // TEMPO PLAYER
+    // =====================================================================
+
+    const TEMPO_KEY = 'gymTempoStateV6';   // same key as the standalone tempo page
+    const T_TRAVEL = 140;                   // 192px track - 4px border - 48px ball
+    const T_COLORS = { READY: '#f59e0b', E: '#3b82f6', B: '#f97316', C: '#22c55e', T: '#a855f7', DONE: '#10b981' };
+
+    let tSettings = { reps: 10, prepTime: 5, startPos: 'Top', tempo: { E: 3, B: 0, C: 1, T: 2 } };
+    let tRunning = false;
+    let tTimeout = null;
+    let tBallInterval = null;
+    let tFollowSet = true;   // reps follow the active test set until you type your own
+
+    const tEl = id => document.getElementById(id);
+    const tSleep = ms => new Promise(resolve => { tTimeout = setTimeout(resolve, ms); });
+
+    function tLoad() {
+        try {
+            const s = JSON.parse(localStorage.getItem(TEMPO_KEY));
+            if (s && typeof s === 'object') {
+                tSettings = Object.assign({}, tSettings, s, { tempo: Object.assign({}, tSettings.tempo, s.tempo || {}) });
+            }
+        } catch (e) {}
+    }
+    function tSave() {
+        try { localStorage.setItem(TEMPO_KEY, JSON.stringify(tSettings)); } catch (e) {}
+    }
+
+    function tInit() {
+        tLoad();
+        tRenderSegments();
+        tEl('t-reps').value = tSettings.reps;
+
+        tEl('t-reps').addEventListener('change', e => {
+            tSettings.reps = Math.max(1, parseInt(e.target.value) || 1);
+            e.target.value = tSettings.reps;
+            tFollowSet = false;
+            tSave();
+            tIdle();
+        });
+        tEl('t-preset').addEventListener('change', e => {
+            const p = e.target.value.split('-');
+            if (p.length === 4) {
+                tSettings.tempo = { E: parseInt(p[0]), B: parseInt(p[1]), C: p[2] === 'X' ? 'X' : parseInt(p[2]), T: parseInt(p[3]) };
+                tSave();
+                tRenderSegments();
+                tIdle();
+            }
+        });
+        tEl('t-start').addEventListener('click', tToggle);
+        tEl('t-reset').addEventListener('click', tReset);
+        tEl('t-link').addEventListener('click', () => {
+            if (tRunning) return;
+            tFollowSet = true;
+            syncTempoReps();
+        });
+        tIdle();
+    }
+
+    function tSegment(id, options, current, onPick, label) {
+        const c = tEl(id);
+        c.innerHTML = '';
+        options.forEach(opt => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = label ? label(opt) : opt;
+            b.className = `flex-1 text-xs font-bold rounded-md transition-all ${opt === current
+                ? 'bg-amber-500 text-slate-900 shadow'
+                : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/60'}`;
+            b.onclick = () => {
+                if (tRunning) return;
+                onPick(opt);
+                tRenderSegments();
+            };
+            c.appendChild(b);
+        });
+    }
+
+    function tSetTempo(key, value) {
+        tSettings.tempo[key] = value;
+        tEl('t-preset').value = '';
+        tSave();
+    }
+
+    function tRenderSegments() {
+        const tp = tSettings.tempo;
+        tSegment('t-seg-start', ['Top', 'Bottom'], tSettings.startPos, v => { tSettings.startPos = v; tSave(); tIdle(); });
+        tSegment('t-seg-prep', [0, 3, 5, 10], tSettings.prepTime, v => { tSettings.prepTime = v; tSave(); }, v => v === 0 ? 'Off' : v + 's');
+        tSegment('t-seg-E', [1, 2, 3, 4, 5, 6], tp.E, v => tSetTempo('E', v));
+        tSegment('t-seg-B', [0, 1, 2, 3, 4], tp.B, v => tSetTempo('B', v));
+        tSegment('t-seg-C', ['X', 1, 2, 3, 4, 5], tp.C, v => tSetTempo('C', v));
+        tSegment('t-seg-T', [0, 1, 2, 3, 4], tp.T, v => tSetTempo('T', v));
+        tEl('t-summary').textContent = `${tp.E}-${tp.B}-${tp.C}-${tp.T}`;
+    }
+
+    // Pull reps from whichever test-set row is active (unless you've typed your own)
+    function syncTempoReps() {
+        if (tFollowSet && !tRunning && window.currentSteps) {
+            const step = window.currentSteps[window.activeStep];
+            const reps = step ? parseInt(step.reps) : NaN;
+            if (reps > 0 && reps !== tSettings.reps) {
+                tSettings.reps = reps;
+                tEl('t-reps').value = reps;
+                tIdle();
+            }
+        }
+        tRenderLink();
+    }
+
+    function tRenderLink() {
+        const link = tEl('t-link');
+        if (!link) return;
+        if (!window.currentSteps) { link.className = 'hidden'; return; }
+        const n = window.activeStep + 1;
+        if (tFollowSet) {
+            link.textContent = `Following set ${n}`;
+            link.className = 'mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 cursor-default';
+            link.disabled = true;
+        } else {
+            link.textContent = `↺ Use set ${n} reps`;
+            link.className = 'mt-2 text-[10px] font-bold uppercase tracking-widest text-amber-500 hover:text-amber-400 transition-colors';
+            link.disabled = tRunning;
+        }
+    }
+
+    function tBallStyle(type) {
+        const c = T_COLORS[type] || T_COLORS.READY;
+        const blk = tEl('t-block');
+        blk.style.backgroundColor = c;
+        blk.style.boxShadow = `0 0 16px ${c}80`;
+    }
+
+    function tStatus(text, color) {
+        if (!tRunning) return;
+        const ph = tEl('t-phase');
+        ph.textContent = text;
+        ph.style.color = color;
+    }
+
+    function tRepsLeft(n) {
+        const el = tEl('t-reps-left');
+        const cue = { 3: ['#facc15', '3 left'], 2: ['#f97316', 'Almost'], 1: ['#ef4444', 'Last one!'] }[n];
+        el.style.color = '';
+        if (cue) {
+            el.innerHTML = `<span class="block animate-bounce" style="color:${cue[0]}">${n}</span>` +
+                `<span class="block text-[10px] font-bold uppercase tracking-widest animate-pulse mt-1" style="color:${cue[0]};font-family:Syne,sans-serif">${cue[1]}</span>`;
+        } else {
+            el.textContent = n;
+        }
+    }
+
+    function tIdle() {
+        tEl('tempo-panel').classList.remove('ring-2', 'ring-emerald-500');
+        tBallStyle('READY');
+        const rl = tEl('t-reps-left');
+        rl.textContent = tSettings.reps;
+        rl.style.color = '';
+        const ph = tEl('t-phase');
+        ph.textContent = 'Ready';
+        ph.style.color = '';
+        tEl('t-ball').textContent = '';
+
+        const blk = tEl('t-block');
+        blk.style.transition = 'none';
+        blk.style.transform = `translateY(${tSettings.startPos === 'Bottom' ? T_TRAVEL : 0}px)`;
+        void blk.offsetHeight;
+        tRenderLink();
+    }
+
+    function tBallTimer(seconds) {
+        clearInterval(tBallInterval);
+        const ball = tEl('t-ball');
+        if (seconds === 'X') { ball.textContent = '⚡'; return; }
+        const s = parseFloat(seconds);
+        if (!(s > 0)) { ball.textContent = ''; return; }
+        const end = Date.now() + s * 1000;
+        ball.textContent = Math.ceil(s);
+        tBallInterval = setInterval(() => {
+            const left = end - Date.now();
+            if (left <= 0) { clearInterval(tBallInterval); ball.textContent = ''; }
+            else ball.textContent = Math.ceil(left / 1000);
+        }, 50);
+    }
+
+    function tMove(y, secs) {
+        if (!tRunning) return;
+        const blk = tEl('t-block');
+        blk.style.transition = `transform ${secs}s linear, background-color 0.3s`;
+        blk.style.transform = `translateY(${y}px)`;
+    }
+
+    async function tPhase(name, duration, targetY, type) {
+        if (!tRunning) return;
+        const secs = duration === 'X' ? 0.3 : parseFloat(duration);
+        if (secs > 0) playTone(type);
+        tBallTimer(duration);
+        tBallStyle(type);
+
+        if (targetY !== null) {
+            tStatus(name, T_COLORS[type]);
+            tMove(targetY, secs);
+            await tSleep(secs * 1000);
+        } else if (secs > 0) {
+            tStatus(name, T_COLORS[type]);
+            await tSleep(secs * 1000);
+        }
+    }
+
+    function tSetRunningUI(running) {
+        const btn = tEl('t-start');
+        btn.textContent = running ? 'Stop' : 'Start set';
+        btn.className = 'flex-1 h-10 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-lg ' +
+            (running ? 'bg-red-600 hover:bg-red-500 text-white shadow-red-500/20'
+                     : 'bg-amber-500 hover:bg-amber-400 text-slate-900 shadow-amber-500/20');
+        tEl('t-reps').disabled = running;
+        tEl('t-preset').disabled = running;
+        tRenderLink();
+    }
+
+    async function tToggle() {
+        if (tRunning) { tReset(); return; }
+
+        initAudio();
+        tRunning = true;
+        tEl('tempo-panel').classList.remove('ring-2', 'ring-emerald-500');
+        tSetRunningUI(true);
+
+        if (tSettings.prepTime > 0) {
+            tBallStyle('READY');
+            for (let i = tSettings.prepTime; i > 0; i--) {
+                if (!tRunning) return;
+                tStatus(`Go in ${i}`, '#fb923c');
+                tEl('t-ball').textContent = i;
+                playTone('T');
+                await tSleep(1000);
+            }
+        }
+        if (!tRunning) return;
+        tEl('t-ball').textContent = '';
+
+        const order = tSettings.startPos === 'Bottom'
+            ? [['Concentric', 'C', 0], ['Top pause', 'T', null], ['Eccentric', 'E', T_TRAVEL], ['Bottom pause', 'B', null]]
+            : [['Eccentric', 'E', T_TRAVEL], ['Bottom pause', 'B', null], ['Concentric', 'C', 0], ['Top pause', 'T', null]];
+
+        for (let rep = 1; rep <= tSettings.reps; rep++) {
+            if (!tRunning) break;
+            tRepsLeft(tSettings.reps - rep + 1);
+            for (const [name, key, y] of order) {
+                if (!tRunning) break;
+                await tPhase(name, tSettings.tempo[key], y, key);
+            }
+        }
+
+        if (tRunning) {
+            const rl = tEl('t-reps-left');
+            rl.textContent = '0';
+            rl.style.color = T_COLORS.DONE;
+            tStatus('Complete!', T_COLORS.DONE);
+            tEl('t-ball').textContent = '✓';
+            playTone('DONE');
+            tBallStyle('DONE');
+            tEl('tempo-panel').classList.add('ring-2', 'ring-emerald-500');
+            tFinish();
+        }
+    }
+
+    function tFinish() {
+        tRunning = false;
+        tSetRunningUI(false);
+    }
+
+    function tReset() {
+        tRunning = false;
+        clearTimeout(tTimeout);
+        clearInterval(tBallInterval);
+        tFinish();
+        tIdle();
+    }
+
+    // Boot
+    tInit();
     masterCalculate();
 </script>
 </body>
