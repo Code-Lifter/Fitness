@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Blood & Guts Tracker</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -17,402 +17,1174 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         blood: { 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 900: '#7f1d1d' },
-                        warning: { 400: '#facc15', 500: '#eab308', 700: '#a16207', 900: '#713f12' }
+                        warning: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04', 700: '#a16207', 900: '#713f12' }
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Hide scrollbars for clean UI, but keep functionality */
-        .hide-scrollbars {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
-        .hide-scrollbars::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
-        }
-        
-        input[type=number]::-webkit-inner-spin-button, 
+        .hide-scrollbars { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbars::-webkit-scrollbar { display: none; }
+
+        input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        /* Accordion transition */
-        .accordion-content {
-            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-        }
-        .accordion-content.open {
-            max-height: 2000px; /* Arbitrary large max-height for CSS transition */
-            opacity: 1;
-        }
+        .pill-active { background: #dc2626 !important; border-color: #ef4444 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(220,38,38,0.35); }
+
+        /* Hevy-style set table */
+        .set-grid { display: grid; grid-template-columns: 2.75rem minmax(0,1fr) 4.75rem 4rem 2.5rem; gap: 0.5rem; }
+        .set-input { width: 100%; background: #111827; border: 1px solid #4b5563; border-radius: 0.5rem; padding: 0.45rem 0.25rem; text-align: center; font-weight: 700; font-size: 0.95rem; color: #fff; outline: none; }
+        .set-input:focus { border-color: #ef4444; box-shadow: 0 0 0 1px #ef4444; }
+        .set-input:disabled { opacity: 0.4; }
+        .set-input::placeholder { color: #6b7280; font-weight: 500; }
+        .tick { height: 2.25rem; border-radius: 0.5rem; background: #374151; color: #9ca3af; font-weight: 900; transition: all .15s; }
+        .tick:hover:not(:disabled) { background: #4b5563; }
+        .tick:disabled { opacity: 0.4; }
+        .set-row.is-done { background: rgba(22,163,74,0.16); }
+        .set-row.is-done .tick { background: #16a34a; color: #fff; }
+        .set-row.is-done .set-input { border-color: rgba(22,163,74,0.5); }
+
+        .modal { display: none; }
+        .modal.open { display: flex; }
+        #drop-overlay { display: none; }
+        #drop-overlay.show { display: flex; }
+
+        .fade-in { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+        details > summary { list-style: none; cursor: pointer; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] .chev { transform: rotate(180deg); }
     </style>
 </head>
 
-    <!-- Your placeholder -->
-<div id="nav-placeholder"></div>
-    
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen antialiased flex flex-col">
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen antialiased">
 
-    <div class="px-4 py-6 md:py-8 w-full max-w-7xl mx-auto flex-shrink-0">
+    <!-- Your nav placeholder -->
+    <div id="nav-placeholder"></div>
 
-        <!-- Header Titles -->
-        <header class="text-center md:text-left mb-8">
-            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">
+    <div class="max-w-3xl mx-auto px-4 pt-6 pb-2">
+        <header class="text-center md:text-left">
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">
                 <span class="text-blood-500">Blood & Guts</span> Tracker
             </h1>
-            
-            <!-- Cardio Instruction -->
-            <div class="mt-4 bg-blue-900/30 border border-blue-800 text-blue-300 px-5 py-3 rounded-xl inline-block text-sm md:text-base font-semibold shadow-lg backdrop-blur-sm">
-                <svg class="w-5 h-5 inline-block mr-2 -mt-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                Cardio on Off days - Zone 2, 3 times a week for 30 minutes
-            </div>
+            <p id="week-summary" class="text-sm text-gray-400 font-medium"></p>
         </header>
+    </div>
 
-        <!-- Master Configuration Accordion -->
-        <div class="w-full bg-gray-800 border border-gray-700 rounded-2xl shadow-xl overflow-hidden mb-10">
-            <button id="accordion-toggle" class="w-full px-6 py-4 flex justify-between items-center bg-gray-750 hover:bg-gray-700 transition-colors focus:outline-none">
-                <div class="flex items-center gap-3">
-                    <svg class="w-6 h-6 text-blood-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                    <h2 class="text-xl font-bold text-white">1RM Master Configuration</h2>
-                </div>
-                <svg id="accordion-icon" class="w-6 h-6 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    <!-- Sticky pill bar + active session bar -->
+    <nav class="sticky top-0 z-30 bg-gray-900/90 backdrop-blur-md border-b border-gray-800">
+        <div id="pills" class="max-w-3xl mx-auto px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbars"></div>
+        <div id="active-bar"></div>
+    </nav>
+
+    <main id="view" class="max-w-3xl mx-auto px-4 pt-5 pb-28"></main>
+
+    <!-- ===== Video feed (Shorts-style vertical scroll) ===== -->
+    <div id="feed-modal" class="modal fixed inset-0 z-50 bg-black flex-col">
+        <div class="h-14 shrink-0 flex items-center justify-between gap-3 px-3 border-b border-gray-800">
+            <button onclick="closeFeed()" class="text-gray-300 hover:text-white p-2" aria-label="Close videos">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
-            <div id="accordion-content" class="accordion-content bg-gray-900 border-t border-gray-700">
-                <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="master-inputs-container">
-                    <!-- JS will inject inputs here -->
-                </div>
+            <div class="text-center min-w-0 flex-1">
+                <p id="feed-title" class="font-bold text-sm truncate"></p>
+                <p id="feed-count" class="text-[11px] text-gray-400"></p>
             </div>
+            <a id="feed-yt" href="#" target="_blank" rel="noopener" class="text-xs font-semibold text-gray-400 hover:text-white p-2 whitespace-nowrap">YouTube ↗</a>
+        </div>
+        <div id="feed-body" class="flex-1 min-h-0 relative"></div>
+    </div>
+
+    <!-- ===== Generic dialog ===== -->
+    <div id="dialog" class="modal fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4" onclick="if(event.target===this) closeDialog()">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden fade-in">
+            <div class="px-5 py-4 border-b border-gray-700"><h3 id="dialog-title" class="font-black text-lg"></h3></div>
+            <div id="dialog-body" class="px-5 py-4 text-sm text-gray-300 space-y-2"></div>
+            <div class="px-5 pb-5 flex justify-end"><button onclick="closeDialog()" class="bg-blood-600 hover:bg-blood-500 text-white font-bold text-sm px-5 py-2 rounded-xl">Done</button></div>
         </div>
     </div>
 
-    <main class="w-full flex-grow flex flex-col justify-center pb-12 relative overflow-hidden">
-        <!-- Carousel Arrows -->
-        <div class="absolute inset-y-0 left-0 flex items-center justify-start z-20 pl-2 md:pl-8 pointer-events-none">
-            <button onclick="scrollCarousel(-1)" class="pointer-events-auto bg-gray-800/80 hover:bg-gray-700 text-white p-3 rounded-full border border-gray-600 shadow-xl backdrop-blur-md transform transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-blood-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            </button>
+    <!-- Drop overlay -->
+    <div id="drop-overlay" class="fixed inset-0 z-[60] bg-blood-900/70 backdrop-blur-sm items-center justify-center pointer-events-none">
+        <div class="border-4 border-dashed border-blood-400 rounded-3xl px-10 py-12 text-center">
+            <p class="text-2xl font-black text-white">Drop your training log JSON</p>
         </div>
-        <div class="absolute inset-y-0 right-0 flex items-center justify-end z-20 pr-2 md:pr-8 pointer-events-none">
-            <button onclick="scrollCarousel(1)" class="pointer-events-auto bg-gray-800/80 hover:bg-gray-700 text-white p-3 rounded-full border border-gray-600 shadow-xl backdrop-blur-md transform transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-blood-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </button>
-        </div>
+    </div>
 
-        <!-- Carousel Track -->
-        <div id="carousel-track" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbars space-x-6 px-[5vw] md:px-[20vw] py-4 items-start h-full">
-            <!-- JS will inject day cards here -->
-        </div>
-    </main>
+    <input id="file-input" type="file" accept=".json,application/json" class="hidden">
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] bg-gray-800 border border-gray-600 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-2xl hidden text-center max-w-[90vw]"></div>
 
     <script>
+        // --- NAV ---
+        fetch('nav.html').then(r => r.ok ? r.text() : '').then(d => { document.getElementById('nav-placeholder').innerHTML = d; }).catch(() => {});
 
-// --- NAV ---
-  fetch('nav.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('nav-placeholder').innerHTML = data;
-    });
-        
-        const workoutData = [
-            {
-                id: "day1",
-                dayTitle: "Day 1: Shoulders, Traps, Triceps",
-                exercises: [
-                    { id: "d1e1", name: "Smith Machine Shoulder Press", reps: "8-10", pct: 0.75 },
-                    { id: "d1e2", name: "Seated Dumbbell Lateral Raise", reps: "8-10", pct: 0.75 },
-                    { id: "d1e3", name: "One-Arm Cable Lateral Raise", reps: "8-10", pct: 0.75 },
-                    { id: "d1e4", name: "Dumbbell Shrugs", reps: "10-12", pct: 0.70 },
-                    { id: "d1e5", name: "Triceps Pushdowns", reps: "8-10", pct: 0.75 },
-                    { id: "d1e6", name: "Lying EZ-Bar Extensions", reps: "8-10", pct: 0.75 },
-                    { id: "d1e7", name: "Reverse-Grip One-Arm Cable Pushdowns", reps: "10-12", pct: 0.70 }
-                ]
-            },
-            {
-                id: "day2",
-                dayTitle: "Day 2: Back & Rear Delts",
-                exercises: [
-                    { id: "d2e1", name: "Dumbbell Pullover", reps: "8-10", pct: 0.75 },
-                    { id: "d2e2", name: "Hammer Strength Lat Pulldown", reps: "8-10", pct: 0.75 },
-                    { id: "d2e3", name: "Barbell Row", reps: "8-10", pct: 0.75 },
-                    { id: "d2e4", name: "One-Arm Hammer Strength Row", reps: "8-10", pct: 0.75 },
-                    { id: "d2e5", name: "Rear Delt Flyes", reps: "8-10", pct: 0.75 },
-                    { id: "d2e6", name: "Bent Over Dumbbell Raise", reps: "8-10", pct: 0.75 },
-                    { id: "d2e7", name: "Weighted Hyperextension", reps: "10-12", pct: 0.70 },
-                    { id: "d2e8", name: "Deadlifts", reps: "8", pct: 0.80 } // Treated as 6-8 range, 80%
-                ]
-            },
-            {
-                id: "day3",
-                dayTitle: "Day 3: Chest, Biceps",
-                exercises: [
-                    { id: "d3e1", name: "Incline Barbell Press", reps: "6-8", pct: 0.80 },
-                    { id: "d3e2", name: "Hammer Strength Seated Chest Press", reps: "6-8", pct: 0.80 },
-                    { id: "d3e3", name: "Incline Dumbbell Flyes", reps: "6-8", pct: 0.80 },
-                    { id: "d3e4", name: "Incline Dumbbell Curl", reps: "6-8", pct: 0.80 },
-                    { id: "d3e5", name: "EZ-Bar Curl", reps: "6-8", pct: 0.80 }
-                ]
-            },
-            {
-                id: "day4",
-                dayTitle: "Day 4: Legs",
-                exercises: [
-                    { id: "d4e1", name: "Leg Extensions", reps: "10-12", pct: 0.70 },
-                    { id: "d4e2", name: "Leg Press", reps: "10-12", pct: 0.70 },
-                    { id: "d4e3", name: "Hack Squat", reps: "8-10", pct: 0.75 },
-                    { id: "d4e4", name: "Lying Leg Curl", reps: "8-10", pct: 0.75 },
-                    { id: "d4e5", name: "Stiff-Leg Deadlift", reps: "8-10", pct: 0.75 },
-                    { id: "d4e6", name: "Standing Calf Raise", reps: "10-12", pct: 0.70 }
-                ]
-            }
+        // =====================================================================
+        // CONFIG
+        // Optional: paste a YouTube Data API key here (restricted to your
+        // domain) so every visitor gets the video feed without their own key.
+        // =====================================================================
+        const DEFAULT_YT_KEY = '';
+        const YT_HANDLE = '@DorianYatesNutrition';
+
+        // The Blood & Guts program. "q" is the search term used to find
+        // Dorian's videos for that exercise.
+        const PROGRAM = {
+            days: [
+                { short: "Shoulders, Traps, Triceps", exercises: [
+                    { name: "Smith Machine Shoulder Press", reps: "8-10", pct: 0.75, q: "shoulder press" },
+                    { name: "Seated Dumbbell Lateral Raise", reps: "8-10", pct: 0.75, q: "lateral raise" },
+                    { name: "One-Arm Cable Lateral Raise", reps: "8-10", pct: 0.75, q: "cable lateral raise" },
+                    { name: "Dumbbell Shrugs", reps: "10-12", pct: 0.70, q: "shrugs" },
+                    { name: "Triceps Pushdowns", reps: "8-10", pct: 0.75, q: "triceps pushdown" },
+                    { name: "Lying EZ-Bar Extensions", reps: "8-10", pct: 0.75, q: "triceps extension" },
+                    { name: "Reverse-Grip One-Arm Cable Pushdowns", reps: "10-12", pct: 0.70, q: "reverse grip pushdown" }
+                ]},
+                { short: "Back & Rear Delts", exercises: [
+                    { name: "Dumbbell Pullover", reps: "8-10", pct: 0.75, q: "pullover" },
+                    { name: "Hammer Strength Lat Pulldown", reps: "8-10", pct: 0.75, q: "pulldown" },
+                    { name: "Barbell Row", reps: "8-10", pct: 0.75, q: "barbell row" },
+                    { name: "One-Arm Hammer Strength Row", reps: "8-10", pct: 0.75, q: "one arm row" },
+                    { name: "Rear Delt Flyes", reps: "8-10", pct: 0.75, q: "rear delt" },
+                    { name: "Bent Over Dumbbell Raise", reps: "8-10", pct: 0.75, q: "bent over raise" },
+                    { name: "Weighted Hyperextension", reps: "10-12", pct: 0.70, q: "hyperextension" },
+                    { name: "Deadlifts", reps: "6-8", pct: 0.80, q: "deadlift" }
+                ]},
+                { short: "Chest, Biceps", exercises: [
+                    { name: "Incline Barbell Press", reps: "6-8", pct: 0.80, q: "incline press" },
+                    { name: "Hammer Strength Seated Chest Press", reps: "6-8", pct: 0.80, q: "chest press" },
+                    { name: "Incline Dumbbell Flyes", reps: "6-8", pct: 0.80, q: "incline flyes" },
+                    { name: "Incline Dumbbell Curl", reps: "6-8", pct: 0.80, q: "incline curl" },
+                    { name: "EZ-Bar Curl", reps: "6-8", pct: 0.80, q: "barbell curl" }
+                ]},
+                { short: "Legs", exercises: [
+                    { name: "Leg Extensions", reps: "10-12", pct: 0.70, q: "leg extension" },
+                    { name: "Leg Press", reps: "10-12", pct: 0.70, q: "leg press" },
+                    { name: "Hack Squat", reps: "8-10", pct: 0.75, q: "hack squat" },
+                    { name: "Lying Leg Curl", reps: "8-10", pct: 0.75, q: "leg curl" },
+                    { name: "Stiff-Leg Deadlift", reps: "8-10", pct: 0.75, q: "stiff leg deadlift" },
+                    { name: "Standing Calf Raise", reps: "10-12", pct: 0.70, q: "calf raise" }
+                ]}
+            ]
+        };
+
+        // Every exercise: 2 warm-ups (% of estimated 1RM), 1 working set to failure, 1 rest-pause set.
+        function setTemplate(ex) {
+            return [
+                { type: 'warmup',    label: 'W1',   pct: 0.50,   target: '12' },
+                { type: 'warmup',    label: 'W2',   pct: 0.70,   target: '8' },
+                { type: 'working',   label: 'WORK', pct: ex.pct, target: ex.reps },
+                { type: 'restpause', label: 'RP',   pct: ex.pct, target: '1-3' }
+            ];
+        }
+
+        const SPRINT_PHASES = [
+            { name: 'Easy warm-up', sec: 180, kind: 'easy' },
+            { name: 'Sprint 1 — all out', sec: 20, kind: 'sprint' },
+            { name: 'Easy recovery', sec: 120, kind: 'easy' },
+            { name: 'Sprint 2 — all out', sec: 20, kind: 'sprint' },
+            { name: 'Easy recovery', sec: 120, kind: 'easy' },
+            { name: 'Sprint 3 — all out', sec: 20, kind: 'sprint' },
+            { name: 'Cool-down', sec: 180, kind: 'easy' }
         ];
+        const SPRINT_TOTAL = SPRINT_PHASES.reduce((n, p) => n + p.sec, 0);
+        const ZONE2_GOAL = 30 * 60;
+        const MACHINES = ['Stationary bike', 'Incline treadmill walk', 'Stair climber', 'Cross trainer', 'Rower', 'Outdoor walk / run'];
 
-        function initApp() {
-            renderMasterConfig();
-            renderCarousel();
-            setupAccordion();
-            setupInputs();
+        // =====================================================================
+        // STORAGE + DATA
+        // =====================================================================
+        const KEY = 'bg-log-v2', KEY_VIEW = 'bg-view-v2', KEY_YT = 'bg-yt-key', KEY_YT_CACHE = 'bg-yt-cache-v1', KEY_CH = 'bg-yt-channel';
+        const store = {
+            get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+            set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+            del(k) { try { localStorage.removeItem(k); } catch {} }
+        };
+
+        function blankData() {
+            return {
+                app: 'blood-and-guts', version: 2,
+                settings: { unit: 'kg', roundTo: 2.5, age: '', restPauseSeconds: 10, cardioTarget: 3 },
+                oneRMs: {}, sessions: [], cardio: [], videos: {}, active: null, cardioActive: null
+            };
+        }
+        function mergeData(d) {
+            const b = blankData();
+            if (!d || typeof d !== 'object' || Array.isArray(d)) return b;
+            return {
+                ...b, ...d,
+                settings: { ...b.settings, ...(d.settings || {}) },
+                oneRMs: d.oneRMs && typeof d.oneRMs === 'object' ? d.oneRMs : {},
+                sessions: Array.isArray(d.sessions) ? d.sessions : [],
+                cardio: Array.isArray(d.cardio) ? d.cardio : [],
+                videos: d.videos && typeof d.videos === 'object' ? d.videos : {},
+                active: d.active || null,
+                cardioActive: d.cardioActive || null
+            };
         }
 
-        function renderMasterConfig() {
-            const container = document.getElementById('master-inputs-container');
-            let html = '';
+        let data = mergeData(store.get(KEY));
+        // carry over 1RMs typed into the earlier version of this page
+        (function migrate() {
+            const old = store.get('bg-1rms-v1');
+            if (old && !Object.keys(data.oneRMs).length) {
+                Object.entries(old).forEach(([k, v]) => { const n = parseFloat(v); if (n > 0) data.oneRMs[k] = n; });
+                save();
+            }
+        })();
+        function save() { store.set(KEY, data); }
 
-            workoutData.forEach(day => {
-                html += `
-                    <div class="flex flex-col space-y-3">
-                        <h3 class="text-blood-400 font-bold uppercase text-sm border-b border-gray-700 pb-1 mb-2">${day.dayTitle}</h3>
-                `;
-                
-                day.exercises.forEach(ex => {
-                    html += `
-                        <div class="flex flex-col">
-                            <label for="input-${ex.id}" class="text-xs text-gray-400 mb-1 leading-tight">${ex.name}</label>
-                            <div class="relative">
-                                <input type="number" id="input-${ex.id}" data-ex-id="${ex.id}" placeholder="Enter 1RM"
-                                    class="rm-master-input w-full bg-gray-800 border border-gray-600 rounded-md py-1.5 px-3 text-white text-sm focus:border-blood-500 focus:ring-1 focus:ring-blood-500 outline-none transition-all">
-                                <span class="absolute right-3 top-1.5 text-xs text-gray-500 font-medium pointer-events-none">lbs/kg</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `</div>`;
+        let view = store.get(KEY_VIEW) || 'day-0';
+        let cardioMode = 'zone2';
+        let progressKey = null;
+
+        // =====================================================================
+        // HELPERS
+        // =====================================================================
+        const $ = (s, r = document) => r.querySelector(s);
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const slug = (s) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const exKey = (ex) => slug(ex.name);
+        const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+        const fmt = (n) => (n === null || n === undefined || n === '' || isNaN(n)) ? '' : String(Math.round(n * 100) / 100);
+        const unit = () => data.settings.unit || 'kg';
+        const topOf = (reps) => { const m = String(reps).match(/\d+/g); return m ? +m[m.length - 1] : 0; };
+        const e1rm = (w, r) => r <= 1 ? w : w * (1 + r / 30); // Epley
+        function roundW(x) { const r = parseFloat(data.settings.roundTo) || 0; return r > 0 ? Math.round(x / r) * r : Math.round(x * 10) / 10; }
+        function fmtDur(sec) {
+            sec = Math.max(0, Math.floor(sec));
+            const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+            return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
+        }
+        const fmtDate = (iso) => new Date(iso).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+        function decodeHtml(s) { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; }
+
+        function allExercises() {
+            const out = [];
+            PROGRAM.days.forEach((d, di) => d.exercises.forEach(ex => out.push({ ...ex, key: exKey(ex), dayIndex: di })));
+            return out;
+        }
+        const findEx = (key) => allExercises().find(e => e.key === key);
+
+        function lastExercise(key) {
+            for (let i = data.sessions.length - 1; i >= 0; i--) {
+                const e = data.sessions[i].exercises.find(x => x.key === key);
+                if (e) return e;
+            }
+            return null;
+        }
+
+        function weekStart() {
+            const d = new Date(); d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Monday
+            return d.getTime();
+        }
+        const thisWeek = (arr) => arr.filter(x => new Date(x.date).getTime() >= weekStart());
+        const nextDay = () => data.sessions.length ? (data.sessions[data.sessions.length - 1].dayIndex + 1) % PROGRAM.days.length : 0;
+
+        let toastTimer;
+        function toast(msg) {
+            const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden');
+            clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), 2800);
+        }
+        function showDialog(title, html) { $('#dialog-title').textContent = title; $('#dialog-body').innerHTML = html; $('#dialog').classList.add('open'); }
+        function closeDialog() { $('#dialog').classList.remove('open'); }
+
+        // =====================================================================
+        // WEIGHT SUGGESTIONS (double progression)
+        // =====================================================================
+        function suggest(ex) {
+            const key = exKey(ex);
+            const prev = lastExercise(key);
+            const step = parseFloat(data.settings.roundTo) || 2.5;
+            let work = null, note = '';
+            const pw = prev && prev.sets.find(s => s.type === 'working');
+            if (pw && pw.weight > 0) {
+                if (pw.reps >= topOf(ex.reps)) { work = pw.weight + step; note = `Hit ${pw.reps} reps last time — add weight`; }
+                else { work = pw.weight; note = `Last time ${fmt(pw.weight)} × ${pw.reps} — beat it`; }
+            } else if (num(data.oneRMs[key]) > 0) {
+                work = roundW(num(data.oneRMs[key]) * ex.pct);
+                note = `${Math.round(ex.pct * 100)}% of your 1RM`;
+            } else {
+                note = 'Add a 1RM in Settings, or just log your first session';
+            }
+            const base = work ? work / ex.pct : null;
+            const weights = setTemplate(ex).map(t => t.type === 'warmup' ? (base ? roundW(base * t.pct) : '') : (work ?? ''));
+            return { weights, prev, note };
+        }
+
+        // =====================================================================
+        // RENDER: chrome
+        // =====================================================================
+        function go(v) {
+            view = v; store.set(KEY_VIEW, v);
+            render();
+            const nav = $('nav');
+            if (window.scrollY > nav.offsetTop) window.scrollTo({ top: nav.offsetTop, behavior: 'smooth' });
+        }
+
+        function render() {
+            renderHeader(); renderPills(); renderActiveBar();
+            if (view.startsWith('day-')) renderDay(+view.split('-')[1]);
+            else if (view === 'cardio') renderCardio();
+            else if (view === 'history') renderHistory();
+            else if (view === 'progress') renderProgress();
+            else if (view === 'settings') renderSettings();
+            else { view = 'day-0'; renderDay(0); }
+        }
+
+        function renderHeader() {
+            const w = thisWeek(data.sessions).length, c = thisWeek(data.cardio).length;
+            $('#week-summary').innerHTML = `This week: <b class="text-white">${w}/${PROGRAM.days.length}</b> workouts · <b class="text-blue-300">${c}/${data.settings.cardioTarget || 3}</b> cardio`;
+        }
+
+        function renderPills() {
+            const nd = nextDay();
+            const pills = [
+                ...PROGRAM.days.map((d, i) => ({ id: 'day-' + i, top: `Day ${i + 1}`, sub: d.short, next: i === nd })),
+                { id: 'cardio', top: 'Cardio', sub: 'Off days' },
+                { id: 'history', top: 'History', sub: `${data.sessions.length + data.cardio.length} logged` },
+                { id: 'progress', top: 'Progress', sub: 'Charts' },
+                { id: 'settings', top: 'Settings', sub: '1RMs & data' }
+            ];
+            $('#pills').innerHTML = pills.map(p => `
+                <button onclick="go('${p.id}')" data-pill="${p.id}" class="relative shrink-0 flex flex-col items-start text-left px-4 py-2 rounded-full border border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700 transition active:scale-95 ${view === p.id ? 'pill-active' : ''}">
+                    <span class="text-sm font-black uppercase tracking-tight leading-none">${esc(p.top)}</span>
+                    <span class="text-[11px] font-medium opacity-80 leading-tight mt-0.5 whitespace-nowrap">${esc(p.sub)}</span>
+                    ${p.next ? '<span class="absolute -top-1.5 right-2 bg-warning-500 text-black text-[9px] font-black uppercase px-1.5 rounded-full">Next</span>' : ''}
+                </button>`).join('');
+            const act = $(`[data-pill="${view}"]`);
+            if (act) act.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+
+        function renderActiveBar() {
+            const bar = $('#active-bar');
+            const a = data.active, ca = data.cardioActive;
+            let h = '';
+            if (a && view !== 'day-' + a.dayIndex) {
+                h += `<div class="max-w-3xl mx-auto px-4 pb-3"><div class="flex items-center justify-between gap-3 bg-blood-900/40 border border-blood-600/50 rounded-xl px-4 py-2">
+                    <span class="text-sm font-bold"><span class="inline-block w-2 h-2 rounded-full bg-blood-500 animate-pulse mr-2"></span>Day ${a.dayIndex + 1} in progress · <span class="elapsed font-mono">${fmtDur((Date.now() - a.startedAt) / 1000)}</span></span>
+                    <button onclick="go('day-${a.dayIndex}')" class="text-xs font-black uppercase bg-blood-600 hover:bg-blood-500 px-3 py-1.5 rounded-lg">Resume</button></div></div>`;
+            }
+            if (ca && view !== 'cardio') {
+                h += `<div class="max-w-3xl mx-auto px-4 pb-3"><div class="flex items-center justify-between gap-3 bg-blue-900/40 border border-blue-700/60 rounded-xl px-4 py-2">
+                    <span class="text-sm font-bold"><span class="inline-block w-2 h-2 rounded-full bg-blue-400 ${ca.running ? 'animate-pulse' : ''} mr-2"></span>Cardio ${ca.running ? 'running' : 'paused'} · <span class="cardio-elapsed font-mono">${fmtDur(cardioElapsed() / 1000)}</span></span>
+                    <button onclick="go('cardio')" class="text-xs font-black uppercase bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg">Open</button></div></div>`;
+            }
+            bar.innerHTML = h;
+        }
+
+        // =====================================================================
+        // RENDER: training day
+        // =====================================================================
+        function renderDay(di) {
+            const day = PROGRAM.days[di];
+            const a = data.active;
+            const activeHere = a && a.dayIndex === di;
+            const locked = a && a.dayIndex !== di;
+            let h = `<section class="fade-in">
+                <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-blood-400">Day ${di + 1}</p>
+                        <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight leading-tight">${esc(day.short)}</h2>
+                    </div>
+                    <div id="day-controls">${dayControls(di)}</div>
+                </div>
+                <p class="text-xs text-gray-500 mb-4">Two warm-ups, then one all-out working set and a rest-pause. Tick each set as you finish it.</p>`;
+            if (locked) h += `<div class="mb-4 text-sm bg-gray-800 border border-gray-700 rounded-xl px-4 py-3">Day ${a.dayIndex + 1} is still in progress. <button onclick="go('day-${a.dayIndex}')" class="font-bold text-blood-400 underline">Go to it</button> and finish it before logging this day.</div>`;
+            day.exercises.forEach(ex => { h += exerciseCard(ex, activeHere, locked); });
+            if (activeHere) h += `<button onclick="finishWorkout()" class="w-full mt-2 bg-green-600 hover:bg-green-500 text-white font-black uppercase tracking-tight py-4 rounded-2xl shadow-lg active:scale-[0.99] transition">Finish Workout</button>`;
+            h += `</section>`;
+            $('#view').innerHTML = h;
+        }
+
+        function dayControls(di) {
+            const a = data.active;
+            if (a && a.dayIndex === di) {
+                return `<div class="flex items-center gap-2">
+                    <span class="elapsed font-mono font-bold text-lg text-white bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-lg">${fmtDur((Date.now() - a.startedAt) / 1000)}</span>
+                    <button onclick="discardWorkout()" class="text-xs font-bold text-gray-400 hover:text-white px-2 py-2">Discard</button>
+                    <button onclick="finishWorkout()" class="bg-green-600 hover:bg-green-500 text-white text-sm font-black uppercase px-4 py-2 rounded-xl active:scale-95 transition">Finish</button>
+                </div>`;
+            }
+            if (a) return '';
+            return `<button onclick="startWorkout(${di})" class="bg-blood-600 hover:bg-blood-500 text-white text-sm font-black uppercase px-5 py-2.5 rounded-xl shadow-lg active:scale-95 transition">Start Workout</button>`;
+        }
+
+        function exerciseCard(ex, activeHere, locked) {
+            const key = exKey(ex);
+            const sug = suggest(ex);
+            const tmpl = setTemplate(ex);
+            const rows = activeHere ? (data.active.entries[key] || []) : null;
+            const savedN = (data.videos[key] || []).length;
+            let h = `<article class="bg-gray-800 border border-gray-700 rounded-2xl p-4 md:p-5 mb-4 shadow-lg">
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <div class="min-w-0">
+                        <h3 class="font-bold text-lg leading-tight">${esc(ex.name)}</h3>
+                        <p class="text-xs text-gray-400 mt-1">${esc(ex.reps)} reps · ${Math.round(ex.pct * 100)}% 1RM</p>
+                        <p class="text-xs text-warning-400 font-semibold mt-1">${esc(sug.note)}</p>
+                    </div>
+                    <button onclick="openFeed('${key}')" class="shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white active:scale-95 transition">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Videos${savedN ? ` · ${savedN}` : ''}
+                    </button>
+                </div>
+                <div class="set-grid text-[10px] uppercase tracking-wider text-gray-500 font-bold px-1 pb-1">
+                    <span>Set</span><span>Previous</span><span class="text-center">${esc(unit())}</span><span class="text-center">Reps</span><span></span>
+                </div>`;
+            tmpl.forEach((t, i) => {
+                const r = rows ? (rows[i] || { weight: '', reps: '', done: false }) : { weight: sug.weights[i], reps: '', done: false };
+                const p = sug.prev && sug.prev.sets.find(s => s.label === t.label);
+                const color = t.type === 'warmup' ? 'text-warning-400' : t.type === 'working' ? 'text-blood-400' : 'text-purple-300';
+                h += `<div class="set-row set-grid items-center py-1.5 px-1 rounded-lg transition-colors ${r.done ? 'is-done' : ''}" data-key="${key}" data-i="${i}">
+                    <span class="text-xs font-black ${color}">${t.label}</span>
+                    <span class="text-xs text-gray-400 truncate">${p ? `${fmt(p.weight)} × ${p.reps}` : '—'}</span>
+                    <input data-field="weight" class="set-input" type="number" inputmode="decimal" step="any" value="${r.weight === '' || r.weight == null ? '' : fmt(r.weight)}" placeholder="–" ${locked ? 'disabled' : ''}>
+                    <input data-field="reps" class="set-input" type="number" inputmode="numeric" value="${r.reps ?? ''}" placeholder="${esc(t.target)}" ${locked ? 'disabled' : ''}>
+                    <button class="tick" aria-label="Complete set" ${locked ? 'disabled' : ''}>✓</button>
+                </div>`;
             });
-            
-            container.innerHTML = html;
+            h += `<button class="timer-btn mt-3 flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-2.5 px-4 rounded-xl border border-gray-600 transition-all active:scale-95 w-full" onclick="startTimer(this)">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="btn-text whitespace-nowrap">Start Rest-Pause (${data.settings.restPauseSeconds || 10}s)</span>
+                </button>
+            </article>`;
+            return h;
         }
 
-        function renderCarousel() {
-            const track = document.getElementById('carousel-track');
-            let html = '';
-
-            workoutData.forEach(day => {
-                html += `
-                    <div class="snap-center shrink-0 w-[90vw] md:w-[60vw] max-w-[800px] bg-gray-800 rounded-3xl border border-gray-700 shadow-2xl overflow-hidden flex flex-col h-[75vh] md:h-[65vh]">
-                        
-                        <!-- Card Header -->
-                        <div class="bg-gray-800 px-6 py-5 border-b border-gray-700 sticky top-0 z-10">
-                            <h2 class="text-xl md:text-3xl font-black text-white uppercase tracking-tight">${day.dayTitle}</h2>
-                        </div>
-                        
-                        <!-- Card Body (Scrollable) -->
-                        <div class="divide-y divide-gray-700 overflow-y-auto hide-scrollbars flex-grow p-2 md:p-4">
-                `;
-
-                day.exercises.forEach(ex => {
-                    const pctDisplay = Math.round(ex.pct * 100) + '%';
-                    
-                    html += `
-                        <div class="p-4 md:p-6 flex flex-col gap-5 hover:bg-gray-750/50 transition-colors rounded-2xl group">
-                            <!-- Exercise Title -->
-                            <div>
-                                <h4 class="font-bold text-gray-100 text-lg md:text-xl leading-tight">${ex.name}</h4>
-                            </div>
-                            
-                            <!-- Display Grid -->
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
-                                
-                                <!-- Warm up Sets (Span 7 cols on desktop) -->
-                                <div class="md:col-span-7 grid grid-cols-2 gap-3">
-                                    <!-- Warm up 1 -->
-                                    <div class="bg-warning-900/20 p-3 rounded-xl border border-warning-700/40 flex flex-col items-center justify-center text-center">
-                                        <span class="text-[10px] uppercase text-warning-400 font-bold tracking-wider mb-1">Warm-up 1 (50%)</span>
-                                        <span class="text-sm text-yellow-100/70 font-medium mb-1">12 Reps</span>
-                                        <span id="wu1-${ex.id}" class="text-2xl font-black text-warning-400">--</span>
-                                    </div>
-                                    
-                                    <!-- Warm up 2 -->
-                                    <div class="bg-warning-900/20 p-3 rounded-xl border border-warning-700/40 flex flex-col items-center justify-center text-center">
-                                        <span class="text-[10px] uppercase text-warning-400 font-bold tracking-wider mb-1">Warm-up 2 (70%)</span>
-                                        <span class="text-sm text-yellow-100/70 font-medium mb-1">8 Reps</span>
-                                        <span id="wu2-${ex.id}" class="text-2xl font-black text-warning-400">--</span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Working Set + Button (Span 5 cols on desktop) -->
-                                <div class="md:col-span-5 flex flex-col gap-3">
-                                    <div class="bg-blood-900/20 p-3 rounded-xl border border-blood-600/50 flex flex-col items-center justify-center text-center flex-grow relative overflow-hidden">
-                                        <div class="absolute inset-0 bg-gradient-to-br from-blood-900/20 to-transparent pointer-events-none"></div>
-                                        <span class="text-[10px] uppercase text-blood-400 font-bold tracking-wider mb-1 relative z-10">Working (${pctDisplay})</span>
-                                        <span class="text-sm text-red-100/70 font-medium mb-1 relative z-10">${ex.reps} Reps</span>
-                                        <span id="work-${ex.id}" class="text-3xl font-black text-blood-500 drop-shadow-md relative z-10">--</span>
-                                    </div>
-                                    
-                                    <!-- Rest Pause Button -->
-                                    <button class="timer-btn flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-3 px-4 rounded-xl border border-gray-600 transition-all active:scale-95 shadow-md w-full"
-                                        onclick="startTimer(this)">
-                                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        <span class="btn-text whitespace-nowrap">Start Rest Pause</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                html += `</div></div>`;
+        // =====================================================================
+        // WORKOUT LOGGING
+        // =====================================================================
+        function ensureActive(di) {
+            if (data.active) {
+                if (data.active.dayIndex === di) return true;
+                toast(`Finish Day ${data.active.dayIndex + 1} first`);
+                return false;
+            }
+            const entries = {};
+            PROGRAM.days[di].exercises.forEach(ex => {
+                const sug = suggest(ex);
+                entries[exKey(ex)] = setTemplate(ex).map((t, i) => ({ weight: sug.weights[i] === '' ? '' : fmt(sug.weights[i]), reps: '', done: false }));
             });
-
-            track.innerHTML = html;
+            data.active = { dayIndex: di, startedAt: Date.now(), entries };
+            save();
+            const dc = $('#day-controls'); if (dc) dc.innerHTML = dayControls(di);
+            renderActiveBar();
+            return true;
         }
 
-        function setupAccordion() {
-            const toggle = document.getElementById('accordion-toggle');
-            const content = document.getElementById('accordion-content');
-            const icon = document.getElementById('accordion-icon');
-            
-            toggle.addEventListener('click', () => {
-                content.classList.toggle('open');
-                if (content.classList.contains('open')) {
-                    icon.classList.add('rotate-180');
+        function getEntry(key, i) {
+            const arr = data.active.entries[key] || (data.active.entries[key] = []);
+            return arr[i] || (arr[i] = { weight: '', reps: '', done: false });
+        }
+
+        function startWorkout(di) { if (ensureActive(di)) { renderDay(di); toast("Workout started — let's go"); } }
+
+        function discardWorkout() {
+            if (!confirm('Discard this workout? Nothing will be saved.')) return;
+            data.active = null; save(); render();
+        }
+
+        function finishWorkout() {
+            const a = data.active; if (!a) return;
+            const day = PROGRAM.days[a.dayIndex];
+            const exercises = [];
+            day.exercises.forEach(ex => {
+                const key = exKey(ex), tmpl = setTemplate(ex), rows = a.entries[key] || [];
+                const sets = rows.map((r, i) => r && r.done ? { type: tmpl[i].type, label: tmpl[i].label, weight: num(r.weight), reps: num(r.reps) } : null).filter(Boolean);
+                if (sets.length) exercises.push({ key, name: ex.name, sets });
+            });
+            if (!exercises.length) {
+                if (confirm('No sets ticked yet. Discard this workout?')) { data.active = null; save(); render(); }
+                return;
+            }
+            const durationSec = Math.round((Date.now() - a.startedAt) / 1000);
+            data.sessions.push({ id: uid(), date: new Date().toISOString(), dayIndex: a.dayIndex, dayTitle: `Day ${a.dayIndex + 1}: ${day.short}`, durationSec, exercises });
+
+            const prs = [];
+            exercises.forEach(e => {
+                const w = e.sets.find(s => s.type === 'working');
+                if (!w || !w.weight || !w.reps || w.reps > 15) return;
+                const est = Math.round(e1rm(w.weight, w.reps) * 10) / 10;
+                if (est > num(data.oneRMs[e.key]) + 0.01) { data.oneRMs[e.key] = est; prs.push(`${e.name}: ${fmt(est)} ${unit()}`); }
+            });
+            data.active = null; save();
+            const sets = exercises.reduce((n, e) => n + e.sets.length, 0);
+            const vol = exercises.reduce((n, e) => n + e.sets.reduce((m, s) => m + s.weight * s.reps, 0), 0);
+            showDialog('Workout saved 💪', `
+                <p><b class="text-white">${esc(day.short)}</b> · ${fmtDur(durationSec)} · ${sets} sets · ${fmt(Math.round(vol))} ${unit()} volume</p>
+                ${prs.length ? `<p class="pt-2 font-bold text-warning-400">New estimated 1RMs</p><ul class="list-disc pl-5">${prs.map(p => `<li>${esc(p)}</li>`).join('')}</ul>` : ''}
+                <p class="pt-2 text-gray-400">Next up: Day ${nextDay() + 1}. Remember your cardio on off days.</p>`);
+            render();
+        }
+
+        // =====================================================================
+        // CARDIO
+        // =====================================================================
+        function cardioElapsed() {
+            const ca = data.cardioActive; if (!ca) return 0;
+            return ca.acc + (ca.running ? Date.now() - ca.startedAt : 0);
+        }
+        function phaseAt(e) {
+            let t = 0;
+            for (let i = 0; i < SPRINT_PHASES.length; i++) {
+                if (e < t + SPRINT_PHASES[i].sec) return { index: i, phase: SPRINT_PHASES[i], rem: t + SPRINT_PHASES[i].sec - e };
+                t += SPRINT_PHASES[i].sec;
+            }
+            return { index: SPRINT_PHASES.length - 1, phase: SPRINT_PHASES[SPRINT_PHASES.length - 1], rem: 0, done: true };
+        }
+        function zone2Range() {
+            const age = parseInt(data.settings.age);
+            if (!age || age < 10 || age > 100) return null;
+            const max = 220 - age;
+            return [Math.round(max * 0.6), Math.round(max * 0.7)];
+        }
+        function setCardioMode(m) { cardioMode = m; renderCardio(); }
+
+        function renderCardio() {
+            const ca = data.cardioActive;
+            const target = data.settings.cardioTarget || 3;
+            const done = thisWeek(data.cardio).length;
+            const hr = zone2Range();
+            let h = `<section class="fade-in">
+                <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-blue-400">Off days</p>
+                        <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight">Cardio</h2>
+                    </div>
+                    <div class="flex items-center gap-1.5" title="Cardio sessions this week">
+                        ${Array.from({ length: target }, (_, i) => `<span class="w-3.5 h-3.5 rounded-full ${i < done ? 'bg-blue-400' : 'bg-gray-700'}"></span>`).join('')}
+                        <span class="text-xs text-gray-400 ml-1 font-semibold">${done}/${target} this week</span>
+                    </div>
+                </div>`;
+
+            if (!ca) {
+                h += `<div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 md:p-5 shadow-lg space-y-4">
+                    <div class="grid grid-cols-2 gap-2 bg-gray-900 p-1 rounded-xl">
+                        <button onclick="setCardioMode('zone2')" class="py-2.5 rounded-lg text-sm font-black uppercase ${cardioMode === 'zone2' ? 'bg-blue-600 text-white' : 'text-gray-400'}">Zone 2 · 30 min</button>
+                        <button onclick="setCardioMode('sprint')" class="py-2.5 rounded-lg text-sm font-black uppercase ${cardioMode === 'sprint' ? 'bg-blood-600 text-white' : 'text-gray-400'}">Sprints · 3×20s</button>
+                    </div>
+                    ${cardioMode === 'zone2' ? `
+                        <p class="text-sm text-gray-300">Blood & Guts off-day cardio: steady and easy enough to hold a conversation. 30 minutes, 3 times a week.</p>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <label class="text-xs text-gray-400 font-semibold">Your age</label>
+                            <input id="cardio-age" type="number" inputmode="numeric" value="${esc(data.settings.age)}" placeholder="e.g. 35" class="set-input" style="width:5rem">
+                            <span class="text-sm font-bold ${hr ? 'text-blue-300' : 'text-gray-500'}">${hr ? `Zone 2 ≈ ${hr[0]}–${hr[1]} bpm` : 'Enter age for a heart-rate target'}</span>
+                        </div>` : `
+                        <p class="text-sm text-gray-300">Dorian's later approach: three 20-second all-out sprints instead of long steady cardio. Easy pedalling in between (recovery set to 2 min here). Total ${fmtDur(SPRINT_TOTAL)}.</p>
+                        <div class="flex flex-wrap gap-1.5">${SPRINT_PHASES.map(p => `<span class="text-[11px] font-bold px-2 py-1 rounded-md ${p.kind === 'sprint' ? 'bg-blood-900/50 text-blood-400' : 'bg-gray-700 text-gray-300'}">${p.kind === 'sprint' ? '20s SPRINT' : `${p.sec / 60}m easy`}</span>`).join('')}</div>`}
+                    <div>
+                        <label class="text-xs text-gray-400 font-semibold block mb-1">Machine</label>
+                        <select id="cardio-machine" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2.5 text-sm font-semibold">${MACHINES.map(m => `<option>${m}</option>`).join('')}</select>
+                    </div>
+                    <button onclick="startCardio()" class="w-full ${cardioMode === 'zone2' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blood-600 hover:bg-blood-500'} text-white font-black uppercase py-4 rounded-2xl shadow-lg active:scale-[0.99] transition">Start ${cardioMode === 'zone2' ? 'Zone 2' : 'Sprint Session'}</button>
+                </div>`;
+            } else {
+                const e = cardioElapsed() / 1000;
+                const accent = ca.mode === 'zone2' ? 'blue' : 'blood';
+                h += `<div class="bg-gray-800 border border-gray-700 rounded-2xl p-5 shadow-lg text-center space-y-4">
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-400">${ca.mode === 'zone2' ? 'Zone 2' : 'Sprint intervals'} · ${esc(ca.machine)}</p>`;
+                if (ca.mode === 'zone2') {
+                    h += `<p><span id="cardio-clock" class="text-6xl font-black font-mono tracking-tight">${fmtDur(e)}</span><span class="text-gray-500 font-bold"> / 30:00</span></p>
+                        <div class="h-3 bg-gray-900 rounded-full overflow-hidden"><div id="cardio-bar" class="h-full bg-blue-500 transition-all" style="width:${Math.min(100, e / ZONE2_GOAL * 100)}%"></div></div>
+                        <p class="text-sm font-bold text-blue-300">${hr ? `Hold ${hr[0]}–${hr[1]} bpm` : 'Keep it conversational — nose-breathing pace'}</p>`;
                 } else {
-                    icon.classList.remove('rotate-180');
+                    const p = phaseAt(e);
+                    h += `<p id="phase-name" class="text-3xl font-black uppercase ${p.phase.kind === 'sprint' ? 'text-blood-500' : 'text-gray-200'}">${esc(p.phase.name)}</p>
+                        <p id="phase-rem" class="text-6xl font-black font-mono">${fmtDur(Math.ceil(p.rem))}</p>
+                        <p class="text-sm text-gray-400">Total <span id="cardio-clock" class="font-mono font-bold text-white">${fmtDur(e)}</span> / ${fmtDur(SPRINT_TOTAL)}</p>
+                        <div class="flex gap-1">${SPRINT_PHASES.map((ph, i) => `<div id="phase-${i}" class="h-2 rounded-full ${i < p.index ? 'bg-gray-500' : i === p.index ? (ph.kind === 'sprint' ? 'bg-blood-500' : 'bg-blue-400') : 'bg-gray-700'}" style="flex:${ph.sec}"></div>`).join('')}</div>`;
                 }
-            });
+                h += `<div class="flex items-center justify-center gap-2">
+                        <label class="text-xs text-gray-400 font-semibold">Avg HR (optional)</label>
+                        <input id="cardio-hr" type="number" inputmode="numeric" value="${esc(ca.avgHr || '')}" placeholder="bpm" class="set-input" style="width:5rem">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="discardCardio()" class="py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-sm font-bold">Discard</button>
+                        <button onclick="toggleCardio()" class="py-3 rounded-xl bg-${accent}-600 hover:bg-${accent}-500 text-white text-sm font-black uppercase">${ca.running ? 'Pause' : 'Resume'}</button>
+                        <button onclick="finishCardio()" class="py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-black uppercase">Finish</button>
+                    </div>
+                </div>`;
+            }
+
+            const recent = [...data.cardio].reverse().slice(0, 5);
+            if (recent.length) {
+                h += `<h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 mt-6 mb-2">Recent cardio</h3><div class="space-y-2">` +
+                    recent.map(c => `<div class="flex justify-between items-center bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm">
+                        <span><b>${fmtDate(c.date)}</b> · ${c.mode === 'zone2' ? 'Zone 2' : 'Sprints'} · ${esc(c.machine)}</span>
+                        <span class="text-gray-400 font-semibold">${fmt(c.minutes)} min${c.avgHr ? ` · ${c.avgHr} bpm` : ''}</span></div>`).join('') + `</div>`;
+            }
+            h += `</section>`;
+            $('#view').innerHTML = h;
         }
 
-        function setupInputs() {
-            // Find exercise data by ID helper
-            const getExData = (id) => {
-                for (const day of workoutData) {
-                    const ex = day.exercises.find(e => e.id === id);
-                    if (ex) return ex;
+        function startCardio() {
+            unlockAudio();
+            data.cardioActive = { mode: cardioMode, machine: $('#cardio-machine').value, startedAt: Date.now(), acc: 0, running: true, goalBeeped: false, phase: 0, avgHr: '' };
+            save(); playBeep(); render();
+        }
+        function toggleCardio() {
+            const ca = data.cardioActive; if (!ca) return;
+            unlockAudio();
+            if (ca.running) { ca.acc += Date.now() - ca.startedAt; ca.running = false; }
+            else { ca.startedAt = Date.now(); ca.running = true; }
+            save(); render();
+        }
+        function finishCardio() {
+            const ca = data.cardioActive; if (!ca) return;
+            const e = cardioElapsed() / 1000;
+            if (e < 60 && !confirm('Less than a minute recorded. Log it anyway?')) return;
+            data.cardio.push({ id: uid(), date: new Date().toISOString(), mode: ca.mode, machine: ca.machine, minutes: Math.round(e / 6) / 10, avgHr: num(ca.avgHr) || null });
+            data.cardioActive = null; save();
+            toast(`Cardio logged — ${thisWeek(data.cardio).length}/${data.settings.cardioTarget || 3} this week`);
+            render();
+        }
+        function discardCardio() {
+            if (!confirm('Discard this cardio session?')) return;
+            data.cardioActive = null; save(); render();
+        }
+
+        // =====================================================================
+        // HISTORY
+        // =====================================================================
+        function renderHistory() {
+            const items = [
+                ...data.sessions.map(s => ({ kind: 'lift', date: s.date, s })),
+                ...data.cardio.map(c => ({ kind: 'cardio', date: c.date, c }))
+            ].sort((a, b) => b.date.localeCompare(a.date));
+
+            let h = `<section class="fade-in"><h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">History</h2>`;
+            if (!items.length) h += `<p class="text-gray-400 text-sm bg-gray-800 border border-gray-700 rounded-2xl p-5">Nothing logged yet. Start a workout from a Day pill, or a cardio session on your off days.</p>`;
+            items.forEach(it => {
+                if (it.kind === 'lift') {
+                    const s = it.s;
+                    const sets = s.exercises.reduce((n, e) => n + e.sets.length, 0);
+                    const vol = s.exercises.reduce((n, e) => n + e.sets.reduce((m, x) => m + x.weight * x.reps, 0), 0);
+                    h += `<details class="bg-gray-800 border border-gray-700 rounded-2xl mb-3 overflow-hidden">
+                        <summary class="px-4 py-3 flex items-center justify-between gap-3">
+                            <div class="min-w-0"><p class="text-xs text-gray-400 font-semibold">${fmtDate(s.date)}</p><p class="font-bold truncate">${esc(s.dayTitle)}</p></div>
+                            <div class="flex items-center gap-3 shrink-0"><span class="text-xs text-gray-400 text-right">${fmtDur(s.durationSec)} · ${sets} sets<br>${fmt(Math.round(vol))} ${unit()}</span>
+                            <svg class="chev w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
+                        </summary>
+                        <div class="px-4 pb-4 space-y-2 border-t border-gray-700 pt-3">
+                            ${s.exercises.map(e => `<div><p class="text-sm font-semibold">${esc(e.name)}</p><p class="text-xs text-gray-400">${e.sets.map(x => `<span class="${x.type === 'working' ? 'text-blood-400 font-bold' : ''}">${x.label} ${fmt(x.weight)}×${x.reps}</span>`).join(' · ')}</p></div>`).join('')}
+                            <button onclick="deleteSession('${s.id}')" class="text-xs font-bold text-gray-500 hover:text-blood-400 pt-2">Delete workout</button>
+                        </div>
+                    </details>`;
+                } else {
+                    const c = it.c;
+                    h += `<div class="bg-gray-800 border border-gray-700 rounded-2xl mb-3 px-4 py-3 flex items-center justify-between gap-3">
+                        <div><p class="text-xs text-gray-400 font-semibold">${fmtDate(c.date)}</p><p class="font-bold"><span class="text-blue-300">Cardio</span> · ${c.mode === 'zone2' ? 'Zone 2' : 'Sprints'} · ${esc(c.machine)}</p></div>
+                        <div class="text-right shrink-0"><p class="text-xs text-gray-400">${fmt(c.minutes)} min${c.avgHr ? ` · ${c.avgHr} bpm` : ''}</p>
+                        <button onclick="deleteCardio('${c.id}')" class="text-[11px] font-bold text-gray-500 hover:text-blood-400">Delete</button></div>
+                    </div>`;
                 }
-                return null;
-            };
+            });
+            h += `</section>`;
+            $('#view').innerHTML = h;
+        }
+        function deleteSession(id) { if (!confirm('Delete this workout from your history?')) return; data.sessions = data.sessions.filter(s => s.id !== id); save(); render(); }
+        function deleteCardio(id) { if (!confirm('Delete this cardio session?')) return; data.cardio = data.cardio.filter(c => c.id !== id); save(); render(); }
 
-            const formatWeight = (val) => {
-                const num = val.toFixed(1);
-                return num.endsWith('.0') ? parseInt(num) : num;
-            };
+        // =====================================================================
+        // PROGRESS
+        // =====================================================================
+        function renderProgress() {
+            const all = allExercises();
+            if (!progressKey) {
+                const last = data.sessions[data.sessions.length - 1];
+                progressKey = last ? last.exercises[0].key : all[0].key;
+            }
+            const ex = findEx(progressKey) || all[0];
+            const pts = [];
+            data.sessions.forEach(s => {
+                const e = s.exercises.find(x => x.key === ex.key);
+                const w = e && e.sets.find(x => x.type === 'working');
+                if (w && w.weight && w.reps) pts.push({ date: s.date, w: w.weight, r: w.reps, est: e1rm(w.weight, w.reps) });
+            });
+            const best = pts.length ? Math.max(...pts.map(p => p.est)) : 0;
+            const last = pts[pts.length - 1];
 
-            document.getElementById('master-inputs-container').addEventListener('input', (e) => {
-                if (e.target.classList.contains('rm-master-input')) {
-                    const input = e.target;
-                    const exId = input.getAttribute('data-ex-id');
-                    const oneRM = parseFloat(input.value);
-                    const exData = getExData(exId);
+            let h = `<section class="fade-in"><h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">Progress</h2>
+                <select id="progress-select" class="w-full bg-gray-800 border border-gray-600 rounded-xl px-3 py-3 text-sm font-bold mb-4">
+                    ${PROGRAM.days.map((d, di) => `<optgroup label="Day ${di + 1}: ${esc(d.short)}">${d.exercises.map(x => `<option value="${exKey(x)}" ${exKey(x) === ex.key ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</optgroup>`).join('')}
+                </select>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    ${statCard('1RM (est.)', data.oneRMs[ex.key] ? `${fmt(data.oneRMs[ex.key])} ${unit()}` : '—')}
+                    ${statCard('Best e1RM', best ? `${fmt(Math.round(best * 10) / 10)} ${unit()}` : '—')}
+                    ${statCard('Last top set', last ? `${fmt(last.w)} × ${last.r}` : '—')}
+                    ${statCard('Sessions', pts.length)}
+                </div>`;
+            if (pts.length >= 2) h += `<div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 mb-4"><p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Estimated 1RM from working set</p>${chartSVG(pts)}</div>`;
+            else h += `<p class="text-sm text-gray-400 bg-gray-800 border border-gray-700 rounded-2xl p-4 mb-4">Log this exercise at least twice to see a chart.</p>`;
+            if (pts.length) {
+                h += `<div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden"><div class="grid grid-cols-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold px-4 py-2 border-b border-gray-700"><span>Date</span><span class="text-center">Working set</span><span class="text-right">e1RM</span></div>` +
+                    [...pts].reverse().slice(0, 12).map(p => `<div class="grid grid-cols-3 text-sm px-4 py-2 border-b border-gray-700/50"><span class="text-gray-400">${fmtDate(p.date)}</span><span class="text-center font-bold">${fmt(p.w)} × ${p.r}</span><span class="text-right text-blood-400 font-bold">${fmt(Math.round(p.est * 10) / 10)}</span></div>`).join('') + `</div>`;
+            }
+            h += `</section>`;
+            $('#view').innerHTML = h;
+        }
+        const statCard = (label, val) => `<div class="bg-gray-800 border border-gray-700 rounded-xl p-3"><p class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">${label}</p><p class="text-lg font-black">${val}</p></div>`;
 
-                    const elWu1 = document.getElementById(`wu1-${exId}`);
-                    const elWu2 = document.getElementById(`wu2-${exId}`);
-                    const elWork = document.getElementById(`work-${exId}`);
+        function chartSVG(pts) {
+            const W = 600, H = 220, px = 44, py = 22;
+            const ys = pts.map(p => p.est);
+            let lo = Math.min(...ys), hi = Math.max(...ys);
+            if (hi - lo < 1) { lo -= 1; hi += 1; }
+            const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;
+            const x = i => px + (pts.length === 1 ? 0 : i * (W - px * 2) / (pts.length - 1));
+            const y = v => H - py - (v - lo) / (hi - lo) * (H - py * 2);
+            const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.est).toFixed(1)}`).join(' ');
+            return `<svg viewBox="0 0 ${W} ${H}" class="w-full h-auto">
+                <line x1="${px}" x2="${W - px}" y1="${y(hi - pad)}" y2="${y(hi - pad)}" stroke="#374151" stroke-dasharray="4 4"/>
+                <line x1="${px}" x2="${W - px}" y1="${y(lo + pad)}" y2="${y(lo + pad)}" stroke="#374151" stroke-dasharray="4 4"/>
+                <text x="4" y="${y(hi - pad) + 4}" fill="#9ca3af" font-size="12" font-weight="700">${fmt(Math.round((hi - pad) * 10) / 10)}</text>
+                <text x="4" y="${y(lo + pad) + 4}" fill="#9ca3af" font-size="12" font-weight="700">${fmt(Math.round((lo + pad) * 10) / 10)}</text>
+                <polyline points="${line}" fill="none" stroke="#ef4444" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+                ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.est)}" r="4.5" fill="#111827" stroke="#ef4444" stroke-width="2.5"><title>${fmtDate(p.date)}: ${fmt(p.w)}×${p.r}</title></circle>`).join('')}
+                <text x="${px}" y="${H - 2}" fill="#6b7280" font-size="11">${fmtDate(pts[0].date)}</text>
+                <text x="${W - px}" y="${H - 2}" fill="#6b7280" font-size="11" text-anchor="end">${fmtDate(pts[pts.length - 1].date)}</text>
+            </svg>`;
+        }
 
-                    if (!isNaN(oneRM) && oneRM > 0 && exData) {
-                        elWu1.textContent = formatWeight(oneRM * 0.50);
-                        elWu2.textContent = formatWeight(oneRM * 0.70);
-                        elWork.textContent = formatWeight(oneRM * exData.pct);
-                    } else {
-                        elWu1.textContent = '--';
-                        elWu2.textContent = '--';
-                        elWork.textContent = '--';
+        // =====================================================================
+        // SETTINGS + DATA
+        // =====================================================================
+        const getYtKey = () => store.get(KEY_YT) || DEFAULT_YT_KEY;
+
+        function renderSettings() {
+            const s = data.settings;
+            const field = (label, inner) => `<label class="flex items-center justify-between gap-3 py-2"><span class="text-sm font-semibold text-gray-300">${label}</span>${inner}</label>`;
+            let h = `<section class="fade-in space-y-5"><h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight">Settings</h2>
+
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 divide-y divide-gray-700/60">
+                    ${field('Units', `<select data-setting="unit" class="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm font-bold"><option ${s.unit === 'kg' ? 'selected' : ''}>kg</option><option ${s.unit === 'lbs' ? 'selected' : ''}>lbs</option></select>`)}
+                    ${field('Round weights to nearest', `<input data-setting="roundTo" type="number" step="any" value="${esc(s.roundTo)}" class="set-input" style="width:5rem">`)}
+                    ${field('Age (for Zone 2 heart rate)', `<input data-setting="age" type="number" value="${esc(s.age)}" class="set-input" style="width:5rem">`)}
+                    ${field('Rest-pause timer (seconds)', `<input data-setting="restPauseSeconds" type="number" value="${esc(s.restPauseSeconds)}" class="set-input" style="width:5rem">`)}
+                    ${field('Cardio sessions per week', `<input data-setting="cardioTarget" type="number" value="${esc(s.cardioTarget)}" class="set-input" style="width:5rem">`)}
+                    <p class="text-xs text-gray-500 pt-2">Changing units only changes the label — logged weights aren't converted.</p>
+                </div>
+
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4">
+                    <h3 class="font-black uppercase tracking-tight mb-1">1RM Master</h3>
+                    <p class="text-xs text-gray-400 mb-3">Starting weights for your first session. After that, weights come from what you logged last time, and these update automatically when you beat them.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        ${PROGRAM.days.map((d, di) => `<div><p class="text-blood-400 font-bold uppercase text-xs border-b border-gray-700 pb-1 mb-2">Day ${di + 1}: ${esc(d.short)}</p>
+                            ${d.exercises.map(ex => `<label class="flex items-center justify-between gap-3 py-1"><span class="text-xs text-gray-300">${esc(ex.name)}</span>
+                            <input data-rm="${exKey(ex)}" type="number" inputmode="decimal" step="any" value="${data.oneRMs[exKey(ex)] ? fmt(data.oneRMs[exKey(ex)]) : ''}" placeholder="${esc(unit())}" class="set-input" style="width:5.5rem"></label>`).join('')}</div>`).join('')}
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 space-y-3">
+                    <h3 class="font-black uppercase tracking-tight">Dorian's videos</h3>
+                    <p class="text-xs text-gray-400">The video feed searches the Dorian Yates Nutrition channel through YouTube's official API, which needs a free API key.</p>
+                    <div class="flex gap-2"><input id="yt-key" type="password" value="${esc(store.get(KEY_YT) || '')}" placeholder="${DEFAULT_YT_KEY ? 'Using the site key' : 'Paste YouTube API key'}" class="flex-1 bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm font-mono">
+                    <button onclick="clearVideoCache()" class="text-xs font-bold text-gray-400 hover:text-white px-2">Clear cache</button></div>
+                    <details class="text-xs text-gray-400"><summary class="font-bold text-gray-300">How to get a key (5 minutes)</summary>
+                        <ol class="list-decimal pl-5 pt-2 space-y-1">
+                            <li>Go to console.cloud.google.com and create a project.</li>
+                            <li>APIs &amp; Services → Library → enable <b>YouTube Data API v3</b>.</li>
+                            <li>Credentials → Create credentials → API key.</li>
+                            <li>Restrict it: Websites → your site's domain; API → YouTube Data API v3.</li>
+                            <li>Paste it above. Searches are cached on this device for 7 days.</li>
+                        </ol></details>
+                </div>
+
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 space-y-3">
+                    <h3 class="font-black uppercase tracking-tight">Your training log (JSON)</h3>
+                    <p class="text-xs text-gray-400">Everything is saved in this browser. Download it to back up or move to another device, then drop or paste it back in. You can drag a .json file anywhere onto the page too.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportData()" class="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-sm font-bold px-4 py-2 rounded-xl">Download JSON</button>
+                        <button onclick="$('#file-input').click()" class="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-sm font-bold px-4 py-2 rounded-xl">Load from file</button>
+                        <button onclick="copyData()" class="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-sm font-bold px-4 py-2 rounded-xl">Copy JSON</button>
+                    </div>
+                    <textarea id="json-paste" rows="5" spellcheck="false" placeholder="…or paste your log JSON here" class="w-full bg-gray-900 border border-gray-600 rounded-xl p-3 text-xs font-mono"></textarea>
+                    <p id="import-error" class="text-sm text-blood-400 hidden"></p>
+                    <div class="flex justify-between items-center">
+                        <button onclick="resetAll()" class="text-xs font-bold text-gray-500 hover:text-blood-400">Erase all data</button>
+                        <button onclick="importFromTextarea()" class="bg-blood-600 hover:bg-blood-500 text-white text-sm font-bold px-5 py-2 rounded-xl">Load pasted JSON</button>
+                    </div>
+                </div>
+            </section>`;
+            $('#view').innerHTML = h;
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `blood-and-guts-log-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+        function copyData() {
+            const text = JSON.stringify(data, null, 2);
+            (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => toast('Log copied to clipboard'))
+                .catch(() => { $('#json-paste').value = text; toast('Copy it from the box below'); });
+        }
+        function importText(text) {
+            let p;
+            try { p = JSON.parse(text); } catch (e) { throw new Error("That isn't valid JSON: " + e.message); }
+            if (!p || typeof p !== 'object' || Array.isArray(p) || !('sessions' in p || 'oneRMs' in p || 'cardio' in p)) {
+                throw new Error("This doesn't look like a Blood & Guts log (no sessions, oneRMs or cardio).");
+            }
+            if ((data.sessions.length || data.cardio.length) &&
+                !confirm(`Replace your current log (${data.sessions.length} workouts, ${data.cardio.length} cardio) with this file (${(p.sessions || []).length} workouts, ${(p.cardio || []).length} cardio)?`)) return false;
+            data = mergeData(p); save(); render();
+            toast(`Loaded ${data.sessions.length} workouts and ${data.cardio.length} cardio sessions`);
+            return true;
+        }
+        function showImportError(msg) {
+            if (view !== 'settings') go('settings');
+            const el = $('#import-error'); if (!el) return toast(msg);
+            el.textContent = msg; el.classList.remove('hidden');
+        }
+        function importFromTextarea() {
+            const t = $('#json-paste').value.trim();
+            if (!t) return showImportError('Paste some JSON first.');
+            try { importText(t); } catch (e) { showImportError(e.message); }
+        }
+        function importFile(file) {
+            if (!file) return;
+            const r = new FileReader();
+            r.onload = () => { try { importText(r.result); } catch (e) { showImportError(e.message); } };
+            r.readAsText(file);
+        }
+        function resetAll() {
+            if (!confirm('Erase ALL workouts, cardio, 1RMs and saved videos? Download a backup first if unsure.')) return;
+            data = blankData(); save(); render(); toast('All data erased');
+        }
+
+        // =====================================================================
+        // VIDEO FEED
+        // =====================================================================
+        function youtubeId(url) {
+            if (!url) return null;
+            const m = String(url).match(/(?:youtube\.com\/(?:shorts\/|watch\?(?:.*&)?v=|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+            if (m) return m[1];
+            return /^[A-Za-z0-9_-]{11}$/.test(String(url).trim()) ? String(url).trim() : null;
+        }
+
+        async function ytGet(path, params) {
+            const u = new URL('https://www.googleapis.com/youtube/v3/' + path);
+            Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
+            const r = await fetch(u);
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error((j.error && j.error.message) || `YouTube API error ${r.status}`);
+            return j;
+        }
+        async function getChannelId(key) {
+            const c = store.get(KEY_CH); if (c) return c;
+            const j = await ytGet('channels', { part: 'id', forHandle: YT_HANDLE, key });
+            const id = j.items && j.items[0] && j.items[0].id;
+            if (id) store.set(KEY_CH, id);
+            return id || null;
+        }
+        async function ytSearch(key, params) {
+            const j = await ytGet('search', { part: 'snippet', type: 'video', maxResults: 25, key, ...params });
+            return (j.items || []).map(it => ({ id: it.id.videoId, title: decodeHtml(it.snippet.title), channel: decodeHtml(it.snippet.channelTitle) })).filter(v => v.id);
+        }
+        async function searchVideos(ex) {
+            const key = getYtKey();
+            const q = ex.q || ex.name;
+            const cache = store.get(KEY_YT_CACHE) || {};
+            const ck = q.toLowerCase();
+            if (cache[ck] && Date.now() - cache[ck].ts < 7 * 864e5) return cache[ck];
+            try {
+                const ch = await getChannelId(key);
+                let items = [], source = 'channel';
+                if (ch) {
+                    items = await ytSearch(key, { channelId: ch, q, videoDuration: 'short' });
+                    if (!items.length) items = await ytSearch(key, { channelId: ch, q });
+                }
+                if (!items.length) { items = await ytSearch(key, { q: 'Dorian Yates ' + q, videoDuration: 'short' }); source = 'youtube'; }
+                const res = { ts: Date.now(), items, source };
+                cache[ck] = res; store.set(KEY_YT_CACHE, cache);
+                return res;
+            } catch (err) {
+                return { items: [], source: '', error: err.message };
+            }
+        }
+        function clearVideoCache() { store.del(KEY_YT_CACHE); store.del(KEY_CH); toast('Video cache cleared'); }
+
+        let feedObserver = null, feedToken = 0;
+        async function openFeed(key) {
+            const ex = findEx(key); if (!ex) return;
+            const token = ++feedToken;
+            $('#feed-title').textContent = ex.name;
+            $('#feed-count').textContent = '';
+            $('#feed-yt').href = `https://www.youtube.com/${YT_HANDLE}/search?query=${encodeURIComponent(ex.q || ex.name)}`;
+            $('#feed-modal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            const saved = (data.videos[key] || []).map(id => ({ id, title: 'Saved to this exercise', saved: true }));
+            let api = { items: [] };
+            if (getYtKey()) {
+                $('#feed-body').innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 text-gray-400"><div class="w-8 h-8 border-4 border-gray-700 border-t-blood-500 rounded-full animate-spin"></div><p class="text-sm font-semibold">Finding Dorian's videos…</p></div>`;
+                api = await searchVideos(ex);
+                if (token !== feedToken) return; // closed or another feed opened
+            }
+            const seen = new Set();
+            const items = [...saved, ...api.items].filter(v => !seen.has(v.id) && seen.add(v.id));
+            renderFeed(key, items, api);
+        }
+
+        function renderFeed(key, items, api) {
+            const savedSet = new Set(data.videos[key] || []);
+            const hasKey = !!getYtKey();
+            let note = '';
+            if (!hasKey) note = `To pull Dorian's Shorts into the app automatically, add a free YouTube API key in <button onclick="closeFeed();go('settings')" class="underline font-bold text-white">Settings</button>.`;
+            else if (api.error) note = `YouTube said: ${esc(api.error)}`;
+            else if (api.source === 'youtube') note = `Nothing on his channel matched, so these are wider YouTube results — they may not be Dorian himself.`;
+
+            const addCard = `<div class="feed-item snap-start flex flex-col items-center justify-center gap-4 px-6 text-center" style="height:calc(100dvh - 3.5rem)" data-n="${items.length}">
+                <p class="text-lg font-black">${items.length ? 'End of videos' : 'No videos yet'}</p>
+                ${note ? `<p class="text-sm text-gray-400 max-w-sm">${note}</p>` : ''}
+                <div class="w-full max-w-sm space-y-2">
+                    <p class="text-xs text-gray-400">Found the right Short? Paste its link to pin it to this exercise.</p>
+                    <div class="flex gap-2"><input id="feed-add" type="url" placeholder="https://youtube.com/shorts/…" class="flex-1 bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                    <button onclick="addVideoLink('${key}')" class="bg-blood-600 hover:bg-blood-500 text-white text-sm font-bold px-4 rounded-lg">Add</button></div>
+                    <a href="${$('#feed-yt').href}" target="_blank" rel="noopener" class="block text-sm font-semibold text-gray-300 hover:text-white pt-2">Search his channel on YouTube ↗</a>
+                </div>
+            </div>`;
+
+            const html = items.map((v, i) => `
+                <div class="feed-item snap-start flex flex-col items-center justify-center gap-3 px-3" style="height:calc(100dvh - 3.5rem)" data-id="${v.id}" data-n="${i}">
+                    <div class="relative bg-gray-900 rounded-2xl overflow-hidden" style="height:calc(100% - 5.5rem); aspect-ratio:9/16; max-width:100%;">
+                        <img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-40">
+                        <div class="frame-slot absolute inset-0"></div>
+                    </div>
+                    <div class="w-full max-w-md flex items-center justify-between gap-3 px-1">
+                        <div class="min-w-0"><p class="text-sm font-semibold leading-snug line-clamp-2">${esc(v.title)}</p>
+                        ${i === 0 && items.length > 1 ? '<p class="text-[11px] text-gray-500 mt-0.5">Swipe up for more ↑</p>' : ''}</div>
+                        <button onclick="toggleSaveVideo('${key}','${v.id}',this)" class="shrink-0 text-xs font-bold px-3 py-2 rounded-lg border ${savedSet.has(v.id) ? 'bg-warning-500 text-black border-warning-400' : 'border-gray-600 text-gray-300 hover:bg-gray-800'}">${savedSet.has(v.id) ? '★ Pinned' : '☆ Pin'}</button>
+                    </div>
+                </div>`).join('');
+
+            $('#feed-body').innerHTML = `<div id="feed-scroll" class="h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbars">${html}${addCard}</div>`;
+            const total = items.length;
+            $('#feed-count').textContent = total ? `1 / ${total}` : '';
+
+            if (feedObserver) feedObserver.disconnect();
+            feedObserver = new IntersectionObserver(entries => {
+                entries.forEach(en => {
+                    const item = en.target, slot = item.querySelector('.frame-slot');
+                    if (en.intersectionRatio >= 0.6) {
+                        if (total) $('#feed-count').textContent = item.dataset.id ? `${+item.dataset.n + 1} / ${total}` : `${total} videos`;
+                        if (slot && !slot.firstChild) {
+                            const id = item.dataset.id;
+                            slot.innerHTML = `<iframe class="absolute inset-0 w-full h-full" src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0&loop=1&playlist=${id}" title="Exercise video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+                        }
+                    } else if (slot && slot.firstChild) {
+                        slot.innerHTML = ''; // stop playback when scrolled away
                     }
-                }
-            });
+                });
+            }, { root: $('#feed-scroll'), threshold: [0, 0.6] });
+            document.querySelectorAll('#feed-scroll .feed-item').forEach(el => feedObserver.observe(el));
         }
 
-        function scrollCarousel(direction) {
-            const track = document.getElementById('carousel-track');
-            // Scroll by one card width (approx)
-            const scrollAmount = window.innerWidth * 0.8; 
-            track.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        function closeFeed() {
+            feedToken++;
+            if (feedObserver) { feedObserver.disconnect(); feedObserver = null; }
+            $('#feed-body').innerHTML = '';
+            $('#feed-modal').classList.remove('open');
+            document.body.style.overflow = '';
+            if (view.startsWith('day-')) renderDay(+view.split('-')[1]);
         }
 
+        function toggleSaveVideo(key, id, btn) {
+            const list = data.videos[key] || (data.videos[key] = []);
+            const i = list.indexOf(id);
+            if (i >= 0) list.splice(i, 1); else list.unshift(id);
+            if (!list.length) delete data.videos[key];
+            save();
+            const on = i < 0;
+            btn.textContent = on ? '★ Pinned' : '☆ Pin';
+            btn.className = `shrink-0 text-xs font-bold px-3 py-2 rounded-lg border ${on ? 'bg-warning-500 text-black border-warning-400' : 'border-gray-600 text-gray-300 hover:bg-gray-800'}`;
+            toast(on ? 'Pinned — it will show first for this exercise' : 'Unpinned');
+        }
+
+        function addVideoLink(key) {
+            const id = youtubeId($('#feed-add').value);
+            if (!id) return toast("That doesn't look like a YouTube link");
+            const list = data.videos[key] || (data.videos[key] = []);
+            if (!list.includes(id)) list.unshift(id);
+            save(); toast('Video pinned to this exercise');
+            openFeed(key);
+        }
+
+        // =====================================================================
+        // AUDIO + REST-PAUSE TIMER
+        // =====================================================================
         let audioCtx;
+        function unlockAudio() {
+            try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch {}
+        }
         function playBeep() {
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-
-                oscillator.type = 'square'; // harsher, more noticeable beep for gym
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
-
-                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
-                gainNode.gain.setValueAtTime(1, audioCtx.currentTime + 0.4);
-                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.5);
-            } catch (e) {
-                console.error("Audio beep failed:", e);
-            }
+                unlockAudio();
+                const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.type = 'square'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+                gain.gain.setValueAtTime(1, audioCtx.currentTime + 0.4);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } catch (e) { console.error('Audio beep failed:', e); }
         }
 
-        function startTimer(btnElement) {
-            if (btnElement.disabled) return;
-            
-            const textSpan = btnElement.querySelector('.btn-text');
-            const originalText = "Start Rest Pause";
-            let timeLeft = 10;
-            
-            // Visual state change to Active Timer
-            btnElement.disabled = true;
-            btnElement.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'border-gray-600');
-            btnElement.classList.add('bg-warning-600', 'text-black', 'border-warning-500');
-            
-            textSpan.textContent = `Resting: ${timeLeft}s`;
-
-            const timerInterval = setInterval(() => {
-                timeLeft--;
-                
-                if (timeLeft > 0) {
-                    textSpan.textContent = `Resting: ${timeLeft}s`;
-                } else {
-                    // Time is up!
-                    clearInterval(timerInterval);
-                    playBeep();
-                    
-                    // State change to GO
-                    textSpan.textContent = "GO! (1-3 Reps)";
-                    btnElement.classList.remove('bg-warning-600', 'text-black', 'border-warning-500');
-                    btnElement.classList.add('bg-blood-600', 'text-white', 'border-blood-500', 'animate-pulse');
-                    
-                    // Reset button after 4 seconds
-                    setTimeout(() => {
-                        btnElement.disabled = false;
-                        btnElement.classList.remove('bg-blood-600', 'border-blood-500', 'animate-pulse');
-                        btnElement.classList.add('bg-gray-700', 'hover:bg-gray-600', 'border-gray-600');
-                        textSpan.textContent = originalText;
-                    }, 4000);
-                }
+        function startTimer(btn) {
+            if (btn.disabled) return;
+            unlockAudio();
+            const span = btn.querySelector('.btn-text');
+            const original = span.textContent;
+            let left = parseInt(data.settings.restPauseSeconds) || 10;
+            btn.disabled = true;
+            btn.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'border-gray-600');
+            btn.classList.add('bg-warning-600', 'text-black', 'border-warning-500');
+            span.textContent = `Resting: ${left}s`;
+            const iv = setInterval(() => {
+                left--;
+                if (left > 0) { span.textContent = `Resting: ${left}s`; return; }
+                clearInterval(iv); playBeep();
+                span.textContent = 'GO! (1-3 Reps)';
+                btn.classList.remove('bg-warning-600', 'text-black', 'border-warning-500');
+                btn.classList.add('bg-blood-600', 'text-white', 'border-blood-500', 'animate-pulse');
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.classList.remove('bg-blood-600', 'border-blood-500', 'animate-pulse');
+                    btn.classList.add('bg-gray-700', 'hover:bg-gray-600', 'border-gray-600');
+                    span.textContent = original;
+                }, 4000);
             }, 1000);
         }
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', initApp);
+        // =====================================================================
+        // CLOCK TICK (workout + cardio timers)
+        // =====================================================================
+        function tick() {
+            if (data.active) {
+                const t = fmtDur((Date.now() - data.active.startedAt) / 1000);
+                document.querySelectorAll('.elapsed').forEach(el => el.textContent = t);
+            }
+            const ca = data.cardioActive;
+            if (!ca) return;
+            const e = cardioElapsed() / 1000;
+            document.querySelectorAll('.cardio-elapsed').forEach(el => el.textContent = fmtDur(e));
+            const clock = $('#cardio-clock'); if (clock) clock.textContent = fmtDur(e);
+
+            if (ca.mode === 'zone2') {
+                const bar = $('#cardio-bar'); if (bar) bar.style.width = Math.min(100, e / ZONE2_GOAL * 100) + '%';
+                if (e >= ZONE2_GOAL && !ca.goalBeeped) {
+                    ca.goalBeeped = true; save();
+                    playBeep(); setTimeout(playBeep, 650);
+                    toast('30 minutes done — Zone 2 target hit');
+                }
+            } else {
+                if (e >= SPRINT_TOTAL && ca.running) {
+                    ca.acc = SPRINT_TOTAL * 1000; ca.running = false; save();
+                    playBeep(); setTimeout(playBeep, 650);
+                    toast('Sprint session complete — hit Finish to log it');
+                    render(); return;
+                }
+                const p = phaseAt(e);
+                if (p.index !== ca.phase) {
+                    ca.phase = p.index; save(); playBeep();
+                    if (view === 'cardio') renderCardio();
+                    return;
+                }
+                const rem = $('#phase-rem'); if (rem) rem.textContent = fmtDur(Math.ceil(p.rem));
+            }
+        }
+
+        // =====================================================================
+        // EVENTS
+        // =====================================================================
+        function setupEvents() {
+            const v = $('#view');
+            const curDay = () => view.startsWith('day-') ? +view.split('-')[1] : -1;
+
+            v.addEventListener('input', (e) => {
+                const inp = e.target;
+                if (inp.classList.contains('set-input') && inp.closest('.set-row')) {
+                    const row = inp.closest('.set-row'), di = curDay();
+                    if (di < 0 || !ensureActive(di)) return;
+                    getEntry(row.dataset.key, +row.dataset.i)[inp.dataset.field] = inp.value;
+                    save();
+                } else if (inp.id === 'cardio-hr' && data.cardioActive) {
+                    data.cardioActive.avgHr = inp.value; save();
+                }
+            });
+
+            v.addEventListener('click', (e) => {
+                const t = e.target.closest('.tick'); if (!t) return;
+                const row = t.closest('.set-row'), di = curDay();
+                if (di < 0 || !ensureActive(di)) return;
+                const key = row.dataset.key, i = +row.dataset.i;
+                const tmpl = setTemplate(findEx(key))[i];
+                const r = getEntry(key, i);
+                const repsInp = row.querySelector('[data-field=reps]');
+                r.weight = row.querySelector('[data-field=weight]').value;
+                r.reps = repsInp.value;
+                if (!r.done) {
+                    if (r.reps === '') {
+                        if (tmpl.type === 'warmup') { r.reps = String(topOf(tmpl.target)); repsInp.value = r.reps; }
+                        else { repsInp.focus(); toast('Enter your reps first'); return; }
+                    }
+                    r.done = true;
+                } else r.done = false;
+                row.classList.toggle('is-done', r.done);
+                save();
+            });
+
+            v.addEventListener('change', (e) => {
+                const t = e.target;
+                if (t.dataset.setting) { data.settings[t.dataset.setting] = t.value; save(); renderHeader(); toast('Saved'); }
+                else if (t.dataset.rm) { const n = parseFloat(t.value); if (n > 0) data.oneRMs[t.dataset.rm] = n; else delete data.oneRMs[t.dataset.rm]; save(); toast('1RM saved'); }
+                else if (t.id === 'yt-key') { t.value.trim() ? store.set(KEY_YT, t.value.trim()) : store.del(KEY_YT); store.del(KEY_CH); toast(t.value.trim() ? 'API key saved on this device' : 'API key removed'); }
+                else if (t.id === 'cardio-age') { data.settings.age = t.value; save(); renderCardio(); }
+                else if (t.id === 'progress-select') { progressKey = t.value; renderProgress(); }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') { if ($('#feed-modal').classList.contains('open')) closeFeed(); closeDialog(); }
+            });
+
+            // Drag & drop a log anywhere
+            const overlay = $('#drop-overlay'); let depth = 0;
+            const hasFiles = (e) => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+            window.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); depth++; overlay.classList.add('show'); });
+            window.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
+            window.addEventListener('dragleave', (e) => { if (!hasFiles(e)) return; depth = Math.max(0, depth - 1); if (!depth) overlay.classList.remove('show'); });
+            window.addEventListener('drop', (e) => {
+                if (!hasFiles(e)) return;
+                e.preventDefault(); depth = 0; overlay.classList.remove('show');
+                importFile(e.dataTransfer.files[0]);
+            });
+            $('#file-input').addEventListener('change', (e) => { importFile(e.target.files[0]); e.target.value = ''; });
+
+            // Paste a log anywhere (outside text boxes)
+            document.addEventListener('paste', (e) => {
+                if (e.target.matches('input, textarea')) return;
+                const text = (e.clipboardData || window.clipboardData).getData('text').trim();
+                if (!text.startsWith('{')) return;
+                try { importText(text); } catch (err) { showImportError(err.message); }
+            });
+
+            document.addEventListener('pointerdown', unlockAudio, { once: true });
+        }
+
+        // =====================================================================
+        // INIT
+        // =====================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEvents();
+            render();
+            setInterval(tick, 1000);
+        });
     </script>
 </body>
 </html>
