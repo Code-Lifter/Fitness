@@ -308,7 +308,8 @@
           </div>
         </div>
         <div id="plan-left" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
-        <p class="text-xs text-slate-400">Pick a meal for each slot, then top up with snacks. Auto-fill rotates your meals, adds snacks, then nudges portion sizes (up to ±15%) so each day lands on your calorie target. The small box next to each meal is how many portions you eat.</p>
+        <div id="plan-rules"></div>
+        <p class="text-xs text-slate-400">Pick a meal for each slot, then top up with snacks. Auto-fill spreads your meals (keeping to the repeat limit), adds snacks, then nudges portion sizes (up to ±15%) so each day lands on your calorie target. "Build me a week" follows every food rule. The small box next to each meal is how many portions you eat.</p>
         <div id="plan-warnings"></div>
       </div>
       <div id="day-picker" class="md:hidden"></div>
@@ -377,6 +378,10 @@
       { name: 'Lean Beef Mince 5%', cals: 124, protein: 21, carbs: 0, fat: 5, category: 'meat & fish', packGrams: 500, packLabel: '500g pack', pricePerPack: 3.40, cookedFactor: 0.75, prep: 'pan' },
       { name: 'Salmon Fillet', cals: 208, protein: 20, carbs: 0, fat: 13, category: 'meat & fish', unit: 'fillet', unitGrams: 130, packGrams: 260, packLabel: '2-fillet pack', pricePerPack: 4.50, cookedFactor: 0.8, prep: 'bake' },
       { name: 'Tinned Tuna (Drained)', cals: 109, protein: 25, carbs: 0, fat: 1, category: 'dry goods', unit: 'can', unitGrams: 110, packGrams: 440, packLabel: '4-can pack', pricePerPack: 4.20 },
+      { name: 'Red Lentils (Dry)', cals: 318, protein: 24, carbs: 48, fat: 1.5, category: 'dry goods', packGrams: 500, packLabel: '500g bag', pricePerPack: 1.30, cookedFactor: 2.5, prep: 'simmer' },
+      { name: 'Chickpeas (Tinned, Drained)', cals: 119, protein: 7, carbs: 16, fat: 2.6, category: 'dry goods', unit: 'can', unitGrams: 240, packGrams: 240, pricePerPack: 0.75 },
+      { name: 'Kidney Beans (Tinned, Drained)', cals: 100, protein: 7, carbs: 15, fat: 0.5, category: 'dry goods', unit: 'can', unitGrams: 240, packGrams: 240, pricePerPack: 0.65 },
+      { name: 'Baked Beans', cals: 78, protein: 4.7, carbs: 13, fat: 0.2, category: 'dry goods', unit: 'can', unitGrams: 415, packGrams: 415, pricePerPack: 0.95, prep: 'simmer' },
       { name: 'Eggs', cals: 143, protein: 12.6, carbs: 0.7, fat: 9.5, category: 'dairy', unit: 'egg', unitGrams: 60, packGrams: 360, packLabel: '6-egg box', pricePerPack: 1.90, prep: 'pan' },
       { name: 'Greek Yogurt 0%', cals: 57, protein: 10, carbs: 3.6, fat: 0.4, category: 'dairy', packGrams: 500, packLabel: '500g tub', pricePerPack: 1.40 },
       { name: 'Semi-Skimmed Milk', cals: 46, protein: 3.5, carbs: 4.8, fat: 1.7, category: 'dairy', packGrams: 2272, packLabel: '4-pint bottle', pricePerPack: 1.65 },
@@ -411,39 +416,84 @@
       ['fat', { 'Olive Oil': 0.4, 'Peanut Butter': 0.3, 'Mixed Nuts': 0.3 }]
     ];
 
+    // Recipe tags: one vocabulary for the recipe library, the weekly rules and the UI
+    const TAGS = {
+      legume: 'Legume', fish: 'Fish', 'oily-fish': 'Oily fish', 'red-meat': 'Red meat', poultry: 'Poultry',
+      egg: 'Egg', dairy: 'Dairy', 'veg-forward': 'Veg-forward', quick: 'Quick (under 15 min)', batch: 'Batch', treat: 'Treat'
+    };
+
     // Built-in recipes, made only from PRESETS foods. Grams are for the whole batch.
+    // Oily fish is also tagged fish: it counts towards both rules.
     const RECIPES = [
-      { id: 'protein-porridge', name: 'Protein Porridge', type: 'breakfast', servings: 1,
+      { id: 'protein-porridge', name: 'Protein Porridge', type: 'breakfast', servings: 1, tags: ['dairy', 'quick'],
         items: { 'Porridge Oats': 50, 'Semi-Skimmed Milk': 200, 'Whey Protein': 30, 'Banana': 100 } },
-      { id: 'eggs-on-toast', name: 'Eggs on Toast with Spinach', type: 'breakfast', servings: 1,
+      { id: 'eggs-on-toast', name: 'Eggs on Toast with Spinach', type: 'breakfast', servings: 1, tags: ['egg', 'quick'],
         items: { 'Eggs': 180, 'Wholemeal Bread': 80, 'Spinach': 50, 'Olive Oil': 5 } },
-      { id: 'yogurt-bowl', noCook: true, name: 'Greek Yogurt Berry Bowl', type: 'breakfast', servings: 1,
+      { id: 'yogurt-bowl', noCook: true, name: 'Greek Yogurt Berry Bowl', type: 'breakfast', servings: 1, tags: ['dairy', 'quick'],
         items: { 'Greek Yogurt 0%': 250, 'Berries': 100, 'Porridge Oats': 40, 'Peanut Butter': 15 } },
-      { id: 'overnight-oats', noCook: true, name: 'Overnight Oats (Batch)', type: 'breakfast', servings: 4,
+      { id: 'overnight-oats', noCook: true, name: 'Overnight Oats (Batch)', type: 'breakfast', servings: 4, tags: ['dairy', 'batch'],
         items: { 'Porridge Oats': 240, 'Semi-Skimmed Milk': 800, 'Greek Yogurt 0%': 400, 'Berries': 320, 'Whey Protein': 60 } },
-      { id: 'chicken-rice-bowl', name: 'Chicken, Rice & Broccoli Bowls', type: 'lunch', servings: 4,
+      { id: 'beans-on-toast', name: 'Cheesy Beans on Toast', type: 'breakfast', servings: 1, tags: ['legume', 'dairy', 'quick'],
+        items: { 'Baked Beans': 207, 'Wholemeal Bread': 80, 'Cheddar Cheese': 20 } },
+      { id: 'spinach-omelette', name: 'Spinach & Cheese Omelette', type: 'breakfast', servings: 1, tags: ['egg', 'dairy', 'quick'],
+        items: { 'Eggs': 180, 'Spinach': 60, 'Cheddar Cheese': 25, 'Wholemeal Bread': 40, 'Olive Oil': 5 } },
+
+      { id: 'chicken-rice-bowl', name: 'Chicken, Rice & Broccoli Bowls', type: 'lunch', servings: 4, tags: ['poultry', 'batch'],
         items: { 'Chicken Breast (Raw)': 600, 'Rice (Uncooked)': 300, 'Broccoli': 400, 'Olive Oil': 20 } },
-      { id: 'tuna-wrap', name: 'Tuna & Spinach Wraps', type: 'lunch', servings: 1,
+      { id: 'tuna-wrap', name: 'Tuna & Spinach Wraps', type: 'lunch', servings: 1, tags: ['fish', 'dairy', 'quick'],
         items: { 'Tortilla Wraps': 124, 'Tinned Tuna (Drained)': 110, 'Greek Yogurt 0%': 50, 'Spinach': 30 } },
-      { id: 'tuna-jacket', name: 'Jacket Potato with Tuna', type: 'lunch', servings: 1,
+      { id: 'tuna-jacket', name: 'Jacket Potato with Tuna', type: 'lunch', servings: 1, tags: ['fish', 'dairy'],
         items: { 'Potatoes': 350, 'Tinned Tuna (Drained)': 110, 'Greek Yogurt 0%': 50, 'Cheddar Cheese': 20, 'Broccoli': 80 } },
-      { id: 'chicken-pasta-salad', name: 'Chicken Pasta Salad', type: 'lunch', servings: 3,
+      { id: 'chicken-pasta-salad', name: 'Chicken Pasta Salad', type: 'lunch', servings: 3, tags: ['poultry', 'batch'],
         items: { 'Pasta (Dry)': 225, 'Chicken Breast (Raw)': 450, 'Frozen Mixed Veg': 240, 'Spinach': 90, 'Olive Oil': 15 } },
-      { id: 'beef-chilli', name: 'Beef Chilli with Rice', type: 'dinner', servings: 4,
+      { id: 'lentil-soup', name: 'Red Lentil & Veg Soup with Bread', type: 'lunch', servings: 4, tags: ['legume', 'veg-forward', 'batch'],
+        items: { 'Red Lentils (Dry)': 300, 'Frozen Mixed Veg': 600, 'Potatoes': 400, 'Olive Oil': 20, 'Wholemeal Bread': 160 } },
+      { id: 'chickpea-wrap', name: 'Chickpea & Spinach Wraps', type: 'lunch', servings: 1, tags: ['legume', 'dairy', 'veg-forward', 'quick'],
+        items: { 'Tortilla Wraps': 124, 'Chickpeas (Tinned, Drained)': 120, 'Greek Yogurt 0%': 50, 'Spinach': 30 } },
+      { id: 'salmon-rice-bowl', name: 'Salmon Rice Bowl', type: 'lunch', servings: 1, tags: ['fish', 'oily-fish'],
+        items: { 'Salmon Fillet': 130, 'Rice (Uncooked)': 70, 'Broccoli': 100, 'Spinach': 30 } },
+      { id: 'tuna-pasta-salad', name: 'Tuna Pasta Salad', type: 'lunch', servings: 3, tags: ['fish', 'dairy', 'batch'],
+        items: { 'Pasta (Dry)': 225, 'Tinned Tuna (Drained)': 330, 'Frozen Mixed Veg': 300, 'Greek Yogurt 0%': 150, 'Olive Oil': 10 } },
+
+      { id: 'beef-chilli', name: 'Beef Chilli with Rice', type: 'dinner', servings: 4, tags: ['red-meat', 'batch'],
         items: { 'Lean Beef Mince 5%': 600, 'Frozen Mixed Veg': 400, 'Rice (Uncooked)': 360, 'Olive Oil': 15 } },
-      { id: 'salmon-sweet-potato', name: 'Salmon, Sweet Potato & Broccoli', type: 'dinner', servings: 1,
+      { id: 'salmon-sweet-potato', name: 'Salmon, Sweet Potato & Broccoli', type: 'dinner', servings: 1, tags: ['fish', 'oily-fish'],
         items: { 'Salmon Fillet': 130, 'Sweet Potato': 300, 'Broccoli': 120, 'Olive Oil': 5 } },
-      { id: 'bolognese', name: 'Spaghetti Bolognese', type: 'dinner', servings: 4,
+      { id: 'bolognese', name: 'Spaghetti Bolognese', type: 'dinner', servings: 4, tags: ['red-meat', 'dairy', 'batch'],
         items: { 'Pasta (Dry)': 360, 'Lean Beef Mince 5%': 500, 'Frozen Mixed Veg': 400, 'Cheddar Cheese': 40, 'Olive Oil': 15 } },
-      { id: 'chicken-traybake', name: 'Chicken & Potato Traybake', type: 'dinner', servings: 2,
+      { id: 'chicken-traybake', name: 'Chicken & Potato Traybake', type: 'dinner', servings: 2, tags: ['poultry', 'batch'],
         items: { 'Chicken Breast (Raw)': 400, 'Potatoes': 700, 'Broccoli': 240, 'Olive Oil': 20 } },
-      { id: 'apple-pb', name: 'Apple & Peanut Butter', type: 'snack', servings: 1,
+      { id: 'bean-chilli', name: 'Kidney Bean Veggie Chilli', type: 'dinner', servings: 4, tags: ['legume', 'dairy', 'veg-forward', 'batch'],
+        items: { 'Kidney Beans (Tinned, Drained)': 720, 'Sweet Potato': 400, 'Frozen Mixed Veg': 400, 'Rice (Uncooked)': 300, 'Cheddar Cheese': 60, 'Olive Oil': 15 } },
+      { id: 'lentil-dal', name: 'Red Lentil & Spinach Dal', type: 'dinner', servings: 4, tags: ['legume', 'dairy', 'veg-forward', 'batch'],
+        items: { 'Red Lentils (Dry)': 300, 'Spinach': 200, 'Frozen Mixed Veg': 400, 'Rice (Uncooked)': 300, 'Greek Yogurt 0%': 200, 'Olive Oil': 20 } },
+      { id: 'salmon-pasta', name: 'Creamy Salmon & Spinach Pasta', type: 'dinner', servings: 2, tags: ['fish', 'oily-fish', 'dairy', 'batch'],
+        items: { 'Salmon Fillet': 260, 'Pasta (Dry)': 180, 'Spinach': 100, 'Broccoli': 200, 'Cheddar Cheese': 30 } },
+      { id: 'chicken-stir-fry', name: 'Chicken & Egg Fried Rice', type: 'dinner', servings: 2, tags: ['poultry', 'egg', 'batch'],
+        items: { 'Chicken Breast (Raw)': 300, 'Frozen Mixed Veg': 400, 'Rice (Uncooked)': 150, 'Eggs': 60, 'Olive Oil': 15 } },
+
+      { id: 'apple-pb', name: 'Apple & Peanut Butter', type: 'snack', servings: 1, tags: ['quick'],
         items: { 'Apple': 150, 'Peanut Butter': 20 } },
-      { id: 'protein-shake', name: 'Banana Protein Shake', type: 'snack', servings: 1,
+      { id: 'protein-shake', name: 'Banana Protein Shake', type: 'snack', servings: 1, tags: ['dairy', 'quick'],
         items: { 'Whey Protein': 30, 'Semi-Skimmed Milk': 250, 'Banana': 100 } },
-      { id: 'yogurt-nuts', name: 'Yogurt, Berries & Nuts', type: 'snack', servings: 1,
-        items: { 'Greek Yogurt 0%': 170, 'Berries': 80, 'Mixed Nuts': 20 } }
+      { id: 'yogurt-nuts', name: 'Yogurt, Berries & Nuts', type: 'snack', servings: 1, tags: ['dairy', 'quick'],
+        items: { 'Greek Yogurt 0%': 170, 'Berries': 80, 'Mixed Nuts': 20 } },
+      { id: 'cheese-apple', name: 'Cheddar & Apple', type: 'snack', servings: 1, tags: ['dairy', 'quick'],
+        items: { 'Cheddar Cheese': 30, 'Apple': 150 } },
+      { id: 'pb-banana-toast', name: 'Peanut Butter Banana Toast', type: 'snack', servings: 1, tags: ['quick', 'treat'],
+        items: { 'Wholemeal Bread': 40, 'Peanut Butter': 15, 'Banana': 120 } }
     ];
+
+    // Weekly food rules. They count breakfasts, lunches and dinners (not snacks); `tag` rules count meals carrying that tag.
+    // When a week can't meet them all, they're relaxed in this order.
+    const RULE_DEFS = [
+      { key: 'maxRepeats', kind: 'max', label: 'Same meal repeats', unit: 'at most', limit: 7 },
+      { key: 'minLegume', kind: 'min', tag: 'legume', label: 'Legume meals', unit: 'at least', limit: 0 },
+      { key: 'minFish', kind: 'min', tag: 'fish', label: 'Fish meals', unit: 'at least', limit: 0 },
+      { key: 'minOilyFish', kind: 'min', tag: 'oily-fish', label: 'Oily fish meals', unit: 'at least', limit: 0 },
+      { key: 'maxRedMeat', kind: 'max', tag: 'red-meat', label: 'Red meat meals', unit: 'at most', limit: 21 }
+    ];
+    const DEFAULT_RULES = { maxRepeats: 2, minLegume: 2, minFish: 2, minOilyFish: 1, maxRedMeat: 3 };
 
     // `sizes` holds portions eaten per main slot when it isn't 1 (e.g. { dinner: 1.1 })
     const MEAL_SEARCH_AT = 20; // from this many meals, week slots use a search box instead of a dropdown
@@ -463,6 +513,7 @@
       checked: {},
       weightMode: 'raw', // how meal weights are shown and typed: 'raw' or 'cooked'
       viewDay: todayIndex(), // the day shown on phones in the week grid
+      rules: { ...DEFAULT_RULES },
       tab: 'target'
     });
 
@@ -512,6 +563,12 @@
       }));
       const plan = Array.isArray(data.plan) && data.plan.length === DAYS.length ? data.plan : emptyPlan();
       state.plan = plan.map(d => ({ ...emptyDay(), ...d, snacks: Array.isArray(d.snacks) ? d.snacks : [], sizes: d.sizes || {} }));
+      // Sessions saved before weekly rules get the defaults; bad values fall back one by one
+      state.rules = { ...DEFAULT_RULES };
+      RULE_DEFS.forEach(({ key }) => {
+        const n = Number(data.rules && data.rules[key]);
+        if (Number.isFinite(n) && n >= 0) state.rules[key] = Math.round(n);
+      });
     }
     function save() {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
@@ -623,6 +680,144 @@
     }
 
     const presetByName = name => PRESETS.find(p => p.name === name);
+
+    // --- Tags & weekly rules ---
+    // Food-group tags come from what's actually in a meal, so your own meals (and edited recipes) count too
+    const FOOD_TAG_PATTERNS = [
+      ['legume', /lentil|chickpea|beans?\b|hummus|edamame/i, /green beans?|coffee/i],
+      ['oily-fish', /salmon|mackerel|sardine|trout|herring|kipper|pilchard|anchov/i],
+      ['fish', /tuna|cod\b|haddock|pollock|prawn|shrimp|fish|salmon|mackerel|sardine|trout|herring|kipper|pilchard|anchov/i],
+      ['red-meat', /beef|lamb|pork|steak|bacon|\bham\b|sausage|venison|chorizo/i],
+      ['poultry', /chicken|turkey|duck/i],
+      ['egg', /\beggs?\b/i],
+      ['dairy', /milk|yog(h)?urt|cheese|cheddar|cream|(?<!peanut )butter|kefir|skyr|quark|whey/i]
+    ];
+    const tagsForFood = name => FOOD_TAG_PATTERNS.filter(([, yes, no]) => yes.test(name) && !(no && no.test(name))).map(([tag]) => tag);
+
+    // A meal's tags: food groups from its ingredients, how-it's-made tags from the recipe it came from
+    function mealTags(m) {
+      const tags = new Set(m.items.flatMap(i => { const f = itemFood(i); return f ? tagsForFood(f.name) : []; }));
+      const recipe = m.recipe && RECIPES.find(r => r.id === m.recipe);
+      if (recipe) recipe.tags.filter(t => ['quick', 'veg-forward', 'treat'].includes(t)).forEach(t => tags.add(t));
+      if (servingsOf(m) > 1) tags.add('batch');
+      return [...tags];
+    }
+
+    // How the plan stands against each rule: main slots only, one count per filled slot
+    function ruleStats(plan = state.plan) {
+      const uses = {}, tags = {};
+      plan.forEach(day => SLOTS.forEach(([slot]) => {
+        const m = mealById(day[slot]);
+        if (!m) return;
+        uses[m.id] = (uses[m.id] || 0) + 1;
+        mealTags(m).forEach(t => { tags[t] = (tags[t] || 0) + 1; });
+      }));
+      const [topId, top] = Object.entries(uses).sort((a, b) => b[1] - a[1])[0] || ['', 0];
+      const counts = Object.fromEntries(RULE_DEFS.map(def => [def.key, def.tag ? tags[def.tag] || 0 : top]));
+      return { counts, topMeal: mealById(topId), filled: Object.values(uses).reduce((a, b) => a + b, 0) };
+    }
+
+    const PROTEIN_TAGS = ['legume', 'fish', 'red-meat', 'poultry', 'egg'];
+    const ruleMet = (def, count, target) => def.kind === 'min' ? count >= target : count <= target;
+
+    // Fills each main slot from `options` ({ breakfast: [{ id, tags, fit }], ... }) so every rule in `rules` holds.
+    // Greedy: each slot tries the candidate that best moves unmet quotas forward first, and only
+    // backtracks when the rest of the week could no longer meet a rule. Gives up after `budget` steps.
+    function solveWeek(options, rules, budget = 4000) {
+      const slots = [];
+      DAYS.forEach((_, d) => SLOTS.forEach(([slot]) => { if (options[slot] && options[slot].length) slots.push({ d, slot }); }));
+      const uses = {}, tagCount = {}, pick = [];
+      const tagRules = RULE_DEFS.filter(def => def.tag && rules[def.key] != null);
+      const mins = tagRules.filter(def => def.kind === 'min');
+      const maxes = tagRules.filter(def => def.kind === 'max');
+      const cap = rules.maxRepeats ?? Infinity;
+      let steps = 0;
+
+      // Could the slots from i onwards still meet every minimum and fit within the repeat cap?
+      function feasible(i) {
+        const left = {};
+        for (let j = i; j < slots.length; j++) left[slots[j].slot] = (left[slots[j].slot] || 0) + 1;
+        for (const [type, n] of Object.entries(left)) {
+          if (options[type].reduce((s, o) => s + Math.max(0, cap - (uses[o.id] || 0)), 0) < n) return false;
+        }
+        return mins.every(def => {
+          const need = rules[def.key] - (tagCount[def.tag] || 0);
+          if (need <= 0) return true;
+          const room = Object.entries(left).reduce((s, [type, n]) => s + Math.min(n, options[type]
+            .filter(o => o.tags.includes(def.tag))
+            .reduce((t, o) => t + Math.max(0, cap - (uses[o.id] || 0)), 0)), 0);
+          return need <= room;
+        });
+      }
+
+      function place(i) {
+        if (i === slots.length) return true;
+        if (++steps > budget) return false;
+        const { d, slot } = slots[i];
+        const remaining = slots.length - i;
+        const prev = d > 0 ? pick[i - SLOTS.filter(([s]) => options[s] && options[s].length).length] : null;
+        const scored = options[slot]
+          .filter(o => (uses[o.id] || 0) < cap && maxes.every(def => !o.tags.includes(def.tag) || (tagCount[def.tag] || 0) < rules[def.key]))
+          .map(o => {
+            const quota = mins.reduce((s, def) => {
+              const need = rules[def.key] - (tagCount[def.tag] || 0);
+              return s + (need > 0 && o.tags.includes(def.tag) ? 3 * need / remaining + 0.5 : 0);
+            }, 0);
+            // A batch already being cooked is worth eating again (not two days running); single meals rotate
+            const again = uses[o.id] ? (o.tags.includes('batch') ? -0.3 : 0.2) : 0;
+            // Mild nudge away from protein groups the week already has plenty of
+            const spread = o.tags.filter(t => PROTEIN_TAGS.includes(t)).reduce((s, t) => s + 0.12 * (tagCount[t] || 0), 0);
+            return { o, score: 2 * o.fit + (prev && prev.id === o.id ? 1.5 : 0) + again + spread - quota };
+          })
+          .sort((a, b) => a.score - b.score);
+        for (const { o } of scored) {
+          uses[o.id] = (uses[o.id] || 0) + 1;
+          o.tags.forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; });
+          pick[i] = o;
+          if (feasible(i + 1) && place(i + 1)) return true;
+          uses[o.id]--;
+          o.tags.forEach(t => { tagCount[t]--; });
+          if (steps > budget) return false;
+        }
+        return false;
+      }
+
+      if (!feasible(0) || !place(0)) return null;
+      const plan = DAYS.map(() => ({}));
+      slots.forEach(({ d, slot }, i) => { plan[d][slot] = pick[i].id; });
+      return plan;
+    }
+
+    // Tries the rules as set; if no week fits, loosens them in RULE_DEFS order one step at a time,
+    // then tightens earlier ones back as far as the later change allows. Returns the plan and what was relaxed.
+    function planWithRules(options, rules) {
+      const used = { ...rules };
+      let plan = solveWeek(options, used);
+      const loosened = [];
+      for (const def of RULE_DEFS) {
+        if (plan) break;
+        if (used[def.key] == null) continue;
+        const step = def.kind === 'max' ? 1 : -1;
+        while (!plan && used[def.key] !== def.limit) {
+          used[def.key] += step;
+          plan = solveWeek(options, used);
+        }
+        if (used[def.key] !== rules[def.key]) loosened.push(def);
+      }
+      if (!plan) return { plan: null, relaxed: [] };
+      loosened.slice(0, -1).forEach(def => {
+        const step = def.kind === 'max' ? -1 : 1;
+        while (used[def.key] !== rules[def.key]) {
+          const tighter = solveWeek(options, { ...used, [def.key]: used[def.key] + step });
+          if (!tighter) break;
+          used[def.key] += step;
+          plan = tighter;
+        }
+      });
+      const relaxed = RULE_DEFS.filter(def => used[def.key] !== rules[def.key])
+        .map(def => `${def.label.toLowerCase()} ${def.kind === 'max' ? 'up' : 'down'} to ${used[def.key]} (you set ${rules[def.key]})`);
+      return { plan, relaxed };
+    }
 
     // --- Shopping details: aisle, units, packs, prices, raw/cooked ---
     const META_KEYS = ['category', 'unit', 'unitGrams', 'packGrams', 'packLabel', 'pricePerPack', 'cookedFactor', 'prep'];
@@ -1027,6 +1222,7 @@
                 <div class="font-bold text-slate-200 text-sm">${esc(r.name)}${r.servings > 1 ? ` <span class="text-xs font-normal text-slate-400">· batch of ${r.servings}</span>` : ''}</div>
                 <div class="text-[11px] text-slate-400"><span class="text-emerald-400 font-bold">${fmt(pt.cals)} kcal${r.servings > 1 ? ' / portion' : ''}</span> · ${macroLine(pt)}</div>
                 <div class="text-xs text-slate-400">${Object.entries(r.items).map(([name, g]) => `${esc(name)} ${gramsText(presetByName(name), g)}`).join(', ')}</div>
+                <div class="flex flex-wrap gap-1">${r.tags.map(t => `<span class="text-[10px] bg-slate-800 border border-slate-600 text-slate-300 rounded-full px-2 py-0.5">${TAGS[t]}</span>`).join('')}</div>
               </div>
               ${added.has(r.id)
                 ? '<span class="shrink-0 text-xs text-brand">✓ In your meals</span>'
@@ -1162,8 +1358,49 @@
         (other.length ? `<optgroup label="Other meals">${other.map(opt).join('')}</optgroup>` : '');
     }
 
+    // Weekly food rules: same traffic light as the cards above — green met, amber at the limit or one short, red broken
+    function renderRules() {
+      const { counts, topMeal, filled } = ruleStats();
+      const tone = (def, count, target) => {
+        if (!filled) return { ...TONES.none, words: 'nothing planned yet' };
+        if (def.kind === 'max') {
+          if (count > target) return { ...TONES.over, words: `${count - target} over the limit` };
+          return count === target ? { ...TONES.close, words: 'at the limit' } : { ...TONES.room, words: 'within the limit' };
+        }
+        if (count >= target) return { ...TONES.room, words: 'met' };
+        return { ...(target - count === 1 ? TONES.close : TONES.over), icon: '▼', words: `${target - count} short` };
+      };
+      $('plan-rules').innerHTML = `
+        <div class="space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Weekly food rules <span class="normal-case font-normal">· breakfasts, lunches &amp; dinners · edit the targets</span></h3>
+            <button data-action="build-week" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 py-1 px-2.5 rounded border border-slate-600 transition-colors">⚡ Rebuild with these rules</button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            ${RULE_DEFS.map(def => {
+              const count = counts[def.key], target = state.rules[def.key];
+              const t = tone(def, count, target);
+              const detail = def.key === 'maxRepeats' && topMeal && count > 1 ? `<span class="block text-[10px] text-slate-400 truncate" title="${esc(topMeal.name)}">${esc(topMeal.name)}</span>` : '';
+              return `
+                <div class="p-2.5 rounded-lg border transition-colors duration-300 ${t.card}">
+                  <span class="block text-[11px] font-semibold text-slate-300/80 uppercase tracking-wider">${def.label}</span>
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="text-lg font-bold ${t.text}">${t.icon ? `<span aria-hidden="true">${t.icon}</span> ` : ''}${count}${def.key === 'maxRepeats' ? '×' : ''}<span class="sr-only"> — ${t.words}</span></span>
+                    <label class="flex items-center gap-1 text-[10px] text-slate-400">${def.unit}
+                      <input type="number" min="${def.key === 'maxRepeats' ? 1 : 0}" max="${def.key === 'maxRepeats' ? 7 : 21}" step="1" value="${target}" data-action="set-rule" data-rule="${def.key}"
+                        aria-label="${def.label}: ${def.unit}" class="w-11 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-slate-100 text-center focus:outline-none focus:border-brand">
+                    </label>
+                  </div>
+                  ${detail}
+                </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+
     function renderPlan() {
       $('plan-left').innerHTML = leftCards(planTotals(), weekly());
+      renderRules();
 
       const target = state.daily.cals;
       const selectCls = 'w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-brand';
@@ -1755,21 +1992,30 @@
       day.sizes = size === 1 ? {} : Object.fromEntries(mains.map(slot => [slot, size]));
     }
 
-    function autoFill() {
-      if (!state.meals.length) { toast('Create some meals first'); return; }
-      const byType = t => state.meals.filter(m => m.type === t);
-      const snacks = byType('snack');
+    // Applies a solved week to the plan (days with no meal for a slot stay empty), then balances each day
+    function fillPlan(picks, target, snacks) {
       state.plan = DAYS.map((_, d) => {
         const day = emptyDay();
-        SLOTS.forEach(([slot]) => {
-          const options = byType(slot);
-          if (options.length) day[slot] = options[d % options.length].id;
-        });
-        balanceDay(day, state.daily.cals, snacks, d);
+        Object.assign(day, picks[d]);
+        balanceDay(day, target, snacks, d);
         return day;
       });
+    }
+
+    const relaxedNote = relaxed => relaxed.length ? ` — couldn't meet every rule, so relaxed ${relaxed.join('; ')}` : '';
+
+    // Your own meals across the week, sized to the day; only the repeat limit applies here
+    function autoFill() {
+      if (!state.meals.length) { toast('Create some meals first'); return; }
+      const target = state.daily.cals;
+      const options = Object.fromEntries(SLOTS.map(([slot]) => [slot, state.meals.filter(m => m.type === slot).map(m => ({
+        id: m.id, tags: mealTags(m), fit: target ? Math.abs(Math.log(Math.max(1, portionTotals(m).cals) / (target * SPLIT[slot]))) : 0
+      }))]));
+      const { plan, relaxed } = planWithRules(options, { maxRepeats: state.rules.maxRepeats });
+      if (!plan) { toast('Could not fill the week — try fewer rules'); return; }
+      fillPlan(plan, target, state.meals.filter(m => m.type === 'snack'));
       commit();
-      toast('Week filled — tweak any day you like');
+      toast(`Week filled${relaxed.length ? relaxedNote(relaxed) : ' — tweak any day you like'}`, { undoable: relaxed.length > 0 });
     }
 
     // Finds the basket food with this preset's name, or adds it sized by the plan
@@ -1814,22 +2060,18 @@
         return;
       }
 
-      // Recipes whose natural portion is closest to that meal's share of the day
-      const pick = (type, count) => RECIPES
-        .filter(r => r.type === type)
-        .map(r => ({ r, fit: Math.abs(Math.log(recipeTotals(r).cals / (target * SPLIT[type]))) }))
-        .sort((a, b) => a.fit - b.fit)
-        .slice(0, count)
-        .map(({ r }) => mealFromRecipe(r));
-      const chosen = { breakfast: pick('breakfast', 2), lunch: pick('lunch', 2), dinner: pick('dinner', 3) };
-      const snacks = RECIPES.filter(r => r.type === 'snack').map(mealFromRecipe);
-
-      state.plan = DAYS.map((_, d) => {
-        const day = emptyDay();
-        SLOTS.forEach(([slot]) => { day[slot] = chosen[slot][d % chosen[slot].length].id; });
-        balanceDay(day, target, snacks, d);
-        return day;
-      });
+      // Every recipe is a candidate; `fit` is how far its natural portion is from that meal's share of the day
+      const options = Object.fromEntries(SLOTS.map(([slot]) => [slot, RECIPES.filter(r => r.type === slot).map(r => ({
+        id: r.id, tags: r.tags, fit: Math.abs(Math.log(recipeTotals(r).cals / (target * SPLIT[slot])))
+      }))]));
+      const { plan, relaxed } = planWithRules(options, state.rules);
+      if (!plan) { toast('Could not build a week — try fewer rules'); return; }
+      const meals = {};
+      const picks = plan.map(day => Object.fromEntries(Object.entries(day).map(([slot, id]) => {
+        meals[id] = meals[id] || mealFromRecipe(RECIPES.find(r => r.id === id));
+        return [slot, meals[id].id];
+      })));
+      fillPlan(picks, target, RECIPES.filter(r => r.type === 'snack').map(mealFromRecipe));
 
       // The shopping list follows this plan
       const used = plannedGrams();
@@ -1837,7 +2079,7 @@
       state.tab = 'plan';
       commit();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      toast('Your week is built — shopping list ready', { undoable: true });
+      toast(relaxed.length ? `Week built${relaxedNote(relaxed)}` : 'Your week is built — every food rule met, shopping list ready', { undoable: true });
     }
 
     function copyText(text, msg) {
@@ -2361,6 +2603,14 @@
       },
       'toggle-check': el => {
         state.checked[el.dataset.id] = el.checked;
+        commit();
+      },
+      'set-rule': el => {
+        const def = RULE_DEFS.find(d => d.key === el.dataset.rule);
+        if (!def) return;
+        const max = def.key === 'maxRepeats' ? 7 : 21;
+        const n = Math.round(parseFloat(el.value));
+        state.rules[def.key] = Number.isFinite(n) ? Math.min(max, Math.max(def.key === 'maxRepeats' ? 1 : 0, n)) : DEFAULT_RULES[def.key];
         commit();
       }
     };
