@@ -3,567 +3,2490 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weekly Macro & Meal Tally</title>
+  <title>Weekly Meal Planner</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          colors: { brand: '#38bdf8' }
+          colors: { brand: '#34d399' }
         }
       }
     }
   </script>
-</head>
-  <!-- Navbar -->
-<div id="nav-placeholder"></div>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans p-4 sm:p-6 pb-12">
+  <style>
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
 
-  <div class="max-w-3xl mx-auto space-y-6">
+    @media print {
+      .no-print, [data-panel]:not([data-panel="summary"]) { display: none !important; }
+      [data-panel="summary"] { display: block !important; }
+      * { color: #000 !important; background: transparent !important; border-color: #ccc !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans pb-16">
+
+  <div class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
 
     <!-- Header -->
-    <header class="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
-      <h1 class="font-bold text-lg text-slate-100">Macro Tally Pro</h1>
-      <a href="./index.html" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors border border-slate-600">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Home
-      </a>
+    <header class="no-print flex items-center justify-between gap-3 bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+      <div>
+        <h1 class="font-bold text-lg text-slate-100">Weekly Meal Planner</h1>
+        <p class="text-xs text-slate-400">Targets → shopping list → meals → a full week of food.</p>
+      </div>
+      <div class="flex flex-wrap justify-end gap-2 shrink-0">
+        <button data-action="undo" id="btn-undo" title="Undo (Ctrl/⌘+Z)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-700">
+          ↶ Undo
+        </button>
+        <button data-action="redo" id="btn-redo" title="Redo (Ctrl/⌘+Shift+Z)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-700">
+          ↷ Redo
+        </button>
+        <button data-action="new-week" title="Clears the week plan and ticks. Keeps your meals, foods and targets." class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-600 transition-colors">
+          🗓️ Start a New Week
+        </button>
+        <a href="./index.html" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors border border-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Home
+        </a>
+      </div>
     </header>
 
-    <!-- 1. Daily-to-Multi-Day Calculator -->
-    <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">1. Target Multiplier Calculator</h2>
-        <div class="flex items-center gap-2">
-          <label for="calc-days" class="text-xs text-slate-400 font-semibold uppercase">Days:</label>
-          <input type="number" id="calc-days" value="7" min="1" class="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-100 text-center font-bold focus:outline-none focus:border-brand">
-        </div>
-      </div>
+    <!-- Shown when the page is opened from a share link -->
+    <div id="share-banner" class="no-print"></div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Cals</label>
-          <input type="number" id="calc-cals" placeholder="2000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Protein (g)</label>
-          <input type="number" id="calc-pro" placeholder="150" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Carbs (g)</label>
-          <input type="number" id="calc-carbs" placeholder="200" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Fat (g)</label>
-          <input type="number" id="calc-fat" placeholder="65" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-      </div>
+    <!-- Always-visible status -->
+    <div id="status-bar" class="no-print sticky top-2 z-40 grid grid-cols-4 gap-2 bg-slate-800/95 backdrop-blur p-3 rounded-xl border border-slate-700 shadow-lg text-center"></div>
 
-      <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 flex flex-wrap justify-between items-center text-xs text-slate-300 gap-2">
-        <span>Calculated Target:</span>
-        <div class="flex gap-3 font-semibold text-brand">
-          <span id="mult-out-cals">0 kcal</span>
-          <span id="mult-out-pro">0g P</span>
-          <span id="mult-out-carbs">0g C</span>
-          <span id="mult-out-fat">0g F</span>
-        </div>
-      </div>
-    </section>
+    <!-- Step tabs -->
+    <nav id="tabs" role="tablist" aria-label="Steps" class="no-print grid grid-cols-5 gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+      <button data-tab="target" id="tab-target" role="tab" aria-controls="panel-target" class="tab-btn"><span aria-hidden="true">🎯</span><span><span class="hidden sm:inline">1. </span>Targets</span></button>
+      <button data-tab="shopping" id="tab-shopping" role="tab" aria-controls="panel-shopping" class="tab-btn"><span aria-hidden="true">🛒</span><span><span class="hidden sm:inline">2. </span>Shop</span></button>
+      <button data-tab="meals" id="tab-meals" role="tab" aria-controls="panel-meals" class="tab-btn"><span aria-hidden="true">🍽️</span><span><span class="hidden sm:inline">3. </span>Meals</span></button>
+      <button data-tab="plan" id="tab-plan" role="tab" aria-controls="panel-plan" class="tab-btn"><span aria-hidden="true">📅</span><span><span class="hidden sm:inline">4. </span>Week</span></button>
+      <button data-tab="summary" id="tab-summary" role="tab" aria-controls="panel-summary" class="tab-btn"><span aria-hidden="true">✅</span><span><span class="hidden sm:inline">5. </span>Ready</span></button>
+    </nav>
 
-    <!-- 2. Targets & Progress -->
-    <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
-      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">2. Active Period Targets & Progress</h2>
-      
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Cals</label>
-          <input type="number" id="target-cals" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Protein (g)</label>
-          <input type="number" id="target-protein" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Carbs (g)</label>
-          <input type="number" id="target-carbs" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-        <div>
-          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Target Fat (g)</label>
-          <input type="number" id="target-fat" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 focus:outline-none focus:border-brand transition-colors text-sm">
-        </div>
-      </div>
+    <!-- 1. Targets -->
+    <section data-panel="target" id="panel-target" role="tabpanel" aria-labelledby="tab-target" class="space-y-6">
 
-      <!-- Traffic Light Progress Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-        <div id="card-cals" class="p-3 rounded-lg border transition-colors duration-300">
-          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Calories Left</span>
-          <span id="stat-cals-left" class="text-lg font-bold transition-colors">0</span>
-        </div>
-        <div id="card-pro" class="p-3 rounded-lg border transition-colors duration-300">
-          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Protein Left</span>
-          <span id="stat-protein-left" class="text-lg font-bold transition-colors">0 g</span>
-        </div>
-        <div id="card-carbs" class="p-3 rounded-lg border transition-colors duration-300">
-          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Carbs Left</span>
-          <span id="stat-carbs-left" class="text-lg font-bold transition-colors">0 g</span>
-        </div>
-        <div id="card-fat" class="p-3 rounded-lg border transition-colors duration-300">
-          <span class="block text-[10px] font-semibold text-slate-300/80 uppercase tracking-wider">Fat Left</span>
-          <span id="stat-fat-left" class="text-lg font-bold transition-colors">0 g</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. Food Database & Entry -->
-    <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">3. Add Food</h2>
-        
-        <div class="flex items-center gap-2 relative group">
-          <label class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 py-1.5 px-3 rounded border border-slate-600 cursor-pointer transition-colors flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Load Food DB (JSON)
-            <input type="file" id="db-import" accept=".json" class="hidden">
-          </label>
-          
-          <div class="w-6 h-6 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs font-bold text-slate-300 cursor-help hover:bg-slate-600 transition-colors">?</div>
-          
-          <div class="absolute right-0 top-full mt-2 w-64 md:w-72 bg-slate-900 border border-slate-600 shadow-xl rounded-lg p-3 z-50 hidden group-hover:block pointer-events-none">
-            <p class="text-xs text-slate-300 mb-2 font-medium">Your JSON must be an array of objects. <strong class="text-brand">Values must be per 100g.</strong></p>
-            <pre class="text-[10px] md:text-xs text-emerald-400 bg-slate-950 p-2 rounded overflow-x-auto border border-slate-800">
-[
-  {
-    "name": "Chicken Breast (Raw)",
-    "cals": 120,
-    "protein": 22.5,
-    "carbs": 0,
-    "fat": 2.6
-  }
-]</pre>
+      <!-- Stats calculator (same maths as food.html) -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">1. Calculate From Your Stats</h2>
+          <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-700 text-xs font-bold">
+            <button data-action="set-unit" data-value="kg" class="unit-btn px-3 py-1 rounded-md transition-colors">KG</button>
+            <button data-action="set-unit" data-value="lbs" class="unit-btn px-3 py-1 rounded-md transition-colors">LBS</button>
           </div>
         </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button data-action="set-gender" data-value="male" class="gender-btn py-2 rounded-lg border font-bold transition-colors">Male</button>
+          <button data-action="set-gender" data-value="female" class="gender-btn py-2 rounded-lg border font-bold transition-colors">Female</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label for="st-weight" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Weight (<span class="unit-weight">kg</span>)</label>
+            <input type="number" id="st-weight" data-stat="weight" step="any" placeholder="80" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 font-bold focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label for="st-height" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Height (<span class="unit-height">cm</span>)</label>
+            <input type="number" id="st-height" data-stat="height" step="any" placeholder="180" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 font-bold focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label for="st-age" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Age</label>
+            <input type="number" id="st-age" data-stat="age" placeholder="30" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 font-bold focus:outline-none focus:border-brand">
+          </div>
+        </div>
+
+        <div>
+          <label for="st-activity" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Activity level</label>
+          <select id="st-activity" data-stat="activity" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 text-sm focus:outline-none focus:border-brand">
+            <option value="1.2">Sedentary (Office job, no exercise)</option>
+            <option value="1.375">Lightly Active (1-3 days/week)</option>
+            <option value="1.55">Moderately Active (3-5 days/week)</option>
+            <option value="1.725">Very Active (6-7 days/week)</option>
+            <option value="1.9">Super Active (Physical job + training)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Current phase</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button data-action="set-goal" data-value="cut" class="goal-btn py-2 rounded-lg border font-bold text-sm transition-colors">✂️ Cut</button>
+            <button data-action="set-goal" data-value="maintain" class="goal-btn py-2 rounded-lg border font-bold text-sm transition-colors">⚓ Maintain</button>
+            <button data-action="set-goal" data-value="bulk" class="goal-btn py-2 rounded-lg border font-bold text-sm transition-colors">💪 Bulk</button>
+          </div>
+          <p id="goal-desc" class="mt-2 text-xs text-brand font-mono text-center"></p>
+        </div>
+
+        <p id="stats-error" role="alert" class="hidden text-sm text-rose-300"></p>
+        <button data-action="calculate" class="w-full bg-slate-100 hover:bg-white text-slate-900 font-bold py-2.5 rounded-lg transition-colors uppercase tracking-widest text-sm">Calculate my daily targets</button>
       </div>
 
-      <form id="food-form" class="space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Daily targets (×7 like food-prep.html's multiplier) -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Daily Targets <span class="normal-case font-normal text-slate-400">— calculated above, or type your own</span></h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Select Preset (Per 100g)</label>
-            <select id="food-preset" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
-              <option value="">-- Custom Entry --</option>
+            <label for="daily-cals" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Cals</label>
+            <input type="number" id="daily-cals" data-target="cals" min="0" placeholder="2000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 font-bold focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label for="daily-protein" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Protein (g)</label>
+            <input type="number" id="daily-protein" data-target="protein" min="0" placeholder="150" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 font-bold focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label for="daily-carbs" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Carbs (g)</label>
+            <input type="number" id="daily-carbs" data-target="carbs" min="0" placeholder="200" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 font-bold focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label for="daily-fat" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Daily Fat (g)</label>
+            <input type="number" id="daily-fat" data-target="fat" min="0" placeholder="65" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 font-bold focus:outline-none focus:border-brand">
+          </div>
+        </div>
+        <div id="weekly-output"></div>
+        <div id="split-output"></div>
+      </div>
+      <div id="target-cta"></div>
+      <button data-goto="shopping" class="w-full bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2.5 rounded-lg transition-colors">Next: Build your shopping list →</button>
+    </section>
+
+    <!-- 2. Shopping list -->
+    <section data-panel="shopping" id="panel-shopping" role="tabpanel" aria-labelledby="tab-shopping" class="space-y-6 hidden">
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">2. Add Food to Buy</h2>
+
+        <details class="group bg-slate-900/60 border border-slate-700/50 rounded-lg">
+          <summary class="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-slate-300 flex items-center justify-between">
+            <span>📂 Food DB (JSON) — <span id="db-count" class="text-slate-400 font-normal"></span></span>
+            <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div class="p-3 pt-0 space-y-3">
+            <div class="grid sm:grid-cols-2 gap-3 items-start">
+              <p class="text-xs text-slate-300">Same format as Macro Tally — an array of objects. <strong class="text-brand">Values must be per 100g.</strong> A DB loaded on either page shows up on both.</p>
+              <pre class="text-[11px] md:text-xs text-emerald-400 bg-slate-950 p-2 rounded overflow-x-auto border border-slate-800">[
+  { "name": "Chicken Breast (Raw)",
+    "cals": 120, "protein": 22.5,
+    "carbs": 0, "fat": 2.6 }
+]</pre>
+            </div>
+            <div data-json-box="db" data-prompt="Load a Food DB"></div>
+          </div>
+        </details>
+
+        <form id="food-form" class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="relative">
+              <label for="ff-search" class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Search Foods (Per 100g)</label>
+              <input id="ff-search" type="search" autocomplete="off" spellcheck="false" placeholder="🔍 e.g. chicken, oats, yogurt…"
+                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ff-results"
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand placeholder-slate-500">
+              <ul id="ff-results" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-slate-900 border border-slate-600 rounded-lg shadow-xl"></ul>
+            </div>
+            <div>
+              <label for="ff-name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Food Name</label>
+              <input id="ff-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
+            </div>
+            <div>
+              <label for="ff-category" class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Aisle</label>
+              <select id="ff-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand"></select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div class="col-span-2 sm:col-span-1">
+              <label for="ff-grams" class="block text-xs font-semibold uppercase tracking-wide mb-1 text-brand">Amount to buy (g)</label>
+              <input id="ff-grams" type="number" step="any" min="0" required placeholder="e.g. 1000" class="w-full bg-slate-900 border border-brand/50 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand placeholder-slate-500">
+            </div>
+            <div>
+              <label for="ff-cals" class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Kcal /100g</label>
+              <input id="ff-cals" type="number" step="any" min="0" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
+            </div>
+            <div>
+              <label for="ff-protein" class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Protein /100g</label>
+              <input id="ff-protein" type="number" step="any" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
+            </div>
+            <div>
+              <label for="ff-carbs" class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Carbs /100g</label>
+              <input id="ff-carbs" type="number" step="any" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
+            </div>
+            <div>
+              <label for="ff-fat" class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Fat /100g</label>
+              <input id="ff-fat" type="number" step="any" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
+            </div>
+          </div>
+          <div id="ff-preview" class="text-xs text-slate-400 min-h-[1rem]"></div>
+          <button type="submit" class="w-full bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2.5 rounded-lg transition-colors">Add to shopping list</button>
+        </form>
+      </div>
+
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Left to Buy This Week</h2>
+          <div class="flex flex-wrap gap-2">
+            <button data-action="auto-shopping" class="text-xs bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-1.5 px-3 rounded transition-colors">⚡ Auto-fill</button>
+            <button data-action="clear-shopping" class="text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 py-1.5 px-3 rounded border border-rose-800/60 transition-colors">Clear</button>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400">Food your meals use is sized from your week plan automatically (🔓 From plan). Lock a food (🔒 Fixed amount) to keep your own amount — typing a new amount locks it. Auto-fill instead builds a fixed basket sized to your targets.</p>
+        <div id="basket-left" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+        <div id="basket-list" class="space-y-2"></div>
+      </div>
+      <div class="flex gap-2"><button data-goto="target" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 font-semibold py-2.5 px-4 rounded-lg transition-colors">← Back</button><button data-goto="meals" class="flex-1 bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2.5 rounded-lg transition-colors">Next: Make your meals →</button></div>
+    </section>
+
+    <!-- 3. Meals -->
+    <section data-panel="meals" id="panel-meals" role="tabpanel" aria-labelledby="tab-meals" class="space-y-6 hidden">
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-4">
+        <h2 id="builder-title" class="text-sm font-bold uppercase tracking-wider text-slate-400">3. Create a Meal or Snack</h2>
+        <div id="weight-mode"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="col-span-2">
+            <label for="mb-name" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Meal name</label>
+            <input id="mb-name" placeholder="e.g. Chicken, rice & broccoli" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label for="mb-type" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Type</label>
+            <select id="mb-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Food Name</label>
-            <input type="text" id="food-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+            <label for="mb-servings" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Portions it makes</label>
+            <input id="mb-servings" type="number" min="1" step="1" value="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
           </div>
         </div>
-        
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 text-brand">Weight (g)</label>
-            <input type="number" id="food-weight" step="any" required class="w-full bg-slate-900 border border-brand/50 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base placeholder-slate-500" placeholder="e.g. 250">
+        <p class="text-xs text-slate-400">Weights are for the <b class="text-slate-300">whole batch</b>. Cooking a big pot of chilli? Add everything that goes in the pot and set how many portions it makes — each meal slot in your week eats one portion.</p>
+        <div class="flex gap-2 items-end">
+          <div class="flex-1 min-w-0 relative">
+            <label for="mb-search" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Ingredient (any food — it's added to your basket)</label>
+            <input id="mb-search" type="search" autocomplete="off" spellcheck="false" placeholder="🔍 e.g. rice, broccoli…"
+              role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="mb-results"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand placeholder-slate-500">
+            <ul id="mb-results" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-slate-900 border border-slate-600 rounded-lg shadow-xl"></ul>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Calories</label>
-            <input type="number" id="food-cals" step="any" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
+          <div class="w-24 shrink-0">
+            <label id="mb-grams-label" for="mb-grams" class="block text-[11px] font-semibold uppercase tracking-wide mb-1 text-brand">Batch (g)</label>
+            <input id="mb-grams" type="number" step="any" min="0" value="100" class="w-full bg-slate-900 border border-brand/50 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand">
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Protein</label>
-            <input type="number" id="food-protein" step="any" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Carbs</label>
-            <input type="number" id="food-carbs" step="any" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Fat</label>
-            <input type="number" id="food-fat" step="any" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand transition-colors text-base">
-          </div>
+          <button data-action="add-ingredient" class="shrink-0 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-100 font-semibold px-4 py-2 rounded-lg transition-colors">Add</button>
         </div>
+        <div id="draft-list"></div>
+        <div id="mb-target"></div>
+        <div class="flex gap-2">
+          <button data-action="save-meal" class="flex-1 bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2 rounded-lg transition-colors">Save meal</button>
+          <button data-action="reset-draft" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 font-semibold px-4 rounded-lg transition-colors">Clear</button>
+        </div>
+      </div>
 
-        <button type="submit" class="w-full bg-brand hover:bg-sky-400 text-slate-950 font-bold py-2.5 rounded-lg transition-colors text-base">
-          Add to Log
-        </button>
-      </form>
+      <details class="group bg-slate-800 rounded-xl border border-slate-700 shadow-md">
+        <summary class="cursor-pointer select-none p-5 text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+          <span>📖 Recipe Library <span class="normal-case font-normal text-slate-400">— ready-made meals from common foods</span></span>
+          <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+        </summary>
+        <div id="recipe-list" class="px-5 pb-5 space-y-2"></div>
+      </details>
+
+      <div id="meal-list" class="space-y-4"></div>
+      <div class="flex gap-2"><button data-goto="shopping" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 font-semibold py-2.5 px-4 rounded-lg transition-colors">← Back</button><button data-goto="plan" class="flex-1 bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2.5 rounded-lg transition-colors">Next: Plan your week →</button></div>
     </section>
 
-    <!-- 4. Two-Column Layout -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      <!-- Logged Items -->
-      <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-3 flex flex-col">
-        <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">4. Logged Items</h2>
-          <span id="item-count" class="text-xs text-slate-400">0 items</span>
+    <!-- 4. Week plan -->
+    <section data-panel="plan" id="panel-plan" role="tabpanel" aria-labelledby="tab-plan" class="space-y-6 hidden">
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">4. Left to Plan This Week</h2>
+          <div class="flex gap-2">
+            <button data-action="autofill" class="text-xs bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-1.5 px-3 rounded transition-colors">Auto-fill week</button>
+            <button data-action="clear-plan" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 py-1.5 px-3 rounded border border-slate-600 transition-colors">Clear</button>
+          </div>
         </div>
-        <div id="food-list" class="space-y-2 overflow-y-auto max-h-[400px] pr-1"></div>
-      </section>
+        <div id="plan-left" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+        <p class="text-xs text-slate-400">Pick a meal for each slot, then top up with snacks. Auto-fill rotates your meals, adds snacks, then nudges portion sizes (up to ±15%) so each day lands on your calorie target. The small box next to each meal is how many portions you eat.</p>
+        <div id="plan-warnings"></div>
+      </div>
+      <div id="day-picker" class="md:hidden"></div>
+      <div id="plan-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      <div class="flex gap-2"><button data-goto="meals" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 font-semibold py-2.5 px-4 rounded-lg transition-colors">← Back</button><button data-goto="summary" class="flex-1 bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2.5 rounded-lg transition-colors">Finish: See my lists →</button></div>
+    </section>
 
-      <!-- Shopping List -->
-      <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md flex flex-col space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">5. Shopping List</h2>
-          <button id="btn-copy-list" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 py-1 px-2 rounded border border-slate-600 transition-colors flex gap-1 items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy List
-          </button>
-        </div>
-        <textarea id="shopping-list-area" readonly class="w-full flex-grow min-h-[200px] bg-slate-900 border border-slate-700 rounded-lg p-3 text-emerald-400 text-sm focus:outline-none resize-none font-mono"></textarea>
-      </section>
-
-    </div>
+    <!-- 5. Summary -->
+    <section data-panel="summary" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" class="space-y-6 hidden">
+      <div class="no-print flex flex-wrap gap-2">
+        <button data-action="copy-shopping" class="flex-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-100 font-semibold py-2 px-3 rounded-lg transition-colors">Copy shopping list</button>
+        <button data-action="copy-meals" class="flex-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-100 font-semibold py-2 px-3 rounded-lg transition-colors">Copy meal plan</button>
+        <button data-action="share" class="flex-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-100 font-semibold py-2 px-3 rounded-lg transition-colors">🔗 Share link</button>
+        <button data-action="print" class="flex-1 bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2 px-3 rounded-lg transition-colors">Print</button>
+      </div>
+      <div id="share-out" class="no-print"></div>
+      <div id="summary-content" class="space-y-6"></div>
+      <button data-goto="plan" class="no-print bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 font-semibold py-2.5 px-4 rounded-lg transition-colors">← Back to your week</button>
+    </section>
 
     <!-- Data Management Toolbar -->
-    <footer class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md space-y-3">
+    <footer class="no-print bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md space-y-3">
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">State Management</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <button id="btn-export" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium py-2 px-3 rounded-lg border border-slate-600 transition-colors">
-          Save Session JSON
-        </button>
-        <label class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium py-2 px-3 rounded-lg border border-slate-600 transition-colors text-center cursor-pointer">
-          Load Session JSON
-          <input type="file" id="file-import" accept=".json" class="hidden">
-        </label>
-        <button id="btn-reset" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-sm font-medium py-2 px-3 rounded-lg border border-rose-800/60 transition-colors">
-          Reset Log
+      <button data-action="export" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium py-2 px-3 rounded-lg border border-slate-600 transition-colors">
+        Save Session JSON
+      </button>
+      <div data-json-box="session" data-prompt="Load a saved session"></div>
+      <div class="pt-3 border-t border-slate-700/60 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs text-slate-400">Erases targets, stats, foods, meals and the plan. Your Food DB is kept.</span>
+        <button data-action="erase-all" id="btn-erase" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-sm font-medium py-2 px-3 rounded-lg border border-rose-800/60 transition-colors">
+          Erase everything
         </button>
       </div>
     </footer>
 
   </div>
 
+  <div id="toast" role="status" aria-live="polite" class="no-print fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 max-w-[calc(100%-2rem)] bg-brand text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity"></div>
+
   <script>
-
-    // --- Navbar ---
-  fetch('nav.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('nav-placeholder').innerHTML = data;
-    });
-    
-    let state = {
-      dailyInputs: { cals: 0, protein: 0, carbs: 0, fat: 0, days: 7 },
-      targets: { cals: 0, protein: 0, carbs: 0, fat: 0 },
-      items: []
-    };
-    let foodDatabase = []; 
-
-    const STORAGE_KEY = 'macro_tally_v4';
-    const DB_KEY = 'macro_tally_db_v1';
-
-    // Multiplier Inputs
-    const calcDays = document.getElementById('calc-days');
-    const calcCals = document.getElementById('calc-cals');
-    const calcPro = document.getElementById('calc-pro');
-    const calcCarbs = document.getElementById('calc-carbs');
-    const calcFat = document.getElementById('calc-fat');
-
-    // Targets Inputs
-    const inputTCals = document.getElementById('target-cals');
-    const inputTPro = document.getElementById('target-protein');
-    const inputTCarbs = document.getElementById('target-carbs');
-    const inputTFat = document.getElementById('target-fat');
-
-    // Entry Inputs
-    const presetSelect = document.getElementById('food-preset');
-    const fName = document.getElementById('food-name');
-    const fWeight = document.getElementById('food-weight');
-    const fCals = document.getElementById('food-cals');
-    const fPro = document.getElementById('food-protein');
-    const fCarbs = document.getElementById('food-carbs');
-    const fFat = document.getElementById('food-fat');
-
-    function fmt(num) {
-      return (Math.round(num * 10) / 10).toLocaleString();
-    }
-
-    function init() {
-      const rawState = localStorage.getItem(STORAGE_KEY);
-      if (rawState) state = { ...state, ...JSON.parse(rawState) };
-      
-      const rawDb = localStorage.getItem(DB_KEY);
-      if (rawDb) foodDatabase = JSON.parse(rawDb);
-
-      calcDays.value = state.dailyInputs?.days || 7;
-      calcCals.value = state.dailyInputs?.cals || '';
-      calcPro.value = state.dailyInputs?.protein || '';
-      calcCarbs.value = state.dailyInputs?.carbs || '';
-      calcFat.value = state.dailyInputs?.fat || '';
-
-      inputTCals.value = state.targets.cals || '';
-      inputTPro.value = state.targets.protein || '';
-      inputTCarbs.value = state.targets.carbs || '';
-      inputTFat.value = state.targets.fat || '';
-
-      updatePresetDropdown();
-      runMultiplierCalc();
-      render();
-    }
-
-    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(foodDatabase)); updatePresetDropdown(); }
-
-    // Multiplier calculation listener
-    function runMultiplierCalc() {
-      const days = parseFloat(calcDays.value) || 0;
-      const cals = parseFloat(calcCals.value) || 0;
-      const pro = parseFloat(calcPro.value) || 0;
-      const carbs = parseFloat(calcCarbs.value) || 0;
-      const fat = parseFloat(calcFat.value) || 0;
-
-      state.dailyInputs = { cals, protein: pro, carbs, fat, days };
-
-      const totCals = cals * days;
-      const totPro = pro * days;
-      const totCarbs = carbs * days;
-      const totFat = fat * days;
-
-      document.getElementById('mult-out-cals').innerText = fmt(totCals) + ' kcal';
-      document.getElementById('mult-out-pro').innerText = fmt(totPro) + 'g P';
-      document.getElementById('mult-out-carbs').innerText = fmt(totCarbs) + 'g C';
-      document.getElementById('mult-out-fat').innerText = fmt(totFat) + 'g F';
-
-      // Auto sync to active targets if daily inputs are present
-      if (cals || pro || carbs || fat) {
-        state.targets = { cals: totCals, protein: totPro, carbs: totCarbs, fat: totFat };
-        inputTCals.value = totCals || '';
-        inputTPro.value = totPro || '';
-        inputTCarbs.value = totCarbs || '';
-        inputTFat.value = totFat || '';
-      }
-
-      saveState();
-      render();
-    }
-
-    [calcDays, calcCals, calcPro, calcCarbs, calcFat].forEach(el => {
-      el.addEventListener('input', runMultiplierCalc);
-    });
-
-    [inputTCals, inputTPro, inputTCarbs, inputTFat].forEach(el => {
-      el.addEventListener('input', () => {
-        state.targets = {
-          cals: Number(inputTCals.value) || 0,
-          protein: Number(inputTPro.value) || 0,
-          carbs: Number(inputTCarbs.value) || 0,
-          fat: Number(inputTFat.value) || 0,
-        };
-        saveState();
-        render();
-      });
-    });
-
-    presetSelect.addEventListener('change', (e) => {
-      const idx = e.target.value;
-      if (idx === "") { fName.value = ""; return; }
-      fName.value = foodDatabase[idx].name;
-      calculateMacrosFromPreset();
-    });
-
-    fWeight.addEventListener('input', calculateMacrosFromPreset);
-
-    function calculateMacrosFromPreset() {
-      const idx = presetSelect.value;
-      const weight = Number(fWeight.value) || 0;
-      
-      if (idx !== "" && weight > 0) {
-        const item = foodDatabase[idx];
-        const multiplier = weight / 100;
-        
-        fCals.value = +(item.cals * multiplier).toFixed(1);
-        fPro.value = +(item.protein * multiplier).toFixed(1);
-        fCarbs.value = +(item.carbs * multiplier).toFixed(1);
-        fFat.value = +(item.fat * multiplier).toFixed(1);
-      }
-    }
-
-    function updatePresetDropdown() {
-      presetSelect.innerHTML = '<option value="">-- Custom Entry --</option>';
-      foodDatabase.forEach((food, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = `${food.name} (per 100g)`;
-        presetSelect.appendChild(opt);
-      });
-    }
-
-    document.getElementById('food-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      state.items.unshift({
-        name: fName.value.trim(),
-        weight: Number(fWeight.value) || 0,
-        cals: Number(fCals.value) || 0,
-        protein: Number(fPro.value) || 0,
-        carbs: Number(fCarbs.value) || 0,
-        fat: Number(fFat.value) || 0,
-      });
-      saveState();
-      render();
-
-      fWeight.value = ''; fCals.value = ''; fPro.value = ''; fCarbs.value = ''; fFat.value = '';
-      if(!presetSelect.value) fName.value = '';
-      fWeight.focus();
-    });
-
-    window.removeItem = function(index) {
-      state.items.splice(index, 1);
-      saveState();
-      render();
+    const STORAGE_KEY = 'weekly_meal_planner_v2';
+    const DB_KEY = 'macro_tally_db_v1'; // shared with food-prep.html
+    const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const SLOTS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner']];
+    const MEAL_TYPES = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
+    const SPLIT = { breakfast: 0.25, lunch: 0.30, dinner: 0.35, snack: 0.10 };
+    const MACROS = [['cals', 'kcal', 'Calories'], ['protein', 'g', 'Protein'], ['carbs', 'g', 'Carbs'], ['fat', 'g', 'Fat']];
+    const GOALS = {
+      cut: { adjust: -350, desc: 'Fat Loss Priority (-350 kcal)' },
+      maintain: { adjust: 0, desc: 'Recomposition / Holding Steady' },
+      bulk: { adjust: 300, desc: 'Muscle Gain Priority (+300 kcal)' }
     };
 
-    function applyTrafficLight(cardId, textId, leftAmount, targetAmount, suffix) {
-      const card = document.getElementById(cardId);
-      const text = document.getElementById(textId);
-      
-      card.className = "p-3 rounded-lg border transition-colors duration-300";
-      
-      if (!targetAmount || targetAmount === 0) {
-        card.classList.add("bg-slate-900/60", "border-slate-700/50");
-        text.className = "text-lg font-bold text-slate-200 transition-colors";
-      } else {
-        const percentageLeft = leftAmount / targetAmount;
-        
-        if (leftAmount < 0) {
-          card.classList.add("bg-rose-950/40", "border-rose-800/60");
-          text.className = "text-lg font-bold text-rose-400 transition-colors";
-        } else if (percentageLeft <= 0.15) {
-          card.classList.add("bg-amber-950/40", "border-amber-800/60");
-          text.className = "text-lg font-bold text-amber-400 transition-colors";
-        } else {
-          card.classList.add("bg-emerald-950/30", "border-emerald-800/50");
-          text.className = "text-lg font-bold text-emerald-400 transition-colors";
+    // Supermarket aisles in walking order; frozen last so it stays cold
+    const CATEGORIES = [
+      ['produce', '🥦 Produce'], ['meat & fish', '🥩 Meat & fish'], ['dairy', '🥛 Dairy & eggs'],
+      ['dry goods', '🥫 Dry goods'], ['frozen', '🧊 Frozen'], ['other', '🛒 Other']
+    ];
+    const CURRENCY = '£';
+
+    // Approximate values per 100g (raw). Shopping details are optional:
+    // unit/unitGrams = how it's counted (1 egg ≈ 60g); packGrams/packLabel = how it's sold;
+    // pricePerPack in CURRENCY; cookedFactor = cooked weight ÷ raw weight; prep = how it's cooked (see PREP_METHODS)
+    const PRESETS = [
+      { name: 'Chicken Breast (Raw)', cals: 120, protein: 22.5, carbs: 0, fat: 2.6, category: 'meat & fish', packGrams: 1000, packLabel: '1kg pack', pricePerPack: 6.80, cookedFactor: 0.75, prep: 'pan' },
+      { name: 'Lean Beef Mince 5%', cals: 124, protein: 21, carbs: 0, fat: 5, category: 'meat & fish', packGrams: 500, packLabel: '500g pack', pricePerPack: 3.40, cookedFactor: 0.75, prep: 'pan' },
+      { name: 'Salmon Fillet', cals: 208, protein: 20, carbs: 0, fat: 13, category: 'meat & fish', unit: 'fillet', unitGrams: 130, packGrams: 260, packLabel: '2-fillet pack', pricePerPack: 4.50, cookedFactor: 0.8, prep: 'bake' },
+      { name: 'Tinned Tuna (Drained)', cals: 109, protein: 25, carbs: 0, fat: 1, category: 'dry goods', unit: 'can', unitGrams: 110, packGrams: 440, packLabel: '4-can pack', pricePerPack: 4.20 },
+      { name: 'Eggs', cals: 143, protein: 12.6, carbs: 0.7, fat: 9.5, category: 'dairy', unit: 'egg', unitGrams: 60, packGrams: 360, packLabel: '6-egg box', pricePerPack: 1.90, prep: 'pan' },
+      { name: 'Greek Yogurt 0%', cals: 57, protein: 10, carbs: 3.6, fat: 0.4, category: 'dairy', packGrams: 500, packLabel: '500g tub', pricePerPack: 1.40 },
+      { name: 'Semi-Skimmed Milk', cals: 46, protein: 3.5, carbs: 4.8, fat: 1.7, category: 'dairy', packGrams: 2272, packLabel: '4-pint bottle', pricePerPack: 1.65 },
+      { name: 'Cheddar Cheese', cals: 416, protein: 25, carbs: 0.1, fat: 34.9, category: 'dairy', packGrams: 400, packLabel: '400g block', pricePerPack: 3.60 },
+      { name: 'Whey Protein', cals: 400, protein: 78, carbs: 8, fat: 6, category: 'dry goods', packGrams: 1000, packLabel: '1kg tub', pricePerPack: 18.00 },
+      { name: 'Porridge Oats', cals: 375, protein: 12.5, carbs: 60, fat: 8, category: 'dry goods', packGrams: 1000, packLabel: '1kg bag', pricePerPack: 1.20, prep: 'simmer' },
+      { name: 'Rice (Uncooked)', cals: 360, protein: 7, carbs: 79, fat: 0.6, category: 'dry goods', packGrams: 1000, packLabel: '1kg bag', pricePerPack: 1.60, cookedFactor: 2.7, prep: 'boil' },
+      { name: 'Pasta (Dry)', cals: 355, protein: 12.5, carbs: 72, fat: 1.5, category: 'dry goods', packGrams: 500, packLabel: '500g bag', pricePerPack: 0.85, cookedFactor: 2.3, prep: 'boil' },
+      { name: 'Wholemeal Bread', cals: 247, protein: 10, carbs: 41, fat: 3.4, category: 'dry goods', unit: 'slice', unitGrams: 40, packGrams: 800, packLabel: '800g loaf', pricePerPack: 1.40 },
+      { name: 'Tortilla Wraps', cals: 300, protein: 8, carbs: 50, fat: 7, category: 'dry goods', unit: 'wrap', unitGrams: 62, packGrams: 496, packLabel: '8-wrap pack', pricePerPack: 1.50 },
+      { name: 'Potatoes', cals: 77, protein: 2, carbs: 17, fat: 0.1, category: 'produce', packGrams: 2500, packLabel: '2.5kg bag', pricePerPack: 1.90, prep: 'roast' },
+      { name: 'Sweet Potato', cals: 86, protein: 1.6, carbs: 20, fat: 0.1, category: 'produce', packGrams: 1000, packLabel: '1kg bag', pricePerPack: 1.40, prep: 'roast' },
+      { name: 'Broccoli', cals: 34, protein: 2.8, carbs: 7, fat: 0.4, category: 'produce', unit: 'head', unitGrams: 350, packGrams: 350, pricePerPack: 0.75, prep: 'roast' },
+      { name: 'Spinach', cals: 23, protein: 2.9, carbs: 3.6, fat: 0.4, category: 'produce', packGrams: 200, packLabel: '200g bag', pricePerPack: 1.30 },
+      { name: 'Frozen Mixed Veg', cals: 64, protein: 3, carbs: 12, fat: 0.5, category: 'frozen', packGrams: 1000, packLabel: '1kg bag', pricePerPack: 1.60, prep: 'steam' },
+      { name: 'Banana', cals: 89, protein: 1.1, carbs: 23, fat: 0.3, category: 'produce', unit: 'banana', unitGrams: 120, packGrams: 120, pricePerPack: 0.18 },
+      { name: 'Apple', cals: 52, protein: 0.3, carbs: 14, fat: 0.2, category: 'produce', unit: 'apple', unitGrams: 150, packGrams: 150, pricePerPack: 0.30 },
+      { name: 'Berries', cals: 50, protein: 0.7, carbs: 12, fat: 0.3, category: 'frozen', packGrams: 500, packLabel: '500g frozen bag', pricePerPack: 2.75 },
+      { name: 'Peanut Butter', cals: 588, protein: 25, carbs: 20, fat: 50, category: 'dry goods', packGrams: 340, packLabel: '340g jar', pricePerPack: 2.20 },
+      { name: 'Mixed Nuts', cals: 607, protein: 20, carbs: 21, fat: 54, category: 'dry goods', packGrams: 200, packLabel: '200g bag', pricePerPack: 2.50 },
+      { name: 'Olive Oil', cals: 884, protein: 0, carbs: 0, fat: 100, category: 'dry goods', packGrams: 460, packLabel: '500ml bottle', pricePerPack: 5.50, prep: 'pantry' }
+    ];
+
+    // Auto-fill shopping: fixed fruit/veg/dairy for the week, then each group sized to hit its main macro
+    const AUTO_FIXED = {
+      'Eggs': 720, 'Greek Yogurt 0%': 1000, 'Broccoli': 560, 'Spinach': 200,
+      'Frozen Mixed Veg': 560, 'Banana': 840, 'Berries': 560
+    };
+    const AUTO_GROUPS = [
+      ['protein', { 'Chicken Breast (Raw)': 0.5, 'Lean Beef Mince 5%': 0.25, 'Tinned Tuna (Drained)': 0.25 }],
+      ['carbs', { 'Rice (Uncooked)': 0.35, 'Porridge Oats': 0.2, 'Potatoes': 0.25, 'Wholemeal Bread': 0.2 }],
+      ['fat', { 'Olive Oil': 0.4, 'Peanut Butter': 0.3, 'Mixed Nuts': 0.3 }]
+    ];
+
+    // Built-in recipes, made only from PRESETS foods. Grams are for the whole batch.
+    const RECIPES = [
+      { id: 'protein-porridge', name: 'Protein Porridge', type: 'breakfast', servings: 1,
+        items: { 'Porridge Oats': 50, 'Semi-Skimmed Milk': 200, 'Whey Protein': 30, 'Banana': 100 } },
+      { id: 'eggs-on-toast', name: 'Eggs on Toast with Spinach', type: 'breakfast', servings: 1,
+        items: { 'Eggs': 180, 'Wholemeal Bread': 80, 'Spinach': 50, 'Olive Oil': 5 } },
+      { id: 'yogurt-bowl', noCook: true, name: 'Greek Yogurt Berry Bowl', type: 'breakfast', servings: 1,
+        items: { 'Greek Yogurt 0%': 250, 'Berries': 100, 'Porridge Oats': 40, 'Peanut Butter': 15 } },
+      { id: 'overnight-oats', noCook: true, name: 'Overnight Oats (Batch)', type: 'breakfast', servings: 4,
+        items: { 'Porridge Oats': 240, 'Semi-Skimmed Milk': 800, 'Greek Yogurt 0%': 400, 'Berries': 320, 'Whey Protein': 60 } },
+      { id: 'chicken-rice-bowl', name: 'Chicken, Rice & Broccoli Bowls', type: 'lunch', servings: 4,
+        items: { 'Chicken Breast (Raw)': 600, 'Rice (Uncooked)': 300, 'Broccoli': 400, 'Olive Oil': 20 } },
+      { id: 'tuna-wrap', name: 'Tuna & Spinach Wraps', type: 'lunch', servings: 1,
+        items: { 'Tortilla Wraps': 124, 'Tinned Tuna (Drained)': 110, 'Greek Yogurt 0%': 50, 'Spinach': 30 } },
+      { id: 'tuna-jacket', name: 'Jacket Potato with Tuna', type: 'lunch', servings: 1,
+        items: { 'Potatoes': 350, 'Tinned Tuna (Drained)': 110, 'Greek Yogurt 0%': 50, 'Cheddar Cheese': 20, 'Broccoli': 80 } },
+      { id: 'chicken-pasta-salad', name: 'Chicken Pasta Salad', type: 'lunch', servings: 3,
+        items: { 'Pasta (Dry)': 225, 'Chicken Breast (Raw)': 450, 'Frozen Mixed Veg': 240, 'Spinach': 90, 'Olive Oil': 15 } },
+      { id: 'beef-chilli', name: 'Beef Chilli with Rice', type: 'dinner', servings: 4,
+        items: { 'Lean Beef Mince 5%': 600, 'Frozen Mixed Veg': 400, 'Rice (Uncooked)': 360, 'Olive Oil': 15 } },
+      { id: 'salmon-sweet-potato', name: 'Salmon, Sweet Potato & Broccoli', type: 'dinner', servings: 1,
+        items: { 'Salmon Fillet': 130, 'Sweet Potato': 300, 'Broccoli': 120, 'Olive Oil': 5 } },
+      { id: 'bolognese', name: 'Spaghetti Bolognese', type: 'dinner', servings: 4,
+        items: { 'Pasta (Dry)': 360, 'Lean Beef Mince 5%': 500, 'Frozen Mixed Veg': 400, 'Cheddar Cheese': 40, 'Olive Oil': 15 } },
+      { id: 'chicken-traybake', name: 'Chicken & Potato Traybake', type: 'dinner', servings: 2,
+        items: { 'Chicken Breast (Raw)': 400, 'Potatoes': 700, 'Broccoli': 240, 'Olive Oil': 20 } },
+      { id: 'apple-pb', name: 'Apple & Peanut Butter', type: 'snack', servings: 1,
+        items: { 'Apple': 150, 'Peanut Butter': 20 } },
+      { id: 'protein-shake', name: 'Banana Protein Shake', type: 'snack', servings: 1,
+        items: { 'Whey Protein': 30, 'Semi-Skimmed Milk': 250, 'Banana': 100 } },
+      { id: 'yogurt-nuts', name: 'Yogurt, Berries & Nuts', type: 'snack', servings: 1,
+        items: { 'Greek Yogurt 0%': 170, 'Berries': 80, 'Mixed Nuts': 20 } }
+    ];
+
+    // `sizes` holds portions eaten per main slot when it isn't 1 (e.g. { dinner: 1.1 })
+    const MEAL_SEARCH_AT = 20; // from this many meals, week slots use a search box instead of a dropdown
+    const todayIndex = () => (new Date().getDay() + 6) % 7; // Monday = 0
+    const cloneDay = day => JSON.parse(JSON.stringify(day));
+
+    const emptyDay = () => ({ breakfast: '', lunch: '', dinner: '', snacks: [], sizes: {} });
+    const emptyPlan = () => DAYS.map(emptyDay);
+    const emptyDraft = () => ({ id: null, items: [] });
+    const zero = () => ({ cals: 0, protein: 0, carbs: 0, fat: 0 });
+    const defaultState = () => ({
+      stats: { gender: 'male', unit: 'kg', weight: '', height: '', age: '', activity: '1.375', goal: 'maintain' },
+      daily: zero(),
+      foods: [],   // { id, name, grams, locked, cals, protein, carbs, fat } — macros per 100g; unlocked grams come from the plan
+      meals: [],   // { id, name, type, servings, items: [{ foodId, grams }] } — grams are for the whole batch
+      plan: emptyPlan(),
+      checked: {},
+      weightMode: 'raw', // how meal weights are shown and typed: 'raw' or 'cooked'
+      viewDay: todayIndex(), // the day shown on phones in the week grid
+      tab: 'target'
+    });
+
+    let state = defaultState();
+    let foodDatabase = [];
+    let draft = emptyDraft();
+    let mbPicked = null;
+    let pendingDelete = null; // basket food id waiting for "Remove anyway"
+    let eraseArmed = false; // first click on Erase everything arms it for 4 seconds
+    let eraseTimer = null; // 'food:<id>' or 'preset:<index>' chosen in the meal builder search
+
+    // Undo/redo history: a snapshot of state after each commit (the open tab isn't part of it)
+    const HISTORY_LIMIT = 50;
+    let undoStack = [];
+    let redoStack = [];
+    let lastSnapshot = '';
+    let lastGroup = null;
+    let lastGroupAt = 0;
+
+    // --- Helpers ---
+    const $ = id => document.getElementById(id);
+    const uid = () => Math.random().toString(36).slice(2, 10);
+    const fmt = n => Math.round(n).toLocaleString();
+    const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString();
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const macroLine = t => `P ${fmt(t.protein)}g · C ${fmt(t.carbs)}g · F ${fmt(t.fat)}g`;
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) applyState(JSON.parse(raw));
+        const rawDb = localStorage.getItem(DB_KEY);
+        if (rawDb) foodDatabase = JSON.parse(rawDb);
+      } catch (e) {}
+    }
+    function applyState(data) {
+      const base = defaultState();
+      state = { ...base, ...data, stats: { ...base.stats, ...data.stats }, daily: { ...base.daily, ...data.daily } };
+      // Sessions saved before the lock toggle keep the amounts people typed
+      state.foods = (Array.isArray(data.foods) ? data.foods : []).map(f => ({ ...f, locked: f.locked ?? true }));
+      // Meals saved before batch cooking were a single portion
+      state.meals = (Array.isArray(data.meals) ? data.meals : []).map(m => ({ ...m, servings: m.servings > 0 ? m.servings : 1 }));
+      // Meals saved before ingredient snapshots get one from their basket food
+      state.meals.forEach(m => m.items.forEach(i => {
+        const f = state.foods.find(f => f.id === i.foodId);
+        if (!i.snap && f) i.snap = snapOf(f);
+      }));
+      const plan = Array.isArray(data.plan) && data.plan.length === DAYS.length ? data.plan : emptyPlan();
+      state.plan = plan.map(d => ({ ...emptyDay(), ...d, snacks: Array.isArray(d.snacks) ? d.snacks : [], sizes: d.sizes || {} }));
+    }
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    // `undoable` adds an Undo button that reverses the change this toast is about
+    let toastUndoDepth = -1;
+    function toast(msg, { undoable = false } = {}) {
+      const t = $('toast');
+      toastUndoDepth = undoable ? undoStack.length : -1;
+      t.innerHTML = `<span>${esc(msg)}</span>${undoable ? '<button data-action="toast-undo" class="underline font-bold shrink-0">Undo</button>' : ''}`;
+      t.classList.toggle('pointer-events-none', !undoable);
+      t.classList.remove('opacity-0');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none'), undoable ? 6000 : 1800);
+    }
+
+    const foodById = id => state.foods.find(f => f.id === id);
+    const mealById = id => state.meals.find(m => m.id === id);
+    const allPresets = () => [...foodDatabase, ...PRESETS];
+
+    function sum(a, b) {
+      const t = zero();
+      MACROS.forEach(([k]) => { t[k] = a[k] + b[k]; });
+      return t;
+    }
+    function weekly() {
+      const t = zero();
+      MACROS.forEach(([k]) => { t[k] = state.daily[k] * 7; });
+      return t;
+    }
+    // An ingredient's data: the basket food, or the snapshot kept on the meal if that food was removed
+    const itemFood = i => foodById(i.foodId) || i.snap || null;
+    const snapOf = f => ({ name: f.name, ...Object.fromEntries(MACROS.map(([k]) => [k, f[k] || 0])) });
+    const mealsUsing = foodId => state.meals.filter(m => m.items.some(i => i.foodId === foodId));
+
+    // Keeps every meal's snapshot in step with its basket food
+    function refreshSnapshots() {
+      [...state.meals, draft].forEach(m => m.items.forEach(i => {
+        const f = foodById(i.foodId);
+        if (f) i.snap = snapOf(f);
+      }));
+    }
+
+    // Removed foods that meals still use: { foodId: snapshot }
+    function missingFoods(meals = state.meals) {
+      const missing = {};
+      meals.forEach(m => m.items.forEach(i => { if (!foodById(i.foodId) && i.snap) missing[i.foodId] = i.snap; }));
+      return missing;
+    }
+
+    // Puts removed foods back in the basket under their old id, so meals link up again
+    function reAddFoods(missing) {
+      Object.entries(missing).forEach(([id, snap]) => {
+        const food = { id, name: snap.name, grams: 0, locked: false };
+        MACROS.forEach(([k]) => { food[k] = snap[k] || 0; });
+        state.foods.push(food);
+      });
+    }
+
+    // A new food reuses the id of a removed one with the same name, relinking meals that kept it
+    function idForNewFood(name) {
+      const key = String(name).toLowerCase();
+      const match = Object.entries(missingFoods([...state.meals, draft])).find(([, snap]) => snap.name.toLowerCase() === key);
+      return match ? match[0] : uid();
+    }
+
+    function ingredientText(i) {
+      const f = itemFood(i);
+      if (!f) return '';
+      return `${esc(f.name)} ${gramsText(f, i.grams)}${foodById(i.foodId) ? '' : ' <span class="text-amber-400">(not in basket)</span>'}`;
+    }
+
+    function totalsOf(items) {
+      return items.reduce((t, i) => {
+        const f = itemFood(i);
+        if (f) MACROS.forEach(([k]) => { t[k] += (f[k] || 0) * i.grams / 100; });
+        return t;
+      }, zero());
+    }
+    const scaled = (t, factor) => Object.fromEntries(MACROS.map(([k]) => [k, t[k] * factor]));
+    const servingsOf = meal => meal.servings > 0 ? meal.servings : 1;
+    const mealTotals = meal => totalsOf(meal.items); // whole batch
+    const portionTotals = meal => scaled(mealTotals(meal), 1 / servingsOf(meal));
+    const sizeOf = (day, slot) => day.sizes && day.sizes[slot] > 0 ? day.sizes[slot] : 1;
+    // Every filled slot of a day with the portions it eats: main slots can be resized, snacks are one portion
+    const dayPortions = day => [
+      ...SLOTS.map(([slot]) => ({ meal: mealById(day[slot]), size: sizeOf(day, slot) })),
+      ...day.snacks.map(id => ({ meal: mealById(id), size: 1 }))
+    ].filter(p => p.meal);
+    const dayTotals = day => dayPortions(day).map(p => scaled(portionTotals(p.meal), p.size)).reduce(sum, zero());
+    const planTotals = () => state.plan.map(dayTotals).reduce(sum, zero());
+    const basketTotals = () => totalsOf(state.foods.map(f => ({ foodId: f.id, grams: f.grams })));
+
+    // Grams of each food the week plan uses: each slot's portions' share of the batch
+    function plannedGrams() {
+      const used = {};
+      state.plan.forEach(day => dayPortions(day).forEach(({ meal, size }) => meal.items.forEach(i => {
+        used[i.foodId] = (used[i.foodId] || 0) + i.grams / servingsOf(meal) * size;
+      })));
+      return used;
+    }
+
+    // Portions of each meal the plan eats
+    function mealCounts() {
+      const counts = {};
+      state.plan.forEach(day => dayPortions(day).forEach(({ meal, size }) => { counts[meal.id] = (counts[meal.id] || 0) + size; }));
+      return counts;
+    }
+
+    const presetByName = name => PRESETS.find(p => p.name === name);
+
+    // --- Shopping details: aisle, units, packs, prices, raw/cooked ---
+    const META_KEYS = ['category', 'unit', 'unitGrams', 'packGrams', 'packLabel', 'pricePerPack', 'cookedFactor', 'prep'];
+
+    // A food's own details first (custom aisle, Food DB extras), then the matching common food's
+    function meta(f) {
+      const name = String(f.name).toLowerCase();
+      const p = PRESETS.find(p => p.name.toLowerCase() === name) || {};
+      const m = {};
+      META_KEYS.forEach(k => { m[k] = f[k] ?? p[k]; });
+      if (!CATEGORIES.some(([c]) => c === m.category)) m.category = 'other';
+      return m;
+    }
+
+    // prep → [where it's cooked, verb]; foods with no prep need no cooking
+    const PREP_METHODS = {
+      boil: ['hob', 'Boil'], simmer: ['hob', 'Simmer'], pan: ['hob', 'Pan-fry'], steam: ['hob', 'Steam'],
+      roast: ['oven', 'Roast'], bake: ['oven', 'Bake'], pantry: ['pantry', '']
+    };
+    const PREP_GROUPS = [['hob', '🔥 On the hob'], ['oven', '♨️ In the oven'], ['none', '🥣 No cooking — mix & portion'], ['pantry', '🫙 For cooking']];
+    const fmtWeight = g => g >= 1000 ? `${fmt1(g / 1000)}kg` : `${fmt(g)}g`;
+
+    const money = n => `${CURRENCY}${n.toFixed(2)}`;
+    const pluralLabel = label => label.replace(/(\w+)$/, w => w === 'loaf' ? 'loaves' : /(s|x|ch|sh)$/.test(w) ? `${w}es` : `${w}s`);
+    const pricePerGram = f => { const m = meta(f); return m.pricePerPack != null && m.packGrams ? m.pricePerPack / m.packGrams : null; };
+
+    // What to pick up: counted foods round to whole units, weighed foods get a ~10% buffer, then whole packs
+    function buyInfo(f) {
+      const m = meta(f);
+      if (!(f.grams > 0)) return { units: 0, packs: 0, cost: null, text: '' };
+      const units = m.unitGrams ? Math.max(1, Math.ceil(f.grams / m.unitGrams - 0.1)) : 0;
+      const need = m.unitGrams ? units * m.unitGrams : f.grams * 1.1;
+      const packs = m.packGrams ? Math.max(1, Math.ceil(need / m.packGrams - 1e-9)) : 0;
+      const parts = [];
+      if (units) parts.push(plural(units, m.unit));
+      if (packs && m.packLabel) parts.push(`${packs} × ${packs > 1 ? pluralLabel(m.packLabel) : m.packLabel}`);
+      return { units, packs, cost: packs && m.pricePerPack != null ? packs * m.pricePerPack : null, text: parts.join(' · ') };
+    }
+
+    function shopCost() {
+      const bought = state.foods.filter(f => f.grams > 0);
+      const priced = bought.map(buyInfo).filter(b => b.cost != null);
+      return { total: priced.reduce((s, b) => s + b.cost, 0), priced: priced.length, items: bought.length };
+    }
+
+    // Cost of the food the plan actually eats (per gram, not whole packs); null if any ingredient has no price
+    function portionCost(meal) {
+      let cost = 0;
+      for (const i of meal.items) {
+        const f = itemFood(i);
+        const ppg = f && pricePerGram(f);
+        if (ppg == null) return null;
+        cost += ppg * i.grams;
+      }
+      return cost / servingsOf(meal);
+    }
+
+    // Stored grams are always raw; cooked mode shows (and takes) weights after cooking
+    const isCooked = () => state.weightMode === 'cooked';
+    const cookedFactorOf = f => meta(f).cookedFactor || 1;
+    const shownGrams = (f, raw) => isCooked() ? raw * cookedFactorOf(f) : raw;
+    function gramsText(f, raw) {
+      const changes = cookedFactorOf(f) !== 1;
+      return `${fmt(shownGrams(f, raw))}g${changes ? ` <span class="${isCooked() ? 'text-amber-400' : 'text-slate-400'}">${isCooked() ? 'cooked' : 'raw'}</span>` : ''}`;
+    }
+    const recipeTotals = r => scaled(Object.entries(r.items).reduce((t, [name, grams]) => {
+      const p = presetByName(name);
+      MACROS.forEach(([k]) => { t[k] += p[k] * grams / 100; });
+      return t;
+    }, zero()), 1 / r.servings);
+
+    // Under target = amber, within ±5% = green, over = red
+    function statusColor(actual, target) {
+      if (!target) return 'text-slate-200';
+      const r = actual / target;
+      if (r > 1.05) return 'text-rose-400';
+      if (r >= 0.95) return 'text-emerald-400';
+      return 'text-amber-400';
+    }
+    // ▲ over / ✓ on target / ▼ under, with words for screen readers
+    function statusMark(actual, target) {
+      if (!target) return '';
+      const r = actual / target;
+      const [icon, words] = r > 1.05 ? ['▲', 'over target'] : r >= 0.95 ? ['✓', 'on target'] : ['▼', 'under target'];
+      return `<span aria-hidden="true">${icon}</span><span class="sr-only">${words}: </span> `;
+    }
+
+    function barColor(actual, target) {
+      if (!target) return 'bg-slate-500';
+      const r = actual / target;
+      if (r > 1.05) return 'bg-rose-500';
+      if (r >= 0.95) return 'bg-emerald-500';
+      return 'bg-amber-500';
+    }
+    function progressBar(actual, target) {
+      const pct = target ? Math.min(100, (actual / target) * 100) : 0;
+      return `<div class="h-2 bg-slate-900 rounded-full overflow-hidden"><div class="h-full ${barColor(actual, target)} transition-all" style="width:${pct}%"></div></div>`;
+    }
+
+    // Traffic light for "how much is left", same rules as food-prep.html:
+    // red = over, amber = within 15% of the target, green = plenty left
+    const TONES = {
+      none: { card: 'bg-slate-900/60 border-slate-700/50', text: 'text-slate-200', bar: 'bg-slate-500', icon: '' },
+      over: { card: 'bg-rose-950/40 border-rose-800/60', text: 'text-rose-400', bar: 'bg-rose-500', icon: '▲' },
+      close: { card: 'bg-amber-950/40 border-amber-800/60', text: 'text-amber-400', bar: 'bg-amber-500', icon: '⚠' },
+      room: { card: 'bg-emerald-950/30 border-emerald-800/50', text: 'text-emerald-400', bar: 'bg-emerald-500', icon: '✓' }
+    };
+    function leftTone(left, target) {
+      if (!target) return TONES.none;
+      if (left < 0) return TONES.over;
+      return left / target <= 0.15 ? TONES.close : TONES.room;
+    }
+
+    function leftCards(totals, targets) {
+      return MACROS.map(([k, suffix, label]) => {
+        const target = targets[k], left = target - totals[k];
+        const { card, text, icon } = leftTone(left, target);
+        return `
+          <div class="p-3 rounded-lg border transition-colors duration-300 ${card}">
+            <span class="block text-[11px] font-semibold text-slate-300/80 uppercase tracking-wider">${label} Left</span>
+            <span class="text-lg font-bold ${text}">${icon ? `<span aria-hidden="true">${icon}</span> ` : ''}${left < 0 ? `${fmt(-left)} ${suffix} over` : `${fmt(left)} ${suffix}`}</span>
+          </div>`;
+      }).join('');
+    }
+
+    function markInvalid(el, invalid) {
+      el.setAttribute('aria-invalid', invalid);
+      el.classList.toggle('border-rose-500', invalid);
+      el.classList.toggle('border-slate-700', !invalid);
+    }
+
+    const plural = (n, word, many = word + 's') => `${fmt1(n)} ${n === 1 ? word : many}`;
+
+    const buildCta = text => `
+      <div class="bg-gradient-to-r from-emerald-950/60 to-slate-800 border border-emerald-800/50 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex-1">
+          <h3 class="font-bold text-slate-100">⚡ Build me a week</h3>
+          <p class="text-sm text-slate-300">${text}</p>
+        </div>
+        <button data-action="build-week" class="shrink-0 bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2.5 px-5 rounded-lg transition-colors">Build me a week</button>
+      </div>`;
+
+    const planIsEmpty = () => state.plan.every(day => !dayPortions(day).length);
+
+    const emptyNote = text => `<p class="text-sm text-slate-400 italic text-center py-6 border border-dashed border-slate-700 rounded-lg">${text}</p>`;
+
+    // --- Rendering ---
+    function renderStatus() {
+      const wt = weekly(), bt = basketTotals(), pt = planTotals();
+      const cell = (label, value, color, mark = '') => `
+        <div class="min-w-0">
+          <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider truncate">${label}</span>
+          <span class="block text-sm sm:text-lg font-bold truncate ${color}">${mark}${value}</span>
+        </div>`;
+      $('status-bar').innerHTML =
+        cell('Week target', wt.cals ? `${fmt(wt.cals)} kcal` : '—', 'text-slate-100') +
+        cell('In basket', `${fmt(bt.cals)} kcal`, statusColor(bt.cals, wt.cals), statusMark(bt.cals, wt.cals)) +
+        cell('Planned', `${fmt(pt.cals)} kcal`, statusColor(pt.cals, wt.cals), statusMark(pt.cals, wt.cals)) +
+        cell('Protein planned', wt.protein ? `${fmt(pt.protein)} / ${fmt(wt.protein)}g` : `${fmt(pt.protein)}g`, statusColor(pt.protein, wt.protein), statusMark(pt.protein, wt.protein));
+    }
+
+    function renderTabs() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === state.tab;
+        btn.setAttribute('aria-selected', active);
+        btn.tabIndex = active ? 0 : -1;
+        btn.className = `tab-btn flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-sm font-semibold transition-colors ${active ? 'bg-brand text-slate-950' : 'text-slate-400 hover:bg-slate-700'}`;
+      });
+      document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== state.tab));
+    }
+
+    function renderStats() {
+      const s = state.stats;
+      const on = 'bg-emerald-500/10 border-emerald-500 text-emerald-400';
+      const off = 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white';
+      document.querySelectorAll('.gender-btn').forEach(b => {
+        b.className = `gender-btn py-2 rounded-lg border font-bold transition-colors ${b.dataset.value === s.gender ? on : off}`;
+      });
+      document.querySelectorAll('.goal-btn').forEach(b => {
+        b.className = `goal-btn py-2 rounded-lg border font-bold text-sm transition-colors ${b.dataset.value === s.goal ? 'bg-emerald-500 border-emerald-500 text-slate-900' : off}`;
+      });
+      document.querySelectorAll('.unit-btn').forEach(b => {
+        b.className = `unit-btn px-3 py-1 rounded-md transition-colors ${b.dataset.value === s.unit ? 'bg-emerald-500 text-slate-900' : 'text-slate-400 hover:text-white'}`;
+      });
+      document.querySelector('.unit-weight').textContent = s.unit === 'kg' ? 'kg' : 'lbs';
+      document.querySelector('.unit-height').textContent = s.unit === 'kg' ? 'cm' : 'in';
+      $('st-height').placeholder = s.unit === 'kg' ? '180' : '71';
+      $('goal-desc').textContent = GOALS[s.goal].desc;
+    }
+
+    function fillInputs() {
+      ['weight', 'height', 'age', 'activity'].forEach(k => { $(`st-${k}`).value = state.stats[k]; });
+      MACROS.forEach(([k]) => { $(`daily-${k}`).value = state.daily[k] ? Math.round(state.daily[k]) : ''; });
+    }
+
+    function renderTarget() {
+      const wt = weekly();
+      $('weekly-output').innerHTML = `
+        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 flex flex-wrap justify-between items-center text-xs text-slate-300 gap-2">
+          <span>Weekly Target (× 7 days):</span>
+          <div class="flex gap-3 font-semibold text-brand">
+            <span>${fmt(wt.cals)} kcal</span>
+            <span>${fmt(wt.protein)}g P</span>
+            <span>${fmt(wt.carbs)}g C</span>
+            <span>${fmt(wt.fat)}g F</span>
+          </div>
+        </div>`;
+
+      $('target-cta').innerHTML = planIsEmpty()
+        ? buildCta(state.daily.cals
+          ? `One click: picks recipes that suit ${fmt(state.daily.cals)} kcal a day, sizes the portions, plans all seven days and writes your shopping list.`
+          : 'Fill in your stats or daily calories above, then let it pick recipes, size the portions, plan all seven days and write your shopping list.')
+        : '';
+
+      const c = state.daily.cals;
+      $('split-output').innerHTML = `
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Rough size of each meal (use this in step 3)</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          ${Object.entries(SPLIT).map(([type, share]) => `
+            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+              <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">${MEAL_TYPES[type]}${type === 'snack' ? 's' : ''} · ${share * 100}%</span>
+              <span class="text-lg font-bold text-slate-100">${c ? fmt(c * share) : '—'}</span>
+              <span class="text-xs text-slate-400">kcal</span>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function renderFoodDbCount() {
+      $('db-count').textContent = foodDatabase.length ? `${foodDatabase.length} foods loaded` : 'none loaded';
+    }
+
+    // --- Searchable picker (foods or meals): type to filter, ↑/↓ + Enter or click to pick ---
+    // items() returns [{ name, cals, tag, value }]; every typed word must appear in the name,
+    // names starting with the query come first, otherwise items keep their given order.
+    // showAllOnEmpty lists everything while the box is empty (for picking from a short-ish list)
+    function searchPicker({ input, list, items, onPick, emptyText, showAllOnEmpty = false }) {
+      let hits = [];
+      let active = -1;
+
+      const close = () => {
+        hits = [];
+        active = -1;
+        list.classList.add('hidden');
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+      };
+
+      const highlight = () => {
+        list.querySelectorAll('[data-hit]').forEach(li => {
+          const on = Number(li.dataset.hit) === active;
+          li.setAttribute('aria-selected', on);
+          li.classList.toggle('bg-slate-700', on);
+          li.classList.toggle('hover:bg-slate-800', !on);
+          if (on) li.scrollIntoView({ block: 'nearest' });
+        });
+        if (active >= 0) input.setAttribute('aria-activedescendant', `${list.id}-opt-${active}`);
+      };
+
+      const render = () => {
+        const q = input.value.trim().toLowerCase();
+        if (!q && !showAllOnEmpty) { close(); return; }
+        const words = q ? q.split(/\s+/) : [];
+        hits = items()
+          .map(it => ({ ...it, key: String(it.name).toLowerCase() }))
+          .filter(h => words.every(w => h.key.includes(w)))
+          .sort((a, b) => b.key.startsWith(q) - a.key.startsWith(q))
+          .slice(0, 30);
+        active = hits.length ? 0 : -1;
+        list.innerHTML = hits.length
+          ? hits.map((h, n) => `
+              <li id="${list.id}-opt-${n}" role="option" data-hit="${n}" class="px-3 py-2 cursor-pointer flex items-center justify-between gap-3 text-sm">
+                <span class="text-slate-100 truncate">${esc(h.name)}</span>
+                <span class="text-xs text-slate-400 shrink-0">${h.tag ? `<span class="text-brand">${h.tag}</span> · ` : ''}${fmt1(Number(h.cals) || 0)} kcal</span>
+              </li>`).join('')
+          : `<li class="px-3 py-2 text-sm text-slate-400">${emptyText}</li>`;
+        list.classList.remove('hidden');
+        input.setAttribute('aria-expanded', 'true');
+        highlight();
+      };
+
+      const pick = n => {
+        const hit = hits[n];
+        if (!hit) return;
+        input.value = hit.name;
+        close();
+        onPick(hit);
+      };
+
+      input.addEventListener('input', render);
+      input.addEventListener('focus', render);
+      input.addEventListener('blur', close);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          if (!hits.length) { render(); return; }
+          e.preventDefault();
+          active = (active + (e.key === 'ArrowDown' ? 1 : -1) + hits.length) % hits.length;
+          highlight();
+        } else if (e.key === 'Enter') {
+          e.preventDefault(); // never submit a form from the search box
+          if (hits.length) pick(active);
+        } else if (e.key === 'Escape') {
+          close();
         }
-      }
-      
-      text.textContent = `${fmt(leftAmount)} ${suffix}`;
+      });
+      // mousedown (not click) so picking happens before the input's blur closes the list
+      list.addEventListener('mousedown', e => {
+        const li = e.target.closest('[data-hit]');
+        if (!li) return;
+        e.preventDefault();
+        pick(Number(li.dataset.hit));
+      });
     }
 
-    function render() {
-      const totals = state.items.reduce((acc, item) => {
-        acc.cals += item.cals; acc.protein += item.protein;
-        acc.carbs += item.carbs; acc.fat += item.fat;
-        return acc;
-      }, { cals: 0, protein: 0, carbs: 0, fat: 0 });
+    function renderFormPreview() {
+      const grams = parseFloat($('ff-grams').value) || 0;
+      const per = Object.fromEntries(MACROS.map(([k]) => [k, parseFloat($(`ff-${k}`).value) || 0]));
+      $('ff-preview').innerHTML = grams && per.cals
+        ? `${fmt(grams)}g = <span class="text-brand font-bold">${fmt(per.cals * grams / 100)} kcal</span> · ${macroLine(Object.fromEntries(MACROS.map(([k]) => [k, per[k] * grams / 100])))}`
+        : '';
+    }
 
-      applyTrafficLight('card-cals', 'stat-cals-left', state.targets.cals - totals.cals, state.targets.cals, 'kcal');
-      applyTrafficLight('card-pro', 'stat-protein-left', state.targets.protein - totals.protein, state.targets.protein, 'g');
-      applyTrafficLight('card-carbs', 'stat-carbs-left', state.targets.carbs - totals.carbs, state.targets.carbs, 'g');
-      applyTrafficLight('card-fat', 'stat-fat-left', state.targets.fat - totals.fat, state.targets.fat, 'g');
+    function renderShopping() {
+      $('basket-left').innerHTML = leftCards(basketTotals(), weekly());
 
-      const listEl = document.getElementById('food-list');
-      document.getElementById('item-count').textContent = `${state.items.length.toLocaleString()} items`;
-      
-      if (state.items.length === 0) {
-        listEl.innerHTML = `<p class="text-sm text-slate-500 italic text-center py-8">Eat something.</p>`;
-      } else {
-        listEl.innerHTML = state.items.map((item, i) => `
-          <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 flex justify-between items-center group hover:border-slate-500 transition-colors">
-            <div class="space-y-1 w-full">
-              <div class="font-bold text-slate-200 text-sm flex gap-2">
-                <span>${item.name}</span>
-                ${item.weight ? `<span class="text-brand font-normal">(${fmt(item.weight)}g)</span>` : ''}
+      if (!state.foods.length) {
+        $('basket-list').innerHTML = emptyNote('Nothing to buy yet. Build meals in step 3 and plan your week — the basket fills itself. Or add food above with a fixed amount.');
+        return;
+      }
+      const used = plannedGrams();
+      const cost = shopCost();
+      const basketRow = f => {
+        const users = pendingDelete === f.id ? mealsUsing(f.id) : [];
+        const confirmRow = users.length ? `
+          <div class="text-xs text-amber-200 bg-amber-950/40 border border-amber-600/60 rounded-lg p-3 space-y-2">
+            <div><b>${esc(f.name)}</b> is used by ${users.map(m => `<b>${esc(m.name)}</b>`).join(', ')}. Those meals keep its calories, but it won't be on your shopping list.</div>
+            <div class="flex gap-2">
+              <button data-action="delete-food" data-id="${f.id}" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-semibold py-1 px-3 rounded border border-rose-500/50">Remove anyway</button>
+              <button data-action="cancel-delete" class="bg-slate-700 hover:bg-slate-600 text-slate-200 py-1 px-3 rounded border border-slate-600">Keep it</button>
+            </div>
+          </div>` : '';
+        const need = used[f.id] || 0;
+        const buy = buyInfo(f);
+        const short = f.locked && need > f.grams + 1e-9;
+        const t = totalsOf([{ foodId: f.id, grams: f.grams }]);
+        const note = f.locked
+          ? (need ? `<span class="${short ? 'text-amber-400' : 'text-slate-400'}">Week plan uses ${fmt(need)}g${short ? ` — ${fmt(need - f.grams)}g short` : ''}</span>` : '')
+          : (need ? '' : '<span class="text-slate-400">Not in your week plan yet</span>');
+        return `
+          <div class="bg-slate-900 border ${short ? 'border-amber-500/60' : 'border-slate-700'} rounded-lg p-3 flex items-center gap-3 hover:border-slate-500 transition-colors">
+            <div class="flex-1 min-w-0 space-y-1">
+              <div class="font-bold text-slate-200 text-sm truncate">${esc(f.name)}</div>
+              <div class="text-[11px] text-slate-400 flex flex-wrap gap-x-4">
+                <span class="text-emerald-400 font-bold">${fmt(t.cals)} kcal</span>
+                <span>P: ${fmt(t.protein)}</span> <span>C: ${fmt(t.carbs)}</span> <span>F: ${fmt(t.fat)}</span>
               </div>
-              <div class="text-[11px] text-slate-400 flex gap-4">
-                <span class="text-emerald-400 font-bold">${fmt(item.cals)} kcal</span>
-                <span>P: ${fmt(item.protein)}</span> <span>C: ${fmt(item.carbs)}</span> <span>F: ${fmt(item.fat)}</span>
+              ${buy.text || buy.cost != null ? `<div class="text-[11px] text-slate-300">🛒 ${buy.text || 'Buy loose'}${buy.cost != null ? ` · <span class="text-brand">${money(buy.cost)}</span>` : ''}</div>` : ''}
+              <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                <button data-action="toggle-lock" data-id="${f.id}" aria-pressed="${f.locked}"
+                  title="${f.locked ? 'Keeps the amount you set. Click to let the week plan decide.' : 'Sized from your week plan. Click to fix your own amount.'}"
+                  class="px-2 py-0.5 rounded border transition-colors ${f.locked ? 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700' : 'border-emerald-800/50 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/40'}">
+                  ${f.locked ? '🔒 Fixed amount' : '🔓 From plan'}
+                </button>
+                ${note}
               </div>
             </div>
-            <button onclick="removeItem(${i})" class="text-slate-600 hover:text-rose-400 p-2 hover:bg-slate-800 rounded transition-colors">
+            <div class="flex items-center gap-1 shrink-0">
+              <input type="number" step="any" min="0" value="${f.grams}" data-action="set-grams" data-id="${f.id}" aria-label="Grams of ${esc(f.name)}"
+                class="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-slate-100 text-right font-bold focus:outline-none focus:border-brand">
+              <span class="text-xs text-slate-400">g raw</span>
+            </div>
+            <button data-action="delete-food" data-id="${f.id}" class="shrink-0 text-slate-600 hover:text-rose-400 p-2 hover:bg-slate-800 rounded transition-colors" aria-label="Remove ${esc(f.name)}">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
+          </div>${confirmRow}`;
+      };
+      $('basket-list').innerHTML =
+        (cost.priced ? `<div class="text-sm text-slate-300 flex flex-wrap justify-between gap-2"><span>Estimated shop (whole packs)</span><span class="font-bold text-brand">${money(cost.total)}${cost.priced < cost.items ? ` <span class="text-xs font-normal text-slate-400">· ${cost.items - cost.priced} item${cost.items - cost.priced === 1 ? '' : 's'} without a price</span>` : ''}</span></div>` : '') +
+        byAisle(state.foods).map(([label, foods]) => `
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pt-2">${label}</h3>
+          ${foods.map(basketRow).join('')}`).join('');
+    }
+
+    // [[aisle label, foods sorted by name]] in walking order, empty aisles skipped
+    const byAisle = foods => CATEGORIES
+      .map(([cat, label]) => [label, foods.filter(f => meta(f).category === cat).sort((a, b) => a.name.localeCompare(b.name))])
+      .filter(([, list]) => list.length);
+
+    function draftServings() {
+      const n = parseFloat($('mb-servings').value);
+      return n > 0 ? n : 1;
+    }
+
+    function renderRecipes() {
+      const added = new Set(state.meals.map(m => m.recipe).filter(Boolean));
+      $('recipe-list').innerHTML = Object.entries(MEAL_TYPES).map(([type, label]) => `
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pt-2">${label}${type === 'snack' ? 's' : ''}</h3>
+        ${RECIPES.filter(r => r.type === type).map(r => {
+          const pt = recipeTotals(r);
+          return `
+            <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 flex items-start justify-between gap-3">
+              <div class="min-w-0 space-y-1">
+                <div class="font-bold text-slate-200 text-sm">${esc(r.name)}${r.servings > 1 ? ` <span class="text-xs font-normal text-slate-400">· batch of ${r.servings}</span>` : ''}</div>
+                <div class="text-[11px] text-slate-400"><span class="text-emerald-400 font-bold">${fmt(pt.cals)} kcal${r.servings > 1 ? ' / portion' : ''}</span> · ${macroLine(pt)}</div>
+                <div class="text-xs text-slate-400">${Object.entries(r.items).map(([name, g]) => `${esc(name)} ${gramsText(presetByName(name), g)}`).join(', ')}</div>
+              </div>
+              ${added.has(r.id)
+                ? '<span class="shrink-0 text-xs text-brand">✓ In your meals</span>'
+                : `<button data-action="add-recipe" data-id="${r.id}" class="shrink-0 text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 py-1.5 px-3 rounded border border-slate-600 transition-colors">+ Add</button>`}
+            </div>`;
+        }).join('')}`).join('');
+    }
+
+    // Raw/cooked switch: a cooked-mode mistake is a 2-3× calorie error, so cooked mode is loud everywhere it applies
+    function renderWeightMode() {
+      const cooked = isCooked();
+      const btn = (value, label) => `
+        <button data-action="set-weight-mode" data-value="${value}" aria-pressed="${state.weightMode === value}"
+          class="flex-1 px-3 py-1.5 rounded-md font-bold transition-colors ${state.weightMode === value ? (value === 'cooked' ? 'bg-amber-400 text-slate-950' : 'bg-emerald-500 text-slate-900') : 'text-slate-400 hover:text-white'}">${label}</button>`;
+      $('weight-mode').innerHTML = `
+        <div class="rounded-lg border p-3 space-y-2 ${cooked ? 'bg-amber-950/40 border-amber-600/70' : 'bg-slate-900/60 border-slate-700/50'}">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="text-xs font-semibold uppercase tracking-wide ${cooked ? 'text-amber-300' : 'text-slate-400'}">Weigh food</span>
+            <div class="flex flex-1 min-w-[14rem] bg-slate-900 rounded-lg p-1 border border-slate-700 text-xs" role="group" aria-label="Raw or cooked weights">
+              ${btn('raw', '🥩 Raw / uncooked')}${btn('cooked', '🍳 Cooked')}
+            </div>
           </div>
-        `).join('');
-      }
-
-      generateShoppingList();
+          <p class="text-xs ${cooked ? 'text-amber-200' : 'text-slate-400'}">${cooked
+            ? '⚠️ <b>COOKED weights.</b> Type what you weigh <b>after</b> cooking. Rice, pasta, meat and fish are converted back to raw for calories and shopping (rice ×2.7, pasta ×2.3, chicken ×0.75).'
+            : 'Raw weights — what you weigh before cooking. This is what the calories and the shopping list use.'}</p>
+        </div>`;
+      $('mb-grams-label').textContent = cooked ? 'Batch (g) COOKED' : 'Batch (g) raw';
+      $('mb-grams-label').className = `block text-[11px] font-semibold uppercase tracking-wide mb-1 ${cooked ? 'text-amber-400' : 'text-brand'}`;
+      $('mb-grams').className = `w-full bg-slate-900 border rounded-lg px-3 py-2 text-slate-100 focus:outline-none ${cooked ? 'border-amber-500 focus:border-amber-400' : 'border-brand/50 focus:border-brand'}`;
     }
 
-    function generateShoppingList() {
-      const shopMap = {};
-      state.items.forEach(item => {
-        if (item.weight > 0) {
-          const key = item.name.trim().toLowerCase();
-          if (!shopMap[key]) {
-            shopMap[key] = { name: item.name.trim(), weight: 0 };
-          }
-          shopMap[key].weight += item.weight;
+    // How big this meal should be: its share of the day (the step 1 split), per portion
+    function renderMealTarget() {
+      const type = SPLIT[$('mb-type').value] ? $('mb-type').value : 'breakfast';
+      const share = SPLIT[type];
+      const label = type === 'snack' ? 'Snacks' : MEAL_TYPES[type];
+      if (!state.daily.cals) {
+        $('mb-target').innerHTML = `<p class="text-xs text-slate-400">Set a daily target in step 1 to see how big a ${MEAL_TYPES[type].toLowerCase()} should be.</p>`;
+        return;
+      }
+      const pt = scaled(totalsOf(draft.items), 1 / draftServings());
+      const row = (k, suffix, name) => {
+        const target = state.daily[k] * share;
+        if (!target) return '';
+        const left = target - pt[k];
+        const tone = leftTone(left, target);
+        return `
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">${name}: <b class="${tone.text}">${fmt(pt[k])}</b> / ${fmt(target)}${suffix}</span>
+              <span class="${tone.text} font-semibold">${left >= 0 ? `${fmt(left)}${suffix} left` : `${fmt(-left)}${suffix} over`}</span>
+            </div>
+            <div class="h-2 bg-slate-900 rounded-full overflow-hidden"><div class="h-full ${tone.bar} transition-all" style="width:${Math.min(100, pt[k] / target * 100)}%"></div></div>
+          </div>`;
+      };
+      $('mb-target').innerHTML = `
+        <div class="bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 space-y-2">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">${label} target · ${share * 100}% of your day${draftServings() > 1 ? ' · per portion' : ''}</p>
+          ${row('cals', ' kcal', 'Calories')}${row('protein', 'g', 'Protein')}
+        </div>`;
+    }
+
+    function renderMeals() {
+      renderRecipes();
+      renderWeightMode();
+      renderMealTarget();
+      $('builder-title').textContent = draft.id ? 'Edit Meal' : '3. Create a Meal or Snack';
+
+      const servings = draftServings();
+      const dt = totalsOf(draft.items);
+      const pt = scaled(dt, 1 / servings);
+      $('draft-list').innerHTML = draft.items.length ? `
+        <div class="space-y-1">
+          ${draft.items.map((i, idx) => {
+            const f = itemFood(i);
+            if (!f) return '';
+            return `<div class="flex items-center justify-between text-sm bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-700/50">
+              <span>${esc(f.name)} <span class="text-brand">(${gramsText(f, i.grams)})</span>${foodById(i.foodId) ? '' : ' <span class="text-xs text-amber-400">not in basket</span>'}${servings > 1 ? ` <span class="text-xs text-slate-400">${fmt(shownGrams(f, i.grams / servings))}g per portion</span>` : ''}</span>
+              <span class="flex items-center gap-3"><span class="text-slate-400">${fmt(f.cals * i.grams / 100)} kcal</span>
+              <button data-action="remove-ingredient" data-idx="${idx}" class="text-slate-400 hover:text-rose-400" aria-label="Remove">✕</button></span>
+            </div>`;
+          }).join('')}
+          <div class="text-right text-sm pt-1"><span class="font-bold text-brand">${fmt(pt.cals)} kcal${servings > 1 ? ' per portion' : ''}</span> <span class="text-slate-400">· ${macroLine(pt)}</span></div>
+          ${servings > 1 ? `<div class="text-right text-xs text-slate-400">Whole batch (${plural(servings, 'portion')}): ${fmt(dt.cals)} kcal · ${macroLine(dt)}</div>` : ''}
+        </div>` : '<p class="text-xs text-slate-400">No ingredients yet.</p>';
+
+      if (!state.meals.length) {
+        $('meal-list').innerHTML = buildCta('Skip the blank page: picks recipes that suit your calorie target, sizes the portions, plans all seven days and writes your shopping list. You can change anything after.') +
+          emptyNote('Or build your own meal above, or add recipes one at a time from the library.');
+        return;
+      }
+      const counts = mealCounts();
+      $('meal-list').innerHTML = Object.entries(MEAL_TYPES).map(([type, label]) => {
+        const meals = state.meals.filter(m => m.type === type);
+        if (!meals.length) return '';
+        return `
+          <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-2">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">${label}${type === 'snack' ? 's' : ''}</h3>
+            ${meals.map(m => {
+              const mt = mealTotals(m);
+              const pt = portionTotals(m);
+              const s = servingsOf(m);
+              return `
+                <div class="bg-slate-900 border border-slate-700 rounded-lg p-3">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0 space-y-1">
+                      <div class="font-bold text-slate-200 text-sm">${esc(m.name)}${counts[m.id] ? ` <span class="text-xs font-normal text-slate-400">· ${plural(counts[m.id], 'portion')} this week</span>` : ''}</div>
+                      <div class="text-[11px] text-slate-400 flex flex-wrap gap-x-4">
+                        <span class="text-emerald-400 font-bold">${fmt(pt.cals)} kcal${s > 1 ? ' / portion' : ''}</span>
+                        <span>P: ${fmt(pt.protein)}</span> <span>C: ${fmt(pt.carbs)}</span> <span>F: ${fmt(pt.fat)}</span>
+                      </div>
+                      ${s > 1 ? `<div class="text-[11px] text-slate-400">Batch makes ${plural(s, 'portion')} · ${fmt(mt.cals)} kcal total · ${macroLine(mt)}</div>` : ''}
+                      ${portionCost(m) != null ? `<div class="text-[11px] text-slate-400">≈ ${money(portionCost(m))} per portion</div>` : ''}
+                      <div class="text-xs text-slate-400">${m.items.map(ingredientText).filter(Boolean).join(', ')}</div>
+                      ${Object.keys(missingFoods([m])).length ? `<button data-action="re-add-meal" data-id="${m.id}" class="text-[11px] text-amber-400 underline">Put missing foods back in the basket</button>` : ''}
+                    </div>
+                    <div class="flex gap-3 text-xs shrink-0">
+                      <button data-action="edit-meal" data-id="${m.id}" class="text-slate-400 hover:text-brand">Edit</button>
+                      <button data-action="delete-meal" data-id="${m.id}" class="text-slate-400 hover:text-rose-400">Delete</button>
+                    </div>
+                  </div>
+                </div>`;
+            }).join('')}
+          </div>`;
+      }).join('');
+    }
+
+    function mealOptions(type, selected, emptyLabel) {
+      const opt = m => `<option value="${m.id}" ${m.id === selected ? 'selected' : ''}>${esc(m.name)} (${fmt(portionTotals(m).cals)} kcal${servingsOf(m) > 1 ? ' / portion' : ''})</option>`;
+      const match = state.meals.filter(m => m.type === type);
+      const other = state.meals.filter(m => m.type !== type);
+      return `<option value="">${emptyLabel}</option>` + match.map(opt).join('') +
+        (other.length ? `<optgroup label="Other meals">${other.map(opt).join('')}</optgroup>` : '');
+    }
+
+    function renderPlan() {
+      $('plan-left').innerHTML = leftCards(planTotals(), weekly());
+
+      const target = state.daily.cals;
+      const selectCls = 'w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-brand';
+
+      const used = plannedGrams();
+      const short = state.foods.filter(f => f.locked && (used[f.id] || 0) > f.grams + 1e-9);
+      const counts = mealCounts();
+      const plannedMissing = missingFoods(state.meals.filter(m => counts[m.id]));
+      const missingNote = Object.keys(plannedMissing).length ? `
+          <div class="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-1 mb-2">
+            <div>Planned meals use foods that aren't in your basket, so they won't be on your shopping list: ${Object.values(plannedMissing).map(s => `<b>${esc(s.name)}</b>`).join(', ')}.</div>
+            <button data-action="re-add-missing" class="underline font-semibold">Put them back in the basket</button>
+          </div>` : '';
+      $('plan-warnings').innerHTML = missingNote + (!state.meals.length
+        ? buildCta('No meals yet. Build a whole week from the recipe library in one click, or create your own meals in step 3.')
+        : short.length ? `
+          <div class="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-1">
+            <div>Your plan uses more than the fixed amount of: ${short.map(f => `<b>${esc(f.name)}</b> (${fmt(used[f.id])}g vs ${fmt(f.grams)}g)`).join(', ')}.</div>
+            <button data-action="unlock-short" class="underline font-semibold">Let the plan set these</button>
+          </div>` : '');
+
+      // Phones see one day at a time; md+ sees the whole week
+      const view = state.viewDay;
+      $('day-picker').innerHTML = `
+        <div class="flex items-center gap-1">
+          <button data-action="view-day" data-day="${(view + 6) % 7}" aria-label="Previous day" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">‹</button>
+          <div class="grid grid-cols-7 gap-1 flex-1" role="tablist" aria-label="Day">
+            ${DAYS.map((name, d) => {
+              const cals = dayTotals(state.plan[d]).cals;
+              const words = !cals ? 'nothing planned' : !target ? `${fmt(cals)} kcal` : cals / target > 1.05 ? 'over target' : cals / target >= 0.95 ? 'on target' : 'under target';
+              return `<button data-action="view-day" data-day="${d}" role="tab" aria-selected="${d === view}" aria-label="${name}, ${words}"
+                class="py-1.5 rounded-lg text-xs font-semibold ${d === view ? 'bg-brand text-slate-950' : 'bg-slate-800 text-slate-300 border border-slate-700'}">
+                ${name.slice(0, 3)}<span class="block mx-auto mt-1 w-1.5 h-1.5 rounded-full ${cals ? barColor(cals, target) : 'bg-slate-600'}"></span>
+              </button>`;
+            }).join('')}
+          </div>
+          <button data-action="view-day" data-day="${(view + 1) % 7}" aria-label="Next day" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">›</button>
+        </div>`;
+
+      const search = state.meals.length >= MEAL_SEARCH_AT;
+      const miniBtn = 'bg-slate-700 hover:bg-slate-600 text-slate-200 py-1 px-2 rounded border border-slate-600 transition-colors';
+      // A meal picker: a dropdown, or a search box once the meal list is long
+      const picker = (d, slot, type, selected, emptyLabel) => {
+        if (!search) {
+          const action = slot === 'snack' ? 'add-snack' : 'set-slot';
+          return `<select data-action="${action}" data-day="${d}" ${slot === 'snack' ? '' : `data-slot="${slot}"`} class="${selectCls} flex-1 min-w-0">${mealOptions(type, selected, emptyLabel)}</select>`;
         }
-      });
+        const m = mealById(selected);
+        return `
+          <div class="relative flex-1 min-w-0">
+            <input type="search" autocomplete="off" spellcheck="false" data-slot-search data-day="${d}" data-slot="${slot}" data-type="${type}"
+              value="${m ? esc(m.name) : ''}" placeholder="🔍 ${emptyLabel}" role="combobox" aria-autocomplete="list" aria-expanded="false"
+              aria-controls="pick-${d}-${slot}" aria-label="${DAYS[d]} ${slot}" class="${selectCls} placeholder-slate-500">
+            <ul id="pick-${d}-${slot}" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-slate-900 border border-slate-600 rounded-lg shadow-xl"></ul>
+          </div>
+          ${m && slot !== 'snack' ? `<button data-action="clear-slot" data-day="${d}" data-slot="${slot}" class="shrink-0 text-slate-400 hover:text-rose-400 px-1" aria-label="Clear ${DAYS[d]} ${slot}">✕</button>` : ''}`;
+      };
 
-      const shoppingOutput = Object.values(shopMap)
-        .sort((a,b) => a.name.localeCompare(b.name))
-        .map(i => `${i.name} - ${fmt(i.weight)}g`)
-        .join('\n');
+      $('plan-grid').innerHTML = state.plan.map((day, d) => {
+        const dt = dayTotals(day);
+        return `
+          <div class="${d === view ? '' : 'hidden md:block'} bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md space-y-3">
+            <div class="flex items-baseline justify-between">
+              <h3 class="font-bold text-slate-100">${DAYS[d]}${d === todayIndex() ? ' <span class="text-xs font-semibold text-brand">· today</span>' : ''}</h3>
+              <span class="text-sm font-bold ${statusColor(dt.cals, target)}">${statusMark(dt.cals, target)}${fmt(dt.cals)}${target ? ` / ${fmt(target)}` : ''} kcal</span>
+            </div>
+            ${progressBar(dt.cals, target)}
+            <div class="text-[11px] text-slate-400 flex gap-4">
+              <span class="${statusColor(dt.protein, state.daily.protein)}">P: ${fmt(dt.protein)}${state.daily.protein ? `/${fmt(state.daily.protein)}` : ''}</span>
+              <span class="${statusColor(dt.carbs, state.daily.carbs)}">C: ${fmt(dt.carbs)}${state.daily.carbs ? `/${fmt(state.daily.carbs)}` : ''}</span>
+              <span class="${statusColor(dt.fat, state.daily.fat)}">F: ${fmt(dt.fat)}${state.daily.fat ? `/${fmt(state.daily.fat)}` : ''}</span>
+            </div>
+            ${SLOTS.map(([slot, label]) => {
+              const size = sizeOf(day, slot);
+              return `
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">${label}${day[slot] && size !== 1 ? ` <span class="normal-case text-brand">· ${plural(size, 'portion')}</span>` : ''}</label>
+                <div class="flex gap-2 items-center">
+                  ${picker(d, slot, slot, day[slot], search ? `pick a ${label.toLowerCase()}` : '— none —')}
+                  ${day[slot] ? `<input type="number" min="0.25" max="3" step="0.05" value="${size}" data-action="set-size" data-day="${d}" data-slot="${slot}"
+                    aria-label="${label} portions" title="Portions eaten"
+                    class="w-16 shrink-0 bg-slate-900 border border-slate-700 rounded-lg px-1 py-1.5 text-sm text-slate-100 text-center focus:outline-none focus:border-brand">` : ''}
+                </div>
+              </div>`;
+            }).join('')}
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Snacks</label>
+              <div class="flex flex-wrap gap-1 mb-1">
+                ${day.snacks.map((id, s) => {
+                  const m = mealById(id);
+                  return m ? `<span class="inline-flex items-center gap-1 text-xs bg-slate-700 border border-slate-600 rounded-full pl-2 pr-1 py-0.5">${esc(m.name)}
+                    <button data-action="remove-snack" data-day="${d}" data-idx="${s}" class="text-slate-400 hover:text-rose-400 px-1" aria-label="Remove snack">✕</button></span>` : '';
+                }).join('')}
+              </div>
+              <div class="flex gap-2 items-center">${picker(d, 'snack', 'snack', '', '+ add a snack')}</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-700/60 text-xs">
+              ${d > 0 ? `<button data-action="same-as-yesterday" data-day="${d}" class="${miniBtn}">⇐ Same as ${DAYS[d - 1].slice(0, 3)}</button>` : ''}
+              <button data-action="copy-to-weekdays" data-day="${d}" class="${miniBtn}">Copy to weekdays</button>
+              <select data-action="swap-day" data-day="${d}" aria-label="Swap ${DAYS[d]} with another day" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-300">
+                <option value="">⇄ Swap with…</option>
+                ${DAYS.map((name, i) => i === d ? '' : `<option value="${i}">${name}</option>`).join('')}
+              </select>
+            </div>
+          </div>`;
+      }).join('');
 
-      document.getElementById('shopping-list-area').value = shoppingOutput || "Add food with weights to generate list.";
+      if (search) attachSlotSearches();
     }
 
-    document.getElementById('btn-copy-list').addEventListener('click', (e) => {
-      const txt = document.getElementById('shopping-list-area').value;
-      navigator.clipboard.writeText(txt).then(() => {
-        const originalHtml = e.target.innerHTML;
-        e.target.textContent = "Copied!";
-        e.target.classList.replace('text-slate-200', 'text-emerald-400');
-        setTimeout(() => {
-          e.target.innerHTML = originalHtml;
-          e.target.classList.replace('text-emerald-400', 'text-slate-200');
-        }, 2000);
+    // Wires each slot's search box; picking a meal fills the slot (or adds the snack)
+    function attachSlotSearches() {
+      $('plan-grid').querySelectorAll('[data-slot-search]').forEach(input => {
+        const { day, slot, type } = input.dataset;
+        const current = input.value;
+        // Focusing clears the box so the list shows every meal; leaving puts the name back
+        input.addEventListener('focus', () => {
+          input.placeholder = current || input.placeholder;
+          input.value = '';
+        });
+        input.addEventListener('blur', () => { input.value = current; });
+        searchPicker({
+          input,
+          list: input.nextElementSibling,
+          showAllOnEmpty: true,
+          items: () => [...state.meals.filter(m => m.type === type), ...state.meals.filter(m => m.type !== type)]
+            .map(m => ({ name: m.name, cals: portionTotals(m).cals, tag: m.type === type ? '' : MEAL_TYPES[m.type], value: m.id })),
+          emptyText: 'No meals match.',
+          onPick: ({ value }) => {
+            const plan = state.plan[day];
+            if (slot === 'snack') plan.snacks.push(value);
+            else {
+              plan[slot] = value;
+              delete plan.sizes[slot];
+            }
+            commit();
+          }
+        });
+      });
+    }
+
+    // Spend = whole packs bought; eaten = what the plan uses, priced per gram
+    // How a meal's ingredient is prepared: no-cook recipes (overnight oats) override the food's usual method
+    function prepOf(meal, food) {
+      const recipe = meal.recipe && RECIPES.find(r => r.id === meal.recipe);
+      if (recipe && recipe.noCook) return '';
+      const prep = meta(food).prep;
+      return PREP_METHODS[prep] ? prep : '';
+    }
+
+    // Cooking sessions: one prep day for meals that make several portions, then each day's cook-fresh meals.
+    // Lines are per food and method, summed across meals: "Boil 660g rice", not "rice for chilli, rice for bowls"
+    function cookingSessions() {
+      const counts = mealCounts();
+      const add = (session, meal, item, grams) => {
+        const f = itemFood(item);
+        if (!f || !(grams > 0)) return;
+        const prep = prepOf(meal, f);
+        const key = `${prep}|${f.name.toLowerCase()}`;
+        session.lines[key] = session.lines[key] || { group: prep ? PREP_METHODS[prep][0] : 'none', verb: prep ? PREP_METHODS[prep][1] : '', food: f, grams: 0 };
+        session.lines[key].grams += grams;
+      };
+
+      const batch = { title: '🗓️ Prep day — batch cooking', lines: {}, splits: [] };
+      state.meals.filter(m => counts[m.id] && servingsOf(m) > 1).forEach(m => {
+        const share = counts[m.id] / servingsOf(m);
+        m.items.forEach(i => add(batch, m, i, i.grams * share));
+        const cookedBatch = m.items.reduce((sum, i) => { const f = itemFood(i); return sum + (f ? i.grams * cookedFactorOf(f) : 0); }, 0);
+        batch.splits.push({ meal: m, portions: counts[m.id], each: cookedBatch / servingsOf(m) });
+      });
+
+      const sessions = Object.keys(batch.lines).length ? [batch] : [];
+      state.plan.forEach((day, d) => {
+        const session = { title: `${DAYS[d]}${d === todayIndex() ? ' · today' : ''}`, lines: {}, splits: [] };
+        dayPortions(day).filter(p => servingsOf(p.meal) === 1).forEach(({ meal, size }) =>
+          meal.items.forEach(i => { const f = itemFood(i); if (f && prepOf(meal, f)) add(session, meal, i, i.grams * size); }));
+        if (Object.keys(session.lines).length) sessions.push(session);
+      });
+      return sessions;
+    }
+
+    function cookingCard() {
+      const sessions = cookingSessions();
+      if (!sessions.length) return '';
+      const line = l => {
+        const factor = cookedFactorOf(l.food);
+        const cooked = l.group !== 'none' && l.group !== 'pantry' && factor !== 1 ? ` <span class="text-slate-400">(≈ ${fmtWeight(l.grams * factor)} cooked)</span>` : '';
+        return `<li>${l.verb ? `${l.verb} ` : ''}<b>${fmtWeight(l.grams)}</b> ${esc(l.food.name)}${cooked}</li>`;
+      };
+      return `
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-3">
+          <h2 class="text-lg font-bold text-slate-100">👩‍🍳 Cooking plan</h2>
+          <p class="text-xs text-slate-400">What to cook in each session, added up across meals. Weights are raw.</p>
+          ${sessions.map(session => `
+            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 space-y-2">
+              <h3 class="font-bold text-slate-100">${session.title}</h3>
+              ${PREP_GROUPS.map(([group, label]) => {
+                const lines = Object.values(session.lines).filter(l => l.group === group).sort((a, b) => b.grams - a.grams);
+                return lines.length ? `<div><p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">${label}</p><ul class="text-sm text-slate-200 list-disc pl-5">${lines.map(line).join('')}</ul></div>` : '';
+              }).join('')}
+              ${session.splits.length ? `<div><p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">📦 Then portion out</p><ul class="text-sm text-slate-200 list-disc pl-5">
+                ${session.splits.map(s => `<li>${esc(s.meal.name)} → <b>${plural(s.portions, 'portion')}</b> of ≈ ${fmtWeight(s.each)} cooked</li>`).join('')}</ul></div>` : ''}
+            </div>`).join('')}
+        </div>`;
+    }
+
+    // Just today's meals
+    function todayCard() {
+      const d = todayIndex();
+      const day = state.plan[d];
+      const target = state.daily.cals;
+      const rows = [
+        ...SLOTS.map(([slot, label]) => [label, mealById(day[slot]), sizeOf(day, slot)]),
+        ...day.snacks.map(id => ['Snack', mealById(id), 1])
+      ].filter(([, m]) => m);
+      const dt = dayTotals(day);
+      return `
+        <div class="bg-gradient-to-r from-emerald-950/50 to-slate-800 p-5 rounded-xl border border-emerald-800/50 shadow-md space-y-3">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 class="text-lg font-bold text-slate-100">📍 Today · ${DAYS[d]}</h2>
+            ${rows.length ? `<span class="text-sm font-bold ${statusColor(dt.cals, target)}">${statusMark(dt.cals, target)}${fmt(dt.cals)}${target ? ` / ${fmt(target)}` : ''} kcal · ${fmt(dt.protein)}g protein</span>` : ''}
+          </div>
+          ${rows.length ? `<ul class="divide-y divide-slate-700/60">${rows.map(([label, m, size]) => {
+            const t = scaled(portionTotals(m), size);
+            return `<li class="flex items-center justify-between gap-3 py-2">
+              <span class="min-w-0"><span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">${label}</span><b class="text-slate-100">${esc(m.name)}</b>${size !== 1 ? ` <span class="text-xs text-slate-400">· ${plural(size, 'portion')}</span>` : ''}</span>
+              <span class="text-sm text-slate-300 shrink-0 text-right">${fmt(t.cals)} kcal<br><span class="text-xs text-slate-400">${fmt(t.protein)}g protein</span></span>
+            </li>`;
+          }).join('')}</ul>` : '<p class="text-sm text-slate-400">Nothing planned for today yet.</p>'}
+        </div>`;
+    }
+
+    function costCard() {
+      const shop = shopCost();
+      if (!shop.priced) return '';
+      const used = plannedGrams();
+      let eaten = 0, unpriced = 0;
+      Object.entries(used).forEach(([id, grams]) => {
+        const f = foodById(id);
+        const ppg = f && pricePerGram(f);
+        if (ppg == null) unpriced++; else eaten += ppg * grams;
+      });
+      const meals = state.plan.reduce((n, day) => n + dayPortions(day).length, 0);
+      const cell = (label, value, note) => `
+        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+          <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">${label}</span>
+          <span class="text-lg font-bold text-slate-100">${value}</span>
+          ${note ? `<span class="block text-[11px] text-slate-400">${note}</span>` : ''}
+        </div>`;
+      return `
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-3">
+          <h2 class="text-lg font-bold text-slate-100">💷 Cost</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            ${cell('This shop', money(shop.total), 'whole packs')}
+            ${cell('Food eaten', money(eaten), 'this week')}
+            ${cell('Per day', money(eaten / 7))}
+            ${cell('Per meal', meals ? money(eaten / meals) : '—', meals ? `average of ${meals} meals & snacks` : 'plan your week first')}
+          </div>
+          <p class="text-xs text-slate-400">Rough supermarket prices. The shop costs more than the food eaten because packs are whole — leftovers (oil, oats, peanut butter) carry into next week.${shop.priced < shop.items || unpriced ? ' Foods without a price are left out.' : ''}</p>
+        </div>`;
+    }
+
+    function renderSummary() {
+      const wt = weekly(), pt = planTotals(), bt = basketTotals();
+      const buy = state.foods.filter(f => f.grams > 0).sort((a, b) => a.name.localeCompare(b.name));
+      const counts = mealCounts();
+      const usedMeals = state.meals.filter(m => counts[m.id]);
+      const card = 'bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md space-y-3';
+      const used = plannedGrams();
+
+      $('summary-content').innerHTML = `
+        ${todayCard()}
+
+        <div class="${card}">
+          <h2 class="text-lg font-bold text-slate-100">Your week at a glance</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-right">
+              <thead class="text-[11px] uppercase tracking-wider text-slate-400">
+                <tr><th class="text-left font-semibold py-1"></th>${MACROS.map(([, , label]) => `<th class="font-semibold py-1">${label}</th>`).join('')}</tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr><td class="text-left py-1.5 text-slate-400">Target</td>${MACROS.map(([k, s]) => `<td class="font-bold">${fmt(wt[k])}${s === 'g' ? 'g' : ''}</td>`).join('')}</tr>
+                <tr><td class="text-left py-1.5 text-slate-400">Shopping</td>${MACROS.map(([k, s]) => `<td class="font-bold ${statusColor(bt[k], wt[k])}">${statusMark(bt[k], wt[k])}${fmt(bt[k])}${s === 'g' ? 'g' : ''}</td>`).join('')}</tr>
+                <tr><td class="text-left py-1.5 text-slate-400">Meal plan</td>${MACROS.map(([k, s]) => `<td class="font-bold ${statusColor(pt[k], wt[k])}">${statusMark(pt[k], wt[k])}${fmt(pt[k])}${s === 'g' ? 'g' : ''}</td>`).join('')}</tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="${card}">
+          <h2 class="text-lg font-bold text-slate-100">🛒 Shopping list</h2>
+          ${buy.length ? byAisle(buy).map(([label, foods]) => `
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pt-1">${label}</h3>
+              <ul class="divide-y divide-slate-700/60">
+                ${foods.map(f => {
+                  const short = f.locked && (used[f.id] || 0) > f.grams + 1e-9;
+                  const b = buyInfo(f);
+                  return `
+                  <li class="flex items-center gap-3 py-2">
+                    <input type="checkbox" data-action="toggle-check" data-id="${f.id}" ${state.checked[f.id] ? 'checked' : ''} class="w-5 h-5 accent-emerald-400 shrink-0" aria-label="Got ${esc(f.name)}">
+                    <span class="flex-1 ${state.checked[f.id] ? 'line-through text-slate-400' : 'text-slate-100'}">
+                      <b>${esc(f.name)}</b> — ${b.text ? `<b>${b.text}</b> <span class="text-xs text-slate-400">(${fmt(f.grams)}g)</span>` : `${fmt(f.grams)}g`}
+                      ${short ? '<span class="text-xs text-amber-400"> (plan needs more)</span>' : ''}
+                    </span>
+                    <span class="text-xs text-slate-400 shrink-0 text-right">${b.cost != null ? `${money(b.cost)}<br>` : ''}${fmt(f.cals * f.grams / 100)} kcal</span>
+                  </li>`;
+                }).join('')}
+              </ul>
+            </div>`).join('') : emptyNote('Nothing on your shopping list yet.')}
+        </div>
+
+        ${costCard()}
+
+        ${cookingCard()}
+
+        <div class="${card}">
+          <h2 class="text-lg font-bold text-slate-100">🍽️ Meals & snacks</h2>
+          ${usedMeals.length ? Object.entries(MEAL_TYPES).map(([type, label]) => {
+            const meals = usedMeals.filter(m => m.type === type);
+            if (!meals.length) return '';
+            return `<div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">${label}${type === 'snack' ? 's' : ''}</h3>
+              <ul class="space-y-2">${meals.map(m => {
+                const pt = portionTotals(m);
+                const s = servingsOf(m);
+                return `<li class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                  <div class="flex justify-between gap-2"><b>${esc(m.name)}</b><span class="text-sm text-slate-400 shrink-0">${plural(counts[m.id], 'portion')} · ${fmt(pt.cals)} kcal each</span></div>
+                  <div class="text-xs text-slate-400">Per portion: ${macroLine(pt)}${portionCost(m) != null ? ` · ≈ ${money(portionCost(m))}` : ''}</div>
+                  ${s > 1 ? `<div class="text-xs text-slate-400">Batch makes ${plural(s, 'portion')} — this week needs ${plural(counts[m.id] / s, 'batch', 'batches')}</div>` : ''}
+                  <div class="text-sm text-slate-300 mt-1">${s > 1 ? '<span class="text-slate-400">Whole batch:</span> ' : ''}${m.items.map(ingredientText).filter(Boolean).join(' · ')}</div>
+                </li>`;
+              }).join('')}</ul>
+            </div>`;
+          }).join('') : emptyNote('Plan your week in step 4 to see your meals here.')}
+        </div>
+
+        <div class="${card}">
+          <h2 class="text-lg font-bold text-slate-100">📅 Day by day</h2>
+          <div class="space-y-2">
+            ${state.plan.map((day, d) => {
+              const dt = dayTotals(day);
+              const name = slot => {
+                const m = mealById(day[slot]);
+                if (!m) return '<span class="text-slate-500">—</span>';
+                const size = sizeOf(day, slot);
+                return esc(m.name) + (size !== 1 ? ` <span class="text-slate-400">(${plural(size, 'portion')})</span>` : '');
+              };
+              const snacks = day.snacks.map(mealById).filter(Boolean).map(m => esc(m.name)).join(', ');
+              return `<div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <div class="flex flex-wrap justify-between gap-x-2"><b>${DAYS[d]}</b><span class="text-sm font-semibold ${statusColor(dt.cals, state.daily.cals)}">${statusMark(dt.cals, state.daily.cals)}${fmt(dt.cals)} kcal <span class="font-normal text-slate-400">· ${macroLine(dt)}</span></span></div>
+                <div class="text-sm text-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-x-4 mt-1">
+                  <div><span class="text-slate-400">Breakfast:</span> ${name('breakfast')}</div>
+                  <div><span class="text-slate-400">Lunch:</span> ${name('lunch')}</div>
+                  <div><span class="text-slate-400">Dinner:</span> ${name('dinner')}</div>
+                  <div><span class="text-slate-400">Snacks:</span> ${snacks || '<span class="text-slate-500">—</span>'}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+
+    // Only the open step is drawn on each change; the others draw when you switch to them
+    const PANEL_RENDERERS = {
+      target: () => { renderStats(); renderTarget(); },
+      shopping: () => { renderFoodDbCount(); renderShopping(); },
+      meals: () => renderMeals(),
+      plan: () => renderPlan(),
+      summary: () => renderSummary()
+    };
+
+    function renderAll() {
+      renderHistory();
+      renderStatus();
+      renderTabs();
+      PANEL_RENDERERS[state.tab]();
+    }
+
+    function showTab(tab) {
+      state.tab = tab;
+      save();
+      renderTabs();
+      PANEL_RENDERERS[tab]();
+    }
+
+    // Unlocked foods buy exactly what the week plan uses; ones no meal uses drop out of the basket
+    function syncDerivedGrams() {
+      const used = plannedGrams();
+      const referenced = new Set([...state.meals, draft].flatMap(m => m.items.map(i => i.foodId)));
+      removeFoods(state.foods.filter(f => !f.locked && !referenced.has(f.id)).map(f => f.id));
+      state.foods.forEach(f => { if (!f.locked) f.grams = Math.ceil((used[f.id] || 0) - 1e-9); });
+    }
+
+    // View settings (open tab, raw/cooked) aren't part of undo history
+    const snapshot = () => JSON.stringify({ ...state, tab: undefined, weightMode: undefined, viewDay: undefined });
+
+    // `group` merges rapid changes to one field (typing "2000") into a single undo step
+    function recordHistory(group) {
+      const snap = snapshot();
+      if (snap === lastSnapshot) return;
+      const now = Date.now();
+      if (!(group && group === lastGroup && now - lastGroupAt < 1000)) {
+        undoStack.push(lastSnapshot);
+        if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+      }
+      redoStack = [];
+      lastSnapshot = snap;
+      lastGroup = group || null;
+      lastGroupAt = now;
+    }
+
+    function restore(snap) {
+      const { tab, weightMode, viewDay } = state;
+      applyState(JSON.parse(snap));
+      Object.assign(state, { tab, weightMode, viewDay });
+      lastSnapshot = snapshot();
+      lastGroup = null;
+      fillInputs();
+      save();
+      renderAll();
+    }
+
+    function undo() {
+      if (!undoStack.length) return;
+      redoStack.push(lastSnapshot);
+      restore(undoStack.pop());
+      toast('Undone');
+    }
+
+    function redo() {
+      if (!redoStack.length) return;
+      undoStack.push(lastSnapshot);
+      restore(redoStack.pop());
+      toast('Redone');
+    }
+
+    function renderHistory() {
+      $('btn-undo').disabled = !undoStack.length;
+      $('btn-redo').disabled = !redoStack.length;
+    }
+
+    function commit(group) {
+      refreshSnapshots();
+      syncDerivedGrams();
+      recordHistory(group);
+      save();
+      renderAll();
+    }
+
+    // --- Actions ---
+
+    // Mifflin-St Jeor + macro split, same maths as food.html
+    function calculateTargets() {
+      const s = state.stats;
+      let weight = parseFloat(s.weight), height = parseFloat(s.height);
+      const age = parseFloat(s.age), activity = parseFloat(s.activity);
+      const missing = ['weight', 'height', 'age'].filter(k => !(parseFloat(s[k]) > 0));
+      if (missing.length) {
+        missing.forEach(k => markInvalid($(`st-${k}`), true));
+        $('stats-error').textContent = `Fill in your ${missing.join(', ').replace(/, ([^,]*)$/, ' and $1')} to calculate.`;
+        $('stats-error').classList.remove('hidden');
+        $(`st-${missing[0]}`).focus();
+        return;
+      }
+      $('stats-error').classList.add('hidden');
+
+      if (s.unit === 'lbs') {
+        weight *= 0.453592;
+        height *= 2.54;
+      }
+
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+      bmr += s.gender === 'male' ? 5 : -161;
+      const cals = bmr * activity + GOALS[s.goal].adjust;
+
+      const protein = weight * 2.0;
+      const fat = weight * (s.gender === 'male' ? 0.9 : 1.25);
+      const carbs = Math.max(0, (cals - protein * 4 - fat * 9) / 4);
+
+      state.daily = { cals: Math.round(cals), protein: Math.round(protein), carbs: Math.round(carbs), fat: Math.round(fat) };
+      fillInputs();
+      commit();
+      toast(`Daily target: ${fmt(cals)} kcal`);
+    }
+
+    function addFood(food) {
+      const existing = state.foods.find(f => f.name.toLowerCase() === food.name.toLowerCase());
+      if (existing) {
+        existing.grams += food.grams;
+        existing.locked = true;
+        toast(`${food.name}: now ${fmt(existing.grams)}g`);
+      } else {
+        state.foods.push({ id: idForNewFood(food.name), ...food, locked: true });
+        toast(`Added ${food.name}`);
+      }
+      commit();
+    }
+
+    // Meals keep removed foods' ingredients (with their snapshot), so their calories don't vanish
+    function removeFoods(ids) {
+      refreshSnapshots();
+      const gone = new Set(ids);
+      state.foods = state.foods.filter(f => !gone.has(f.id));
+      ids.forEach(id => delete state.checked[id]);
+    }
+
+    // Cramer's rule for a 3×3 system
+    function solve3(A, b) {
+      const det = m => m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+        - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+        + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+      const d = det(A);
+      // A (near-)singular system has no reliable answer; callers fall back to a simpler split
+      if (!Number.isFinite(d) || Math.abs(d) < 1e-9) return null;
+      const x = [0, 1, 2].map(c => det(A.map((row, i) => row.map((v, j) => j === c ? b[i] : v))) / d);
+      return x.every(Number.isFinite) ? x : null;
+    }
+
+    function autoShopping() {
+      const wt = weekly();
+      if (!wt.cals) { toast('Set your daily calories in step 1 first'); return; }
+
+      const keys = ['protein', 'carbs', 'fat'];
+
+      // No macro targets set → 30% protein / 40% carbs / 30% fat
+      const goal = { protein: wt.protein, carbs: wt.carbs, fat: wt.fat };
+      if (!goal.protein && !goal.carbs && !goal.fat) {
+        goal.protein = wt.cals * 0.3 / 4;
+        goal.carbs = wt.cals * 0.4 / 4;
+        goal.fat = wt.cals * 0.3 / 9;
+      }
+
+      const grams = {};
+      const remaining = { ...goal };
+      const scale = Math.min(1.5, Math.max(0.6, state.daily.cals / 2000));
+      Object.entries(AUTO_FIXED).forEach(([name, g]) => {
+        const p = presetByName(name);
+        grams[name] = g * scale;
+        keys.forEach(k => { remaining[k] -= p[k] * grams[name] / 100; });
+      });
+
+      // A[row][group] = grams of `row` macro the group adds per 1g of its main macro
+      const A = keys.map(row => AUTO_GROUPS.map(([main, mix]) =>
+        Object.entries(mix).reduce((s, [name, share]) => {
+          const p = presetByName(name);
+          return s + share * p[row] / p[main];
+        }, 0)));
+      const need = keys.map(k => Math.max(0, remaining[k]));
+      // Fallback: each group covers its own main macro, ignoring what the others add
+      const x = solve3(A, need) || need;
+
+      AUTO_GROUPS.forEach(([main, mix], g) => Object.entries(mix).forEach(([name, share]) => {
+        grams[name] = Math.max(0, x[g] || 0) * share / presetByName(name)[main] * 100;
+      }));
+
+      const keep = new Set();
+      Object.entries(grams).forEach(([name, g]) => {
+        const rounded = Math.ceil(g / 10) * 10;
+        if (!rounded) return;
+        let f = state.foods.find(f => f.name.toLowerCase() === name.toLowerCase());
+        if (!f) { f = { id: idForNewFood(name) }; state.foods.push(f); }
+        const p = presetByName(name);
+        MACROS.forEach(([k]) => { f[k] = p[k]; });
+        Object.assign(f, { name, grams: rounded, locked: true });
+        keep.add(f.id);
+      });
+      removeFoods(state.foods.filter(f => !keep.has(f.id)).map(f => f.id));
+      commit();
+      toast('Shopping list filled to hit your week', { undoable: true });
+    }
+
+    // Brings a day to its calorie target: snacks first, then resizes the main portions (±15%) to close the rest
+    function balanceDay(day, target, snacks, d) {
+      if (!target) return;
+      for (let n = 0; n < 4; n++) {
+        const total = dayTotals(day).cals;
+        if (total >= target * 0.95) break;
+        const fits = snacks.filter(s => { const c = portionTotals(s).cals; return c > 0 && total + c <= target * 1.03; });
+        if (!fits.length) break;
+        day.snacks.push(fits[(d + n) % fits.length].id);
+      }
+      const mains = SLOTS.map(([slot]) => slot).filter(slot => mealById(day[slot]));
+      const mainCals = mains.reduce((s, slot) => s + portionTotals(mealById(day[slot])).cals * sizeOf(day, slot), 0);
+      const gap = target - dayTotals(day).cals;
+      if (!mainCals || Math.abs(gap) <= target * 0.02) return;
+      const factor = Math.min(1.15, Math.max(0.85, 1 + gap / mainCals));
+      const size = Math.round(factor * 20) / 20; // nearest 0.05 portion
+      day.sizes = size === 1 ? {} : Object.fromEntries(mains.map(slot => [slot, size]));
+    }
+
+    function autoFill() {
+      if (!state.meals.length) { toast('Create some meals first'); return; }
+      const byType = t => state.meals.filter(m => m.type === t);
+      const snacks = byType('snack');
+      state.plan = DAYS.map((_, d) => {
+        const day = emptyDay();
+        SLOTS.forEach(([slot]) => {
+          const options = byType(slot);
+          if (options.length) day[slot] = options[d % options.length].id;
+        });
+        balanceDay(day, state.daily.cals, snacks, d);
+        return day;
+      });
+      commit();
+      toast('Week filled — tweak any day you like');
+    }
+
+    // Finds the basket food with this preset's name, or adds it sized by the plan
+    function ensureFood(p) {
+      let food = state.foods.find(f => f.name.toLowerCase() === String(p.name).toLowerCase());
+      if (!food) {
+        food = { id: idForNewFood(p.name), name: p.name, grams: 0, locked: false };
+        MACROS.forEach(([k]) => { food[k] = Number(p[k]) || 0; });
+        // Food DB entries may carry their own shopping details; common foods are looked up live by meta()
+        if (!PRESETS.includes(p)) META_KEYS.forEach(k => { if (p[k] != null) food[k] = p[k]; });
+        state.foods.push(food);
+      }
+      return food;
+    }
+
+    // Adds (or refreshes) a recipe in the meal library; editing it later makes it your own meal
+    function mealFromRecipe(r) {
+      let meal = state.meals.find(m => m.recipe === r.id);
+      if (!meal) {
+        meal = { id: uid(), recipe: r.id, items: [] };
+        state.meals.push(meal);
+      }
+      Object.assign(meal, {
+        name: r.name, type: r.type, servings: r.servings,
+        items: Object.entries(r.items).map(([name, grams]) => {
+          const food = ensureFood(presetByName(name));
+          return { foodId: food.id, grams, snap: snapOf(food) };
+        })
+      });
+      return meal;
+    }
+
+    // One click from nothing to a full week: recipes that suit the target, portions sized, shopping list derived
+    function buildWeek() {
+      const s = state.stats;
+      if (!state.daily.cals && s.weight && s.height && s.age) calculateTargets();
+      const target = state.daily.cals;
+      if (!target) {
+        showTab('target');
+        toast('Enter your daily calories (or your stats) first');
+        $('daily-cals').focus();
+        return;
+      }
+
+      // Recipes whose natural portion is closest to that meal's share of the day
+      const pick = (type, count) => RECIPES
+        .filter(r => r.type === type)
+        .map(r => ({ r, fit: Math.abs(Math.log(recipeTotals(r).cals / (target * SPLIT[type]))) }))
+        .sort((a, b) => a.fit - b.fit)
+        .slice(0, count)
+        .map(({ r }) => mealFromRecipe(r));
+      const chosen = { breakfast: pick('breakfast', 2), lunch: pick('lunch', 2), dinner: pick('dinner', 3) };
+      const snacks = RECIPES.filter(r => r.type === 'snack').map(mealFromRecipe);
+
+      state.plan = DAYS.map((_, d) => {
+        const day = emptyDay();
+        SLOTS.forEach(([slot]) => { day[slot] = chosen[slot][d % chosen[slot].length].id; });
+        balanceDay(day, target, snacks, d);
+        return day;
+      });
+
+      // The shopping list follows this plan
+      const used = plannedGrams();
+      state.foods.forEach(f => { if (used[f.id]) f.locked = false; });
+      state.tab = 'plan';
+      commit();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast('Your week is built — shopping list ready', { undoable: true });
+    }
+
+    function copyText(text, msg) {
+      navigator.clipboard.writeText(text).then(() => toast(msg)).catch(() => toast('Could not copy'));
+    }
+
+    // Same "Name - 1,200g" lines as food-prep.html, grouped by aisle with what to pick up
+    function shoppingText() {
+      const groups = byAisle(state.foods.filter(f => f.grams > 0)).map(([label, foods]) =>
+        `${label.replace(/^\S+\s/, '').toUpperCase()}\n` + foods.map(f => {
+          const b = buyInfo(f);
+          return `${f.name} - ${fmt(f.grams)}g${b.text ? ` (${b.text})` : ''}`;
+        }).join('\n'));
+      const shop = shopCost();
+      return groups.join('\n\n') + (shop.priced ? `\n\nEstimated shop: ${money(shop.total)}` : '');
+    }
+
+    function mealPlanText() {
+      const counts = mealCounts();
+      const meals = state.meals.filter(m => counts[m.id]).map(m => {
+        const s = servingsOf(m);
+        const batch = s > 1 ? `, batch makes ${plural(s, 'portion')} (${plural(counts[m.id] / s, 'batch', 'batches')} needed)` : '';
+        return `${m.name} — ${plural(counts[m.id], 'portion')} this week, ${fmt(portionTotals(m).cals)} kcal each${batch}`;
+      });
+      const portion = (m, size = 1) => `${m.name} (${plural(size, 'portion')}, ${fmt(portionTotals(m).cals * size)} kcal)`;
+      const days = state.plan.map((day, d) => {
+        const n = slot => { const m = mealById(day[slot]); return m ? portion(m, sizeOf(day, slot)) : '—'; };
+        const snacks = day.snacks.map(mealById).filter(Boolean).map(m => portion(m)).join(', ') || '—';
+        const dt = dayTotals(day);
+        return `${DAYS[d]} — ${fmt(dt.cals)} kcal (${macroLine(dt)})\n  Breakfast: ${n('breakfast')}\n  Lunch: ${n('lunch')}\n  Dinner: ${n('dinner')}\n  Snacks: ${snacks}`;
+      });
+      return (meals.length ? `MEALS\n${meals.join('\n')}\n\n` : '') + days.join('\n\n');
+    }
+
+    // --- Share link: the plan (or just the shopping list) packed into the URL hash ---
+    const SHARE_MAX = 8000; // characters; long enough for most chat apps and browsers
+    let incomingShare = null; // decoded payload from the URL, until loaded or dismissed
+
+    function toBase64Url(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    function fromBase64Url(text) {
+      const bin = atob(text.replace(/-/g, '+').replace(/_/g, '/'));
+      return Uint8Array.from(bin, c => c.charCodeAt(0));
+    }
+    const streamBytes = async (bytes, transform) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(transform)).arrayBuffer());
+
+    // 'z' = deflate-compressed JSON, 'j' = plain JSON (browsers without CompressionStream)
+    async function encodeShare(payload) {
+      const json = new TextEncoder().encode(JSON.stringify(payload));
+      if (typeof CompressionStream === 'undefined') return `j${toBase64Url(json)}`;
+      return `z${toBase64Url(await streamBytes(json, new CompressionStream('deflate-raw')))}`;
+    }
+    async function decodeShare(code) {
+      const bytes = fromBase64Url(code.slice(1));
+      const json = code[0] === 'z' ? await streamBytes(bytes, new DecompressionStream('deflate-raw')) : bytes;
+      return JSON.parse(new TextDecoder().decode(json));
+    }
+
+    // The whole plan, minus view settings, ticks and snapshots that loading rebuilds
+    function planPayload() {
+      const s = JSON.parse(snapshot());
+      delete s.checked;
+      const ids = new Set(s.foods.map(f => f.id));
+      s.meals.forEach(m => m.items.forEach(i => { if (ids.has(i.foodId)) delete i.snap; }));
+      return { v: 1, kind: 'plan', state: s };
+    }
+    const shopPayload = () => ({
+      v: 1, kind: 'shop',
+      items: state.foods.filter(f => f.grams > 0).map(f => [f.name, Math.round(f.grams), meta(f).category, ...MACROS.map(([k]) => f[k] || 0)])
+    });
+
+    async function shareLink() {
+      const base = location.href.split('#')[0];
+      let kind = 'plan';
+      let url = `${base}#share=${await encodeShare(planPayload())}`;
+      if (url.length > SHARE_MAX) {
+        kind = 'shop';
+        url = `${base}#share=${await encodeShare(shopPayload())}`;
+      }
+      const what = kind === 'plan' ? 'your whole plan' : 'your shopping list (the full plan is too big for a link)';
+      $('share-out').innerHTML = `
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md space-y-2">
+          <label for="share-url" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Link to ${what}</label>
+          <input id="share-url" readonly value="${esc(url)}" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-emerald-400 text-xs font-mono focus:outline-none focus:border-brand">
+          <p class="text-xs text-slate-400">${fmt(url.length)} characters.${location.protocol === 'file:' ? ' This page is open from your computer, so the link only works for someone with the same file — host it online to share properly.' : ' Anyone with the link can open it; nothing is uploaded.'}</p>
+        </div>`;
+      $('share-url').addEventListener('focus', e => e.target.select());
+      copyText(url, kind === 'plan' ? 'Link copied — whole plan' : 'Link copied — shopping list only');
+    }
+
+    // A share link in the URL: offer it, never overwrite anything without asking
+    async function readShareHash() {
+      const m = location.hash.match(/^#share=([zj][A-Za-z0-9_-]+)$/);
+      if (!m) return;
+      history.replaceState(null, '', location.href.split('#')[0]);
+      try {
+        const data = await decodeShare(m[1]);
+        const valid = data && data.v === 1 && (
+          (data.kind === 'plan' && data.state && Array.isArray(data.state.foods) && Array.isArray(data.state.plan)) ||
+          (data.kind === 'shop' && Array.isArray(data.items)));
+        if (!valid) throw new Error('bad share');
+        incomingShare = data;
+      } catch (err) {
+        incomingShare = null;
+        toast('That share link is broken or incomplete');
+      }
+      renderShareBanner();
+    }
+
+    function renderShareBanner() {
+      const data = incomingShare;
+      if (!data) { $('share-banner').innerHTML = ''; return; }
+      const actions = (primary, label) => `
+        <div class="flex flex-wrap gap-2">
+          <button data-action="${primary}" class="bg-brand hover:bg-emerald-300 text-slate-950 font-bold py-2 px-4 rounded-lg transition-colors">${label}</button>
+          <button data-action="dismiss-share" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 font-semibold py-2 px-4 rounded-lg transition-colors">Dismiss</button>
+        </div>`;
+      if (data.kind === 'plan') {
+        const st = data.state;
+        $('share-banner').innerHTML = `
+          <div class="bg-slate-800 p-5 rounded-xl border border-emerald-700/60 shadow-md space-y-3">
+            <h2 class="text-lg font-bold text-slate-100">📩 Someone shared a meal plan</h2>
+            <p class="text-sm text-slate-300">${plural((st.meals || []).length, 'meal')} and ${plural(st.foods.length, 'food')}. Loading it replaces your current targets, meals, basket and week — you can Undo straight after.</p>
+            ${actions('load-share', 'Load this plan')}
+          </div>`;
+        return;
+      }
+      const foods = data.items.map(([name, grams, category]) => ({ name: String(name), grams: Math.max(0, Number(grams) || 0), category }));
+      $('share-banner').innerHTML = `
+        <div class="bg-slate-800 p-5 rounded-xl border border-emerald-700/60 shadow-md space-y-3">
+          <h2 class="text-lg font-bold text-slate-100">📩 Shared shopping list</h2>
+          ${byAisle(foods).map(([label, list]) => `
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">${label}</h3>
+              <ul class="text-sm text-slate-200 divide-y divide-slate-700/60">
+                ${list.map(f => { const b = buyInfo(f); return `<li class="py-1.5"><label class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-emerald-400 shrink-0"><span><b>${esc(f.name)}</b> — ${b.text ? `${b.text} <span class="text-xs text-slate-400">(${fmt(f.grams)}g)</span>` : `${fmt(f.grams)}g`}</span></label></li>`; }).join('')}
+              </ul>
+            </div>`).join('')}
+          ${actions('add-share', 'Add to my basket')}
+        </div>`;
+    }
+
+    // --- JSON boxes: drop or pick a file, or paste text ---
+    const JSON_BOXES = {
+      db: {
+        load: data => {
+          if (!Array.isArray(data)) throw new Error('A Food DB must be an array of objects, like the example.');
+          foodDatabase = data.filter(d => d && d.name);
+          try { localStorage.setItem(DB_KEY, JSON.stringify(foodDatabase)); } catch (err) {}
+          renderFoodDbCount();
+          toast(`Food DB loaded: ${foodDatabase.length} foods`);
+        }
+      },
+      session: {
+        load: data => {
+          if (!data || !Array.isArray(data.foods) || !Array.isArray(data.plan)) throw new Error("That doesn't look like a meal plan session.");
+          applyState(data);
+          draft = emptyDraft();
+          fillInputs();
+          commit();
+          toast('Session loaded');
+        }
+      }
+    };
+
+    function jsonBoxHtml(name, prompt) {
+      return `
+        <div class="space-y-2">
+          <label data-drop="${name}" class="flex flex-col items-center gap-1 border-2 border-dashed border-slate-600 hover:border-brand rounded-lg p-4 text-center cursor-pointer transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span class="text-sm font-semibold text-slate-200">${prompt}</span>
+            <span class="text-xs text-slate-400">Drag a .json file here, or click to choose one</span>
+            <input type="file" accept=".json,application/json" data-file="${name}" class="hidden">
+          </label>
+          <textarea data-paste="${name}" rows="3" spellcheck="false" placeholder="…or paste JSON here — it loads straight away"
+            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-emerald-400 text-xs font-mono focus:outline-none focus:border-brand resize-y"></textarea>
+          <p data-json-error role="alert" class="hidden text-xs text-rose-300"></p>
+        </div>`;
+    }
+
+    function loadJsonText(name, text) {
+      const error = document.querySelector(`[data-json-box="${name}"] [data-json-error]`);
+      try {
+        JSON_BOXES[name].load(JSON.parse(text));
+        error.classList.add('hidden');
+        return true;
+      } catch (err) {
+        error.textContent = err instanceof SyntaxError ? "That isn't valid JSON — check for missing commas or brackets." : err.message;
+        error.classList.remove('hidden');
+        return false;
+      }
+    }
+
+    // A file dropped just outside a box would otherwise open in the tab and leave the page
+    ['dragover', 'drop'].forEach(type => window.addEventListener(type, e => e.preventDefault()));
+
+    function loadJsonFile(name, file) {
+      if (!file) return;
+      file.text().then(text => loadJsonText(name, text));
+    }
+
+    document.querySelectorAll('[data-json-box]').forEach(el => {
+      const name = el.dataset.jsonBox;
+      el.innerHTML = jsonBoxHtml(name, el.dataset.prompt);
+
+      const drop = el.querySelector('[data-drop]');
+      const highlight = on => {
+        drop.classList.toggle('border-brand', on);
+        drop.classList.toggle('bg-emerald-500/10', on);
+      };
+      drop.addEventListener('dragover', e => { e.preventDefault(); highlight(true); });
+      drop.addEventListener('dragleave', () => highlight(false));
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        highlight(false);
+        loadJsonFile(name, e.dataTransfer.files[0]);
+      });
+
+      el.querySelector('[data-file]').addEventListener('change', e => {
+        loadJsonFile(name, e.target.files[0]);
+        e.target.value = '';
+      });
+
+      // Pasted JSON loads immediately; typed JSON loads when you click away
+      const paste = el.querySelector('[data-paste]');
+      const loadPasted = () => {
+        if (paste.value.trim() && loadJsonText(name, paste.value)) paste.value = '';
+      };
+      paste.addEventListener('paste', () => setTimeout(loadPasted));
+      paste.addEventListener('blur', loadPasted);
+    });
+
+    const actions = {
+      'undo': undo,
+      'redo': redo,
+      'set-unit': el => { state.stats.unit = el.dataset.value; commit(); },
+      'set-gender': el => { state.stats.gender = el.dataset.value; commit(); },
+      'set-goal': el => { state.stats.goal = el.dataset.value; commit(); },
+      'set-weight-mode': el => {
+        state.weightMode = el.dataset.value;
+        save();
+        renderAll();
+        toast(isCooked() ? 'Showing COOKED weights' : 'Showing raw weights');
+      },
+      'calculate': calculateTargets,
+      'delete-food': el => {
+        const f = foodById(el.dataset.id);
+        if (!f) return;
+        const users = mealsUsing(f.id);
+        // First click on a food meals use shows who uses it; "Remove anyway" comes back here
+        if (users.length && pendingDelete !== f.id) {
+          pendingDelete = f.id;
+          renderShopping();
+          return;
+        }
+        pendingDelete = null;
+        removeFoods([f.id]);
+        commit();
+        toast(users.length ? `Removed ${f.name} — ${users.length} meal${users.length === 1 ? '' : 's'} keep its calories` : `Removed ${f.name}`, { undoable: true });
+      },
+      'cancel-delete': () => {
+        pendingDelete = null;
+        renderShopping();
+      },
+      're-add-meal': el => {
+        const m = mealById(el.dataset.id);
+        if (!m) return;
+        reAddFoods(missingFoods([m]));
+        commit();
+        toast('Back in your basket', { undoable: true });
+      },
+      're-add-missing': () => {
+        reAddFoods(missingFoods());
+        commit();
+        toast('Back in your basket', { undoable: true });
+      },
+      'toast-undo': () => {
+        // Only reverses the change the toast was about; anything newer goes through ↶ Undo
+        if (toastUndoDepth >= 0 && toastUndoDepth === undoStack.length) undo();
+        else toast("You've changed things since — use ↶ Undo at the top");
+      },
+      'auto-shopping': autoShopping,
+      'clear-shopping': () => {
+        if (!state.foods.length) return;
+        state.foods.forEach(f => { f.locked = false; });
+        commit();
+        toast('Shopping list cleared — foods your meals use stay', { undoable: true });
+      },
+      'toggle-lock': el => {
+        const f = foodById(el.dataset.id);
+        if (!f) return;
+        f.locked = !f.locked;
+        commit();
+        if (!foodById(f.id)) toast(`${f.name} isn't used by any meal, so it was removed`);
+      },
+      'unlock-short': () => {
+        const used = plannedGrams();
+        state.foods.forEach(f => { if (f.locked && (used[f.id] || 0) > f.grams + 1e-9) f.locked = false; });
+        commit();
+        toast('Your week plan now sets those amounts');
+      },
+      'add-ingredient': () => {
+        if (!mbPicked) { toast('Search for a food and pick it from the list'); $('mb-search').focus(); return; }
+        const [kind, ref] = mbPicked.split(':');
+        const grams = parseFloat($('mb-grams').value);
+        if (!(grams > 0)) { toast('Enter a weight in grams'); $('mb-grams').focus(); return; }
+        let food = kind === 'food' ? foodById(ref) : null;
+        // Picking a food that isn't in the basket yet adds it, sized by the plan
+        if (kind === 'preset') {
+          const p = allPresets()[ref];
+          if (!p) return;
+          food = ensureFood(p);
+        }
+        if (!food) { mbPicked = null; toast('That food is no longer in your basket — search again'); return; }
+        // Typed weight is in the current mode; meals always store raw grams
+        const raw = isCooked() ? grams / cookedFactorOf(food) : grams;
+        const existing = draft.items.find(i => i.foodId === food.id);
+        if (existing) existing.grams += raw;
+        else draft.items.push({ foodId: food.id, grams: raw, snap: snapOf(food) });
+        mbPicked = null;
+        $('mb-search').value = '';
+        renderMeals();
+        $('mb-search').focus();
+      },
+      'remove-ingredient': el => {
+        draft.items.splice(Number(el.dataset.idx), 1);
+        renderMeals();
+      },
+      'save-meal': () => {
+        const name = $('mb-name').value.trim();
+        if (!name) { toast('Give your meal a name'); $('mb-name').focus(); return; }
+        if (!draft.items.length) { toast('Add at least one ingredient'); return; }
+        const meal = { id: draft.id || uid(), name, type: $('mb-type').value, servings: draftServings(), items: draft.items };
+        const idx = state.meals.findIndex(m => m.id === meal.id);
+        if (idx >= 0) state.meals[idx] = meal; else state.meals.push(meal);
+        actions['reset-draft']();
+        commit();
+        toast(`Saved ${name}`);
+      },
+      'reset-draft': () => {
+        draft = emptyDraft();
+        mbPicked = null;
+        $('mb-name').value = '';
+        $('mb-search').value = '';
+        $('mb-servings').value = 1;
+        renderMeals();
+      },
+      'edit-meal': el => {
+        const m = mealById(el.dataset.id);
+        if (!m) return;
+        draft = { id: m.id, items: m.items.map(i => ({ ...i })) };
+        $('mb-name').value = m.name;
+        $('mb-type').value = m.type;
+        $('mb-servings').value = servingsOf(m);
+        renderMeals();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      'delete-meal': el => {
+        const id = el.dataset.id;
+        const meal = mealById(id);
+        state.meals = state.meals.filter(m => m.id !== id);
+        state.plan.forEach(day => {
+          SLOTS.forEach(([slot]) => {
+            if (day[slot] !== id) return;
+            day[slot] = '';
+            delete day.sizes[slot];
+          });
+          day.snacks = day.snacks.filter(s => s !== id);
+        });
+        if (draft.id === id) draft.id = null;
+        commit();
+        toast(`Deleted ${meal ? meal.name : 'meal'}`, { undoable: true });
+      },
+      'remove-snack': el => {
+        state.plan[el.dataset.day].snacks.splice(Number(el.dataset.idx), 1);
+        commit();
+      },
+      'autofill': autoFill,
+      'view-day': el => {
+        state.viewDay = Number(el.dataset.day);
+        save();
+        renderPlan();
+      },
+      'clear-slot': el => {
+        const day = state.plan[el.dataset.day];
+        day[el.dataset.slot] = '';
+        delete day.sizes[el.dataset.slot];
+        commit();
+      },
+      'same-as-yesterday': el => {
+        const d = Number(el.dataset.day);
+        state.plan[d] = cloneDay(state.plan[d - 1]);
+        commit();
+        toast(`${DAYS[d]} now matches ${DAYS[d - 1]}`);
+      },
+      'copy-to-weekdays': el => {
+        const d = Number(el.dataset.day);
+        for (let i = 0; i < 5; i++) if (i !== d) state.plan[i] = cloneDay(state.plan[d]);
+        commit();
+        toast(`Copied ${DAYS[d]} to every weekday`);
+      },
+      'build-week': buildWeek,
+      'add-recipe': el => {
+        const r = RECIPES.find(r => r.id === el.dataset.id);
+        if (!r) return;
+        mealFromRecipe(r);
+        commit();
+        toast(`Added ${r.name} to your meals`);
+      },
+      'clear-plan': () => {
+        state.plan = emptyPlan();
+        commit();
+        toast('Week plan cleared', { undoable: true });
+      },
+      'copy-shopping': () => copyText(shoppingText(), 'Shopping list copied'),
+      'copy-meals': () => copyText(mealPlanText(), 'Meal plan copied'),
+      'share': () => { shareLink().catch(() => toast('Could not make a link')); },
+      'dismiss-share': () => {
+        incomingShare = null;
+        renderShareBanner();
+      },
+      'load-share': () => {
+        applyState(incomingShare.state);
+        Object.assign(state, { tab: 'summary', viewDay: todayIndex() });
+        incomingShare = null;
+        draft = emptyDraft();
+        fillInputs();
+        renderShareBanner();
+        commit();
+        toast('Shared plan loaded', { undoable: true });
+      },
+      'add-share': () => {
+        incomingShare.items.forEach(([name, grams, category, ...macros]) => {
+          const food = { name: String(name), grams: Math.max(0, Number(grams) || 0), category };
+          MACROS.forEach(([k], i) => { food[k] = Number(macros[i]) || 0; });
+          const existing = state.foods.find(f => f.name.toLowerCase() === food.name.toLowerCase());
+          if (existing) {
+            existing.grams += food.grams;
+            existing.locked = true;
+          } else state.foods.push({ id: idForNewFood(food.name), ...food, locked: true });
+        });
+        incomingShare = null;
+        renderShareBanner();
+        state.tab = 'shopping';
+        commit();
+        toast('Shared items added to your basket', { undoable: true });
+      },
+      'print': () => {
+        renderSummary();
+        window.print();
+      },
+      'export': () => {
+        const anchor = document.createElement('a');
+        anchor.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state));
+        anchor.download = 'meal-plan.json';
+        anchor.click();
+      },
+      // The week is disposable; meals, foods and targets are kept
+      'new-week': () => {
+        state.plan = emptyPlan();
+        state.checked = {};
+        state.viewDay = todayIndex();
+        commit();
+        toast('New week started — your meals and foods are kept', { undoable: true });
+      },
+      // Two clicks within 4 seconds, then an Undo toast
+      'erase-all': () => {
+        const btn = $('btn-erase');
+        if (!eraseArmed) {
+          eraseArmed = true;
+          btn.textContent = 'Click again to erase everything';
+          eraseTimer = setTimeout(() => { eraseArmed = false; btn.textContent = 'Erase everything'; }, 4000);
+          return;
+        }
+        clearTimeout(eraseTimer);
+        eraseArmed = false;
+        btn.textContent = 'Erase everything';
+        state = { ...defaultState(), tab: state.tab };
+        draft = emptyDraft();
+        fillInputs();
+        commit();
+        toast('Everything erased', { undoable: true });
+      }
+    };
+
+    const changeActions = {
+      'set-grams': el => {
+        const f = foodById(el.dataset.id);
+        if (f) {
+          f.grams = Math.max(0, parseFloat(el.value) || 0);
+          f.locked = true;
+        }
+        commit();
+      },
+      'set-slot': el => {
+        const day = state.plan[el.dataset.day];
+        day[el.dataset.slot] = el.value;
+        delete day.sizes[el.dataset.slot];
+        commit();
+      },
+      'set-size': el => {
+        const day = state.plan[el.dataset.day];
+        const size = Math.min(3, Math.max(0.25, parseFloat(el.value) || 1));
+        if (size === 1) delete day.sizes[el.dataset.slot];
+        else day.sizes[el.dataset.slot] = size;
+        commit();
+      },
+      'add-snack': el => {
+        if (el.value) state.plan[el.dataset.day].snacks.push(el.value);
+        commit();
+      },
+      'swap-day': el => {
+        if (el.value === '') return;
+        const a = Number(el.dataset.day), b = Number(el.value);
+        [state.plan[a], state.plan[b]] = [state.plan[b], state.plan[a]];
+        commit();
+        toast(`Swapped ${DAYS[a]} and ${DAYS[b]}`);
+      },
+      'toggle-check': el => {
+        state.checked[el.dataset.id] = el.checked;
+        commit();
+      }
+    };
+
+    // --- Events ---
+    document.addEventListener('click', e => {
+      const tab = e.target.closest('[data-tab], [data-goto]');
+      if (tab) {
+        showTab(tab.dataset.tab || tab.dataset.goto);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      const el = e.target.closest('[data-action]');
+      if (el && el.tagName === 'BUTTON' && actions[el.dataset.action]) actions[el.dataset.action](el);
+    });
+
+    document.addEventListener('change', e => {
+      const el = e.target.closest('[data-action]');
+      if (el && changeActions[el.dataset.action]) changeActions[el.dataset.action](el);
+    });
+
+    document.querySelectorAll('[data-stat]').forEach(el => {
+      el.addEventListener('input', () => {
+        state.stats[el.dataset.stat] = el.value;
+        if (parseFloat(el.value) > 0) markInvalid(el, false);
+        if (!document.querySelector('[data-stat][aria-invalid="true"]')) $('stats-error').classList.add('hidden');
+        commit(`stat-${el.dataset.stat}`);
       });
     });
 
-    document.getElementById('db-import').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const data = JSON.parse(ev.target.result);
-          if (Array.isArray(data)) {
-            foodDatabase = data;
-            saveDB();
-            alert("Database loaded successfully!");
-          } else {
-            alert("JSON must be an array of objects.");
-          }
-        } catch (err) { alert('Error parsing DB JSON.'); }
-      };
-      reader.readAsText(file);
-      e.target.value = '';
+    document.querySelectorAll('[data-target]').forEach(el => {
+      el.addEventListener('input', () => {
+        state.daily[el.dataset.target] = Math.max(0, parseFloat(el.value) || 0);
+        commit(`daily-${el.dataset.target}`);
+      });
     });
 
-    document.getElementById('btn-export').addEventListener('click', () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
-      const anchor = document.createElement('a');
-      anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", `macro-log.json`);
-      anchor.click();
-    });
-
-    document.getElementById('file-import').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          state = JSON.parse(ev.target.result);
-          saveState();
-          init();
-        } catch (err) { alert('Error reading Session file.'); }
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    });
-
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      if (confirm('Wipe the log and start fresh? (Database presets will remain intact)')) {
-        state.items = [];
-        saveState();
-        render();
+    // Shopping form: picking a food fills the per-100g fields, like food-prep.html's preset dropdown
+    searchPicker({
+      input: $('ff-search'),
+      list: $('ff-results'),
+      items: () => allPresets().map((p, i) => ({ name: p.name, cals: p.cals, tag: i < foodDatabase.length ? 'DB' : '', value: p })),
+      emptyText: 'No matches — fill in the fields below for a custom food.',
+      onPick: ({ value: p }) => {
+        $('ff-name').value = p.name;
+        $('ff-category').value = meta(p).category;
+        MACROS.forEach(([k]) => { $(`ff-${k}`).value = Number(p[k]) || 0; });
+        renderFormPreview();
+        $('ff-grams').focus();
       }
     });
 
-    init();
+    // Meal builder: basket foods first, then any DB/preset food not already in the basket
+    searchPicker({
+      input: $('mb-search'),
+      list: $('mb-results'),
+      items: () => {
+        const inBasket = new Set(state.foods.map(f => f.name.toLowerCase()));
+        return [
+          ...state.foods.map(f => ({ name: f.name, cals: f.cals, tag: 'Basket', value: `food:${f.id}` })),
+          ...allPresets()
+            .map((p, i) => ({ name: p.name, cals: p.cals, tag: i < foodDatabase.length ? 'DB' : '', value: `preset:${i}` }))
+            .filter(it => !inBasket.has(String(it.name).toLowerCase()))
+        ];
+      },
+      emptyText: 'No matches — add a custom food on the Shopping tab first.',
+      onPick: hit => {
+        mbPicked = hit.value;
+        $('mb-grams').focus();
+        $('mb-grams').select();
+      }
+    });
+    // Typing again means the earlier pick no longer matches the box
+    $('mb-search').addEventListener('input', () => { mbPicked = null; });
+    $('mb-servings').addEventListener('input', renderMeals);
+    $('mb-type').addEventListener('change', renderMealTarget);
+    $('mb-grams').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); actions['add-ingredient'](); }
+    });
+
+    // Arrow keys move between step tabs (and select them), as a tablist should
+    $('tabs').addEventListener('keydown', e => {
+      const tabs = [...document.querySelectorAll('.tab-btn')];
+      const i = tabs.findIndex(t => t.dataset.tab === state.tab);
+      const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      const target = tabs[(next + tabs.length) % tabs.length];
+      showTab(target.dataset.tab);
+      target.focus();
+    });
+
+    // Print shows the summary even when another step is open
+    window.addEventListener('beforeprint', renderSummary);
+
+    // Ctrl/⌘+Z and Ctrl/⌘+Shift+Z (or Ctrl+Y); text fields keep their own typing undo
+    document.addEventListener('keydown', e => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const t = e.target;
+      if (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['checkbox', 'button'].includes(t.type))) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); }
+    });
+
+    ['ff-grams', 'ff-cals', 'ff-protein', 'ff-carbs', 'ff-fat'].forEach(id => $(id).addEventListener('input', renderFormPreview));
+
+    $('food-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const food = { name: $('ff-name').value.trim(), grams: Math.max(0, parseFloat($('ff-grams').value) || 0), category: $('ff-category').value };
+      MACROS.forEach(([k]) => { food[k] = parseFloat($(`ff-${k}`).value) || 0; });
+      addFood(food);
+      e.target.reset();
+      renderFormPreview();
+      $('ff-search').focus();
+    });
+
+    // --- Init ---
+    // `selected` on Other so the form's reset() goes back to it for custom foods
+    $('ff-category').innerHTML = CATEGORIES.map(([c, label]) => `<option value="${c}" ${c === 'other' ? 'selected' : ''}>${label}</option>`).join('');
+    load();
+    lastSnapshot = snapshot();
+    fillInputs();
+    renderAll();
+    readShareHash();
+    window.addEventListener('hashchange', readShareHash);
   </script>
 </body>
 </html>
