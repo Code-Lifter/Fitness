@@ -69,22 +69,39 @@
         @keyframes drawer-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
         /* ---- Plate picker chips ---- */
+        /* Front-on discs: a lighter hub behind the number and a raised lip near the rim */
         .plate-chip {
-            min-width: 38px; height: 30px; padding: 0 8px;
-            border-radius: 6px; border: 2px solid;
-            font-family: 'DM Mono', monospace; font-weight: 500; font-size: 11px;
+            flex-shrink: 0; border-radius: 50%; border: 2px solid;
+            font-family: 'DM Mono', monospace; font-weight: 500; line-height: 1;
             display: inline-flex; align-items: center; justify-content: center;
             transition: transform 0.1s, opacity 0.15s, box-shadow 0.15s;
         }
-        .plate-chip:active { transform: scale(0.94); }
-        .plate-chip.on { box-shadow: inset -2px -2px 0 rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.4); }
-        .plate-chip.off { background: transparent !important; color: #475569 !important; border-style: dashed; text-decoration: line-through; opacity: 0.7; }
+        .plate-chip:active { transform: scale(0.92); }
+        .plate-chip.on {
+            background-image: radial-gradient(circle, rgba(255,255,255,0.22) 0 30%, rgba(0,0,0,0.25) 31% 33%, transparent 34% 68%, rgba(0,0,0,0.22) 69% 73%, transparent 74%);
+            box-shadow: inset 2px 2px 3px rgba(255,255,255,0.25), inset -3px -3px 5px rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.5);
+        }
+        .plate-chip.off { background: transparent !important; color: #475569 !important; border-style: dashed; text-decoration: line-through; opacity: 0.6; }
 
         /* ---- Tempo ---- */
         #t-settings summary { list-style: none; }
         #t-settings summary::-webkit-details-marker { display: none; }
         #t-settings .t-chev { transition: transform 0.2s; }
         #t-settings[open] .t-chev { transform: rotate(180deg); }
+
+        /* ---- Tempo full screen (CSS overlay, so it also works on iPhone) ---- */
+        #tempo-panel.t-full {
+            position: fixed; inset: 0; z-index: 60; border-radius: 0; border: 0;
+            display: flex; flex-direction: column;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        #tempo-panel.t-full #t-body { flex: 1; min-height: 0; }
+        #tempo-panel.t-full #t-track { height: auto; align-self: stretch; width: 6rem; }
+        #tempo-panel.t-full #t-block { height: 6rem; }
+        #tempo-panel.t-full #t-ball { font-size: 3rem; }
+        #tempo-panel.t-full #t-reps-left { font-size: 9rem; }
+        #tempo-panel.t-full #t-phase { font-size: 1.75rem; white-space: normal; }
+        #tempo-panel.t-full #t-settings { display: none; }
     </style>
 </head>
 <body class="selection:bg-amber-500 selection:text-slate-900">
@@ -97,14 +114,14 @@
         
         <!-- 1RM CALCULATOR -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-white text-lg uppercase tracking-wide brand-font flex items-center gap-2">
-                    <span class="text-amber-500">1.</span> 1 Rep Max Calculator
-                </h2>
-                <div class="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
-                    <button id="mode-direct" onclick="setRmMode('direct')" class="px-2 py-1 text-[9px] font-bold uppercase rounded bg-slate-800 text-slate-300 transition">Direct 1RM</button>
-                    <button id="mode-est" onclick="setRmMode('est')" class="px-2 py-1 text-[9px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition">Estimate</button>
-                </div>
+            <h2 class="text-white text-lg uppercase tracking-wide brand-font flex items-center gap-2 mb-3">
+                <span class="text-amber-500">1.</span> 1 Rep Max Calculator
+            </h2>
+            <!-- Mode switch: full width, the highlight slides between the two halves -->
+            <div class="relative grid grid-cols-2 bg-slate-950 rounded-lg p-1 border border-slate-800 mb-4">
+                <span id="mode-slider" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-md bg-slate-800 transition-transform duration-200 ease-out"></span>
+                <button id="mode-direct" onclick="setRmMode('direct')" class="relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors text-slate-200">Direct 1RM</button>
+                <button id="mode-est" onclick="setRmMode('est')" class="relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors text-slate-500 hover:text-slate-300">Estimate</button>
             </div>
 
             <div id="rm-direct-container" class="flex items-center gap-4">
@@ -128,6 +145,7 @@
                 <div class="flex flex-col items-center justify-center bg-amber-900/10 border border-amber-900/30 rounded-xl px-4 min-w-[100px] mt-4">
                     <span class="text-[9px] text-amber-500 font-bold uppercase tracking-widest mb-1">Calculated</span>
                     <span id="est-result" class="text-2xl font-black mono text-amber-400">—</span>
+                    <span id="est-range" class="hidden text-[10px] mono text-slate-500 mt-0.5 whitespace-nowrap"></span>
                 </div>
             </div>
             <p id="est-warning" class="hidden mt-3 text-[10px] font-bold uppercase tracking-wide"></p>
@@ -136,33 +154,21 @@
         <!-- WARMUP PANEL -->
         <div id="warmup-panel" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20 opacity-50 pointer-events-none transition-opacity">
             <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                    <div>
-                        <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
-                            <span class="text-amber-500">2.</span> Rep Max Test Set
-                        </h3>
-                        <p class="text-[10px] text-slate-500 mt-0.5">Tap a side weight to see the plates.</p>
-                    </div>
-                    
-                    <div class="flex flex-wrap items-end gap-2">
-                        <div class="w-24">
-                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Type</label>
-                            <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-700 h-8 items-stretch gap-0.5 relative">
-                                <button data-value="compound" onclick="setSegment('muscle-type', 'compound')" class="flex-1 text-[10px] font-bold uppercase rounded bg-amber-500 text-slate-900 transition">Comp</button>
-                                <button data-value="isolation" onclick="setSegment('muscle-type', 'isolation')" class="flex-1 text-[10px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition hover:bg-slate-800/50">Iso</button>
-                                <input type="hidden" id="muscle-type" value="compound">
-                            </div>
-                        </div>
+                <div>
+                    <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+                        <span class="text-amber-500">2.</span> Rep Max Test Set
+                    </h3>
+                </div>
 
-                        <div class="w-16">
-                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Bar</label>
-                            <input type="number" id="bar-weight" inputmode="decimal" value="20" oninput="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-8 px-1 transition-colors">
-                        </div>
-                        
-                        <div class="w-16">
-                            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center">Increment</label>
-                            <input type="number" id="rounding-factor" inputmode="decimal" value="1.25" step="0.25" oninput="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-8 px-1 transition-colors">
-                        </div>
+                <!-- Bar + increment: full width, half each -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Bar</label>
+                        <input type="number" id="bar-weight" inputmode="decimal" value="20" oninput="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-9 px-1 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Increment</label>
+                        <input type="number" id="rounding-factor" inputmode="decimal" value="1.25" step="0.25" oninput="masterCalculate()" class="w-full bg-slate-900 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-9 px-1 transition-colors">
                     </div>
                 </div>
 
@@ -174,30 +180,55 @@
                     </div>
                 </div>
 
+                <!-- Reps in reserve (optional) -->
+                <div>
+                    <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Reps in reserve <span class="text-slate-600 normal-case tracking-normal font-medium">— optional, reps to leave in the tank</span></label>
+                    <div id="rir-seg" class="grid grid-cols-5 bg-slate-900 rounded-lg p-0.5 border border-slate-700 h-9 gap-0.5">
+                        <input type="hidden" id="test-rir" value="off">
+                    </div>
+                    <p class="text-[10px] text-slate-600 mt-1">Starting load only — adjust on the day based on actual reps in reserve.</p>
+                </div>
+
                 <!-- Available plates -->
                 <div>
                     <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">My plates <span class="text-slate-600 normal-case tracking-normal font-medium">— tap to turn on / off</span></label>
-                    <div id="plate-picker" class="flex flex-wrap gap-1.5"></div>
+                    <div id="plate-picker" class="flex flex-wrap items-center gap-2"></div>
                 </div>
             </div>
+        </div>
+
+        <!-- SETS -->
+        <div id="sets-panel" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20 opacity-50 pointer-events-none transition-opacity">
+            <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800">
+                <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+                    <span class="text-amber-500">3.</span> Your Sets
+                </h3>
+                <p class="text-[10px] text-slate-500 mt-0.5">Tap a side weight to see the plates.</p>
+            </div>
             <div class="flex flex-col bg-slate-900" id="warmup-container"></div>
+            <p class="px-4 sm:px-5 py-3 text-[10px] text-slate-500 leading-snug">If the test set felt easy, add 2.5-5% (upper body) or 5-10% (lower body) and re-attempt after 3-5 min. Stop after 3-5 attempts.</p>
         </div>
 
         <!-- TEMPO -->
         <div id="tempo-panel" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
             <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3">
                 <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
-                    <span class="text-amber-500">3.</span> Tempo
+                    <span class="text-amber-500">4.</span> Tempo
                 </h3>
-                <div class="text-right leading-tight">
-                    <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-widest">E-B-C-T</span>
-                    <span id="t-summary" class="mono text-sm font-medium text-amber-400">3-0-1-2</span>
+                <div class="flex items-center gap-3">
+                    <div class="text-right leading-tight">
+                        <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-widest">E-B-C-T</span>
+                        <span id="t-summary" class="mono text-sm font-medium text-amber-400">3-0-2-1</span>
+                    </div>
+                    <button id="t-full-btn" type="button" title="Full screen" aria-label="Full screen" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center justify-center transition-colors">
+                        <svg id="t-full-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                    </button>
                 </div>
             </div>
 
-            <div class="p-4 sm:p-5 flex gap-5">
+            <div id="t-body" class="p-4 sm:p-5 flex gap-5">
                 <!-- Track -->
-                <div class="relative w-14 h-48 bg-slate-950 rounded-full border-2 border-slate-700 overflow-hidden shrink-0">
+                <div id="t-track" class="relative w-14 h-48 bg-slate-950 rounded-full border-2 border-slate-700 overflow-hidden shrink-0">
                     <div id="t-block" class="absolute top-0 left-0 w-full h-12 rounded-full flex items-center justify-center">
                         <span id="t-ball" class="text-white font-black text-2xl brand-font select-none" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5)"></span>
                     </div>
@@ -230,6 +261,8 @@
                 </div>
             </div>
 
+            <p id="t-slow-note" class="hidden px-4 sm:px-5 pb-4 text-[10px] font-bold text-amber-500/80 leading-snug">Slow tempos reduce the reps you can do at a given load — expect fewer reps than the test set prescribes, or drop the weight.</p>
+
             <details id="t-settings" class="border-t border-slate-800">
                 <summary class="px-4 sm:px-5 py-3 cursor-pointer select-none flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-200 transition-colors">
                     <span>Tempo settings</span>
@@ -240,8 +273,11 @@
                         <div>
                             <label for="t-preset" class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Preset</label>
                             <select id="t-preset" class="w-full bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-lg px-2 h-9 outline-none focus:border-amber-500 transition-colors disabled:opacity-50">
-                                <option value="" selected>Custom</option>
-                                <optgroup label="Hypertrophy / Tension">
+                                <option value="">Custom</option>
+                                <optgroup label="Default">
+                                    <option value="3-0-2-1" selected>3-0-2-1</option>
+                                </optgroup>
+                                <optgroup label="Controlled">
                                     <option value="3-1-1-0">3-1-1-0</option>
                                     <option value="4-1-1-0">4-1-1-0</option>
                                 </optgroup>
@@ -256,7 +292,7 @@
                                 <optgroup label="Continuous Tension">
                                     <option value="2-0-2-0">2-0-2-0</option>
                                 </optgroup>
-                                <optgroup label="Eccentric Overload">
+                                <optgroup label="Slow Eccentric">
                                     <option value="5-0-1-0">5-0-1-0</option>
                                     <option value="6-1-1-0">6-1-1-0</option>
                                 </optgroup>
@@ -299,8 +335,17 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
             <div class="p-3 bg-slate-950 border-b border-slate-800">
                     <h3 class="text-white text-sm font-bold brand-font tracking-wide">Percentage Reference (40% - 100%)</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">Hypertrophy happens across a wide load range as long as sets are taken close to failure. Heavy loads (80%+) are what's specific to maximal strength.</p>
             </div>
             <table class="w-full text-left text-slate-400">
+                <thead class="bg-slate-950/80 border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    <tr>
+                        <th class="w-8 sm:w-10"></th>
+                        <th class="px-3 py-2 font-bold">%</th>
+                        <th class="px-3 py-2 font-bold">Load</th>
+                        <th class="px-3 py-2 font-bold text-right">Approx. reps</th>
+                    </tr>
+                </thead>
                 <tbody id="percentage-table-body" class="divide-y divide-slate-800/50"></tbody>
             </table>
         </div>
@@ -346,8 +391,32 @@
 
     const fmt = n => Math.round(n * 1000) / 1000;   // trims float noise like 27.500000001
 
-    // Epley, but a single rep is the weight itself (so a 1RM test lands on 100%)
-    const epleyFactor = reps => reps <= 1 ? 1 : 1 + reps / 30;
+    // Rep-max table: max reps the average lifter gets at each % of 1RM
+    const REP_MAX_TABLE = [
+        [1, 100], [2, 95], [3, 93], [4, 90], [5, 87], [6, 85],
+        [7, 83], [8, 80], [9, 77], [10, 75], [11, 70], [12, 67], [15, 65]
+    ];   // NSCA / Baechle & Earle
+    const MAX_TABLE_REPS = 15;
+
+    // % of 1RM for a given max-rep count: straight lines between table rows.
+    // Past 15 reps returns null - the table doesn't go there and neither do we.
+    function pctForReps(reps) {
+        if (reps <= 1) return 1;
+        for (let i = 1; i < REP_MAX_TABLE.length; i++) {
+            const [r1, p1] = REP_MAX_TABLE[i - 1], [r2, p2] = REP_MAX_TABLE[i];
+            if (reps <= r2) return (p1 + (p2 - p1) * (reps - r1) / (r2 - r1)) / 100;
+        }
+        return null;
+    }
+
+    // The other way round: average max reps at a % of 1RM, or null below 65%
+    function repsForPct(pct) {
+        for (let i = 1; i < REP_MAX_TABLE.length; i++) {
+            const [r1, p1] = REP_MAX_TABLE[i - 1], [r2, p2] = REP_MAX_TABLE[i];
+            if (pct >= p2) return r1 + (p1 - pct) * (r2 - r1) / (p1 - p2);
+        }
+        return null;
+    }
 
     // ---- Number boxes: select everything on tap so you can type straight over it ----
     function enableSelectOnFocus() {
@@ -370,6 +439,19 @@
             b.onclick = () => setSegment('warmup-target', String(r));
             seg.appendChild(b);
         }
+    }
+
+    // ---- Reps in reserve buttons: Off, 1-4 ----
+    function buildRirButtons() {
+        const seg = document.getElementById('rir-seg');
+        ['off', '1', '2', '3', '4'].forEach(v => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.setAttribute('data-value', v);
+            b.textContent = v === 'off' ? 'Off' : v;
+            b.onclick = () => setSegment('test-rir', v);
+            seg.appendChild(b);
+        });
     }
 
     function setSegment(groupId, value) {
@@ -398,42 +480,61 @@
             const w = parseFloat(document.getElementById('est-weight').value);
             const r = parseFloat(document.getElementById('est-reps').value);
             const resultEl = document.getElementById('est-result');
+            const rangeEl = document.getElementById('est-range');
             const warnEl = document.getElementById('est-warning');
+            const setWarn = (color, text) => {
+                warnEl.textContent = text;
+                warnEl.className = `mt-3 text-[10px] ${color} font-bold uppercase tracking-wide block`;
+            };
 
             if (!w || !r) {
                 resultEl.innerText = '—';
-                warnEl.classList.add('hidden');
-                warnEl.classList.remove('block');
+                rangeEl.classList.add('hidden');
+                warnEl.className = 'hidden';
+            } else if (r > MAX_TABLE_REPS) {
+                resultEl.innerText = '—';
+                rangeEl.classList.add('hidden');
+                setWarn('text-red-500', 'Too many reps to estimate — above 15 reps the estimate isn\'t reliable enough to use. Test again with a heavier load.');
             } else {
-                final1RM = Math.round(w * epleyFactor(r));
+                final1RM = Math.round(w / pctForReps(r));
                 resultEl.innerText = final1RM;
-                
+
+                // Likely range from between-person spread in rep capacity (SD approx. from Nuzzo et al. 2024).
+                // More reps at a % means a bigger 1RM, so r + SD gives the top of the range.
+                // The top end stops at the 15-rep row; a '+' shows when it was cut short.
+                const sd = r <= 8 ? 2.5 : 4.4;
+                const top = Math.round(w / pctForReps(Math.min(MAX_TABLE_REPS, r + sd)));
+                const bottom = Math.round(w / pctForReps(Math.max(1, r - sd)));
+                const capped = r + sd > MAX_TABLE_REPS;
+                // at 14-15 reps the capped top end collapses onto the estimate itself - leave it open-ended
+                rangeEl.textContent = capped && top - final1RM <= 1
+                    ? `likely ${bottom}+`
+                    : `likely ${bottom}–${top}${capped ? '+' : ''}`;
+                rangeEl.classList.remove('hidden');
+
                 if (r > 10) {
-                    warnEl.innerHTML = '🚨 SEVERE ERROR: >10 reps measures local endurance, not CNS strength.';
-                    warnEl.className = 'mt-3 text-[10px] text-red-500 font-bold uppercase tracking-wide block';
-                } else if (r >= 8) {
-                    warnEl.innerHTML = '⚠️ WARNING: Estimating 1RM above 8 reps introduces math errors.';
-                    warnEl.className = 'mt-3 text-[10px] text-amber-500/80 font-bold uppercase tracking-wide block';
+                    setWarn('text-red-500', 'Low accuracy — reps this high depend heavily on individual muscular endurance. Treat as a rough guide.');
+                } else if (r > 6) {
+                    setWarn('text-amber-500/80', 'Acceptable accuracy — expect roughly 5% error or more.');
                 } else {
-                    warnEl.className = 'hidden';
-                    warnEl.classList.remove('block');
+                    setWarn('text-emerald-400/80', 'Best accuracy — 3-6 reps gives the most reliable estimate.');
                 }
             }
         }
 
-        const warmupPanel = document.getElementById('warmup-panel');
+        const panels = ['warmup-panel', 'sets-panel'].map(id => document.getElementById(id));
         if (final1RM > 0) {
-            warmupPanel.classList.remove('opacity-50', 'pointer-events-none');
+            panels.forEach(p => p.classList.remove('opacity-50', 'pointer-events-none'));
             const targetReps = parseInt(document.getElementById('warmup-target').value);
             const rounding = parseFloat(document.getElementById('rounding-factor').value) || 1.25;
-            const muscleType = document.getElementById('muscle-type').value;
             const standardRounding = currentUnit === 'kg' ? 0.5 : 1.0;
             
-            renderWarmup(final1RM, targetReps, rounding, muscleType);
+            renderWarmup(final1RM, targetReps, rounding);
             renderTable(final1RM, standardRounding);
         } else {
-            warmupPanel.classList.add('opacity-50', 'pointer-events-none');
-            document.getElementById('warmup-container').innerHTML = '';
+            panels.forEach(p => p.classList.add('opacity-50', 'pointer-events-none'));
+            document.getElementById('warmup-container').innerHTML =
+                '<p class="px-4 sm:px-5 py-6 text-center text-xs text-slate-500">Enter your 1RM above to build your sets.</p>';
             document.getElementById('percentage-table-body').innerHTML = '';
             window.currentSteps = null;
             tRenderLink();
@@ -442,13 +543,10 @@
 
     function setRmMode(mode) {
         rmMode = mode;
-        document.getElementById('mode-direct').className = mode === 'direct' 
-            ? 'px-2 py-1 text-[9px] font-bold uppercase rounded bg-slate-800 text-slate-300 transition' 
-            : 'px-2 py-1 text-[9px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition';
-            
-        document.getElementById('mode-est').className = mode === 'est' 
-            ? 'px-2 py-1 text-[9px] font-bold uppercase rounded bg-slate-800 text-slate-300 transition' 
-            : 'px-2 py-1 text-[9px] font-bold uppercase rounded text-slate-500 hover:text-slate-300 transition';
+        const modeBtn = 'relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ';
+        document.getElementById('mode-direct').className = modeBtn + (mode === 'direct' ? 'text-slate-200' : 'text-slate-500 hover:text-slate-300');
+        document.getElementById('mode-est').className = modeBtn + (mode === 'est' ? 'text-slate-200' : 'text-slate-500 hover:text-slate-300');
+        document.getElementById('mode-slider').style.transform = mode === 'est' ? 'translateX(100%)' : '';
 
         if (mode === 'direct') {
             document.getElementById('rm-direct-container').classList.remove('hidden');
@@ -501,7 +599,7 @@
 
     function roundTo(val, step) { return Math.round(val / step) * step; }
 
-    function renderWarmup(oneRM, targetReps, rounding, muscleType) {
+    function renderWarmup(oneRM, targetReps, rounding) {
         const container = document.getElementById('warmup-container');
         container.innerHTML = ''; 
 
@@ -517,17 +615,29 @@
         `;
         container.appendChild(header);
 
-        let targetLoad = oneRM / epleyFactor(targetReps);
+        const rir = parseInt(document.getElementById('test-rir').value) || 0;   // 'off' counts as 0
+        // reps you do + reps left in the tank = max reps at this weight (the table stops at 15)
+        const maxReps = targetReps + rir;
+        let targetLoad = oneRM * pctForReps(Math.min(MAX_TABLE_REPS, maxReps));
         const barWeight = parseFloat(document.getElementById('bar-weight').value) || 0;
-        const restMult = muscleType === 'isolation' ? 0.5 : 1;
+
+        if (maxReps > MAX_TABLE_REPS) {
+            const note = document.createElement('p');
+            note.className = 'px-3 sm:px-5 py-2 text-[10px] font-bold text-amber-500/80 border-b border-slate-800 leading-snug';
+            note.textContent = `Rep target + reps in reserve is ${maxReps}, past the end of the rep table — this load may be slightly heavy. Be ready to stop short of ${targetReps} reps.`;
+            container.appendChild(note);
+        }
 
         const steps = [
-            { title: "Warm up 1", pct: 0.20, reps: "15", restSec: Math.round(0 * restMult) },
-            { title: "Warm up 2", pct: 0.50, reps: "5", restSec: Math.round(60 * restMult) },
-            { title: "Warm up 3", pct: 0.70, reps: "3", restSec: Math.round(120 * restMult) },
-            { title: "Warm up 4", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: Math.round(180 * restMult) },
-            { title: `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: Math.round(240 * restMult) }
+            { title: "Warm up 1", pct: 0.20, reps: "15", restSec: 0 },
+            { title: "Warm up 2", pct: 0.50, reps: "5", restSec: 60 },
+            { title: "Warm up 3", pct: 0.70, reps: "3", restSec: 120 },
+            { title: "Warm up 4", pct: 0.90, reps: targetReps > 5 ? "2" : "1", restSec: 240 },
+            { title: rir ? `TEST ${targetReps} @ ${rir} RIR` : `TEST ${targetReps}RM`, pct: 1.00, reps: targetReps, restSec: 240,
+              restLabel: 'Re-attempt', restTitle: 'Rest before a second attempt - only needed if you re-test' }
         ];
+        // Lighter lifters: 20% lands under the bar, so warm-up 1 is just the empty bar
+        if (barWeight > 0 && targetLoad * steps[0].pct <= barWeight) steps[0].reps = "10-15";
         window.currentSteps = steps;
 
         steps.forEach((step, index) => {
@@ -580,9 +690,9 @@
                 numColor = "text-emerald-400";
             }
 
-            let restLabel = step.restSec === 0 ? "—" : (step.restSec >= 60 && step.restSec % 60 === 0 ? `${step.restSec/60}m` : `${step.restSec}s`);
+            let restLabel = step.restLabel || (step.restSec === 0 ? "—" : (step.restSec >= 60 && step.restSec % 60 === 0 ? `${step.restSec/60}m` : `${step.restSec}s`));
             let timerButton = step.restSec > 0 ? 
-                `<button onclick="startTimer(${step.restSec})" class="w-full h-8 rounded-lg flex items-center justify-center font-bold uppercase text-[10px] ${btnClass}">
+                `<button onclick="startTimer(${step.restSec})" ${step.restTitle ? `title="${step.restTitle}"` : ''} class="w-full h-8 rounded-lg flex items-center justify-center font-bold uppercase ${step.restLabel ? 'text-[9px] leading-none px-1' : 'text-[10px]'} ${btnClass}">
                     ${restLabel}
                 </button>` : `<div class="text-slate-500 text-xs text-center">—</div>`;
 
@@ -627,30 +737,34 @@
         const tbody = document.getElementById('percentage-table-body');
         tbody.innerHTML = '';
         
+        // 65-100%: reps come from the rep-max table (same numbers the calculator uses).
+        // Below 65% the table stops, so those rows keep fixed ranges - orientation only, nothing calculates from them.
         const data = [
             // MAX STRENGTH (90-100%)
-            { pct: 100, reps: '1', zone: 'Max Str', span: 3, color: 'text-red-500', border: 'border-l-2 border-red-500' },
-            { pct: 95, reps: '2', color: 'text-red-500' },
-            { pct: 90, reps: '3-4', color: 'text-red-500' },
-            
-            // STRENGTH + HYPERTROPHY (80-85%)
-            { pct: 85, reps: '5-6', zone: 'Str + Hyp', span: 2, color: 'text-amber-500', border: 'border-l-2 border-amber-500' },
-            { pct: 80, reps: '7-8', color: 'text-amber-500' },
-            
-            // HYPERTROPHY (60-75%)
-            { pct: 75, reps: '9-10', zone: 'Hypertrophy', span: 4, color: 'text-blue-400', border: 'border-l-2 border-blue-500' },
-            { pct: 70, reps: '11-12', color: 'text-blue-400' },
-            { pct: 65, reps: '13-15', color: 'text-blue-400' },
+            { pct: 100, zone: 'Max Strength', span: 3, color: 'text-red-500', border: 'border-l-2 border-red-500' },
+            { pct: 95, color: 'text-red-500' },
+            { pct: 90, color: 'text-red-500' },
+
+            // MAX STRENGTH / HYPERTROPHY (80-85%)
+            { pct: 85, zone: 'Max Strength /<br>Hypertrophy', span: 2, color: 'text-amber-500', border: 'border-l-2 border-amber-500' },
+            { pct: 80, color: 'text-amber-500' },
+
+            // HYPERTROPHY (50-75%)
+            { pct: 75, zone: 'Hypertrophy', span: 6, color: 'text-blue-400', border: 'border-l-2 border-blue-500' },
+            { pct: 70, color: 'text-blue-400' },
+            { pct: 65, color: 'text-blue-400' },
             { pct: 60, reps: '16-20', color: 'text-blue-400' },
-            
-            // HYPERTROPHY + ENDURANCE (50-55%)
-            { pct: 55, reps: '21-25', zone: 'Hyp + End', span: 2, color: 'text-teal-400', border: 'border-l-2 border-teal-500' },
-            { pct: 50, reps: '26-30', color: 'text-teal-400' },
-            
-            // ENDURANCE (40-45%)
-            { pct: 45, reps: '31-40', zone: 'Endurance', span: 2, color: 'text-emerald-400', border: 'border-l-2 border-emerald-500' },
+            { pct: 55, reps: '21-25', color: 'text-blue-400' },
+            { pct: 50, reps: '26-30', color: 'text-blue-400' },
+
+            // ENDURANCE / HYPERTROPHY (40-45%)
+            { pct: 45, reps: '31-40', zone: 'Endurance /<br>Hypertrophy', span: 2, color: 'text-emerald-400', border: 'border-l-2 border-emerald-500' },
             { pct: 40, reps: '40+', color: 'text-emerald-400' }
         ];
+        data.forEach(row => {
+            const n = repsForPct(row.pct);
+            if (n !== null) row.reps = String(Math.round(n));
+        });
 
         data.forEach((row, index) => {
             let load = roundTo(oneRM * (row.pct / 100), rounding);
@@ -658,13 +772,13 @@
             tr.className = `hover:bg-slate-800/40 transition-colors ${index % 2 === 0 ? 'bg-slate-800/20' : ''}`;
             
             let zoneHtml = row.zone ? `<td rowspan="${row.span}" class="p-0 text-center bg-slate-900/30 ${row.border} w-8 sm:w-10">
-                <div class="vertical-text text-[9px] font-bold tracking-widest uppercase ${row.color} mx-auto">${row.zone}</div>
+                <div class="vertical-text text-[9px] font-bold tracking-widest uppercase leading-tight ${row.color} mx-auto">${row.zone}</div>
             </td>` : '';
 
             tr.innerHTML = `${zoneHtml}
                 <td class="px-3 py-2 font-bold ${row.color} text-sm">${row.pct}%</td>
                 <td class="px-3 py-2 ${row.color} brand-font text-2xl">${load}</td>
-                <td class="px-3 py-2 text-right text-xs font-bold ${row.color}">${row.reps} Reps</td>`;
+                <td class="px-3 py-2 text-right text-xs font-bold ${row.color}">${row.reps}</td>`;
             tbody.appendChild(tr);
         });
     }
@@ -717,9 +831,11 @@
         const inv = plateInv[unit];
         box.innerHTML = PLATE_SETS[unit].map(p => {
             const on = inv.includes(p.w);
+            const d = Math.round(26 + (p.h - 24) * 0.33);   // diameter follows the drawn plate height
+            const size = `width:${d}px;height:${d}px;font-size:${p.fs + 1}px`;
             const style = on
-                ? `background:${p.bg};color:${p.fg};border-color:rgba(0,0,0,0.35)`
-                : `border-color:${p.bg}88`;
+                ? `${size};background-color:${p.bg};color:${p.fg};border-color:rgba(0,0,0,0.4)`
+                : `${size};border-color:${p.bg}88`;
             return `<button type="button" onclick="togglePlateInventory(${p.w})" title="${on ? 'Have' : "Don't have"} ${p.w} ${unit} plates"
                         class="plate-chip ${on ? 'on' : 'off'}" style="${style}">${p.w}</button>`;
         }).join('');
@@ -916,7 +1032,8 @@
     // =====================================================================
 
     const TEMPO_KEY = 'gymTempoStateV6';   // same key as the standalone tempo page
-    const T_TRAVEL = 140;                   // 192px track - 4px border - 48px ball
+    // How far the ball travels: inside of the track minus the ball (140px normally, more in full screen)
+    const tTravel = () => tEl('t-track').clientHeight - tEl('t-block').offsetHeight;
     // Colours follow the phase, same in Top and Bottom:
     // Concentric = green, pause after it = purple, Eccentric = blue, pause after it = orange
     const T_COLORS = { READY: '#f59e0b', E: '#3b82f6', B: '#f97316', C: '#22c55e', T: '#a855f7', DONE: '#10b981' };
@@ -927,19 +1044,19 @@
     const T_LABELS = {
         Top: {
             C: ['↓', 'Concentric (Down)'],
-            T: ['—', 'Bottom Pause'],
+            T: ['—', 'Pause (contracted)'],
             E: ['↑', 'Eccentric (Up)'],
-            B: ['—', 'Top Pause']
+            B: ['—', 'Pause (stretched)']
         },
         Bottom: {
             C: ['↑', 'Concentric (Up)'],
-            T: ['—', 'Top Pause'],
+            T: ['—', 'Pause (contracted)'],
             E: ['↓', 'Eccentric (Down)'],
-            B: ['—', 'Bottom Pause']
+            B: ['—', 'Pause (stretched)']
         }
     };
 
-    let tSettings = { reps: 10, prepTime: 5, startPos: 'Top', tempo: { E: 3, B: 0, C: 1, T: 2 } };
+    let tSettings = { reps: 10, prepTime: 5, startPos: 'Top', tempo: { E: 3, B: 0, C: 2, T: 1 } };   // 3s eccentric, no pause, 2s concentric, 1s pause
     let tRunning = false;
     let tTimeout = null;
     let tBallInterval = null;
@@ -964,6 +1081,9 @@
     function tInit() {
         tLoad();
         tRenderSegments();
+        // show the matching preset (or Custom) for the loaded tempo
+        const tp = tSettings.tempo, key = `${tp.E}-${tp.B}-${tp.C}-${tp.T}`;
+        tEl('t-preset').value = [...tEl('t-preset').options].some(o => o.value === key) ? key : '';
         tEl('t-reps').value = tSettings.reps;
 
         tEl('t-reps').addEventListener('change', e => {
@@ -984,12 +1104,37 @@
         });
         tEl('t-start').addEventListener('click', tToggle);
         tEl('t-reset').addEventListener('click', tReset);
+        tEl('t-full-btn').addEventListener('click', () => tSetFull(!tEl('tempo-panel').classList.contains('t-full')));
+        // Leaving browser full screen (Esc / swipe) also leaves our full screen
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && tEl('tempo-panel').classList.contains('t-full')) tSetFull(false);
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && tEl('tempo-panel').classList.contains('t-full')) tSetFull(false);
+        });
+        window.addEventListener('resize', () => { if (!tRunning) tIdle(); });
         tEl('t-link').addEventListener('click', () => {
             if (tRunning) return;
             tFollowSet = true;
             syncTempoReps();
         });
         tIdle();
+    }
+
+    // Full screen: always the fixed overlay; also asks the browser for real full screen where it can
+    function tSetFull(on) {
+        const panel = tEl('tempo-panel');
+        panel.classList.toggle('t-full', on);
+        document.body.style.overflow = on ? 'hidden' : '';
+        tEl('t-full-btn').title = on ? 'Exit full screen' : 'Full screen';
+        tEl('t-full-icon').innerHTML = on
+            ? '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>'
+            : '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
+        try {
+            if (on && panel.requestFullscreen && !document.fullscreenElement) panel.requestFullscreen().catch(() => {});
+            else if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        } catch (e) {}
+        if (!tRunning) tIdle();
     }
 
     function tSegment(id, options, current, onPick, label) {
@@ -1032,6 +1177,9 @@
         tSegment('t-seg-C', ['X', 1, 2, 3, 4, 5], tp.C, v => tSetTempo('C', v));
         tSegment('t-seg-T', [0, 1, 2, 3, 4], tp.T, v => tSetTempo('T', v));
         tEl('t-summary').textContent = `${tp.E}-${tp.B}-${tp.C}-${tp.T}`;
+        // The rep-max table assumes roughly self-paced reps; 'X' (explosive) counts as 0s
+        const repSecs = [tp.E, tp.B, tp.C, tp.T].reduce((sum, v) => sum + (v === 'X' ? 0 : Number(v) || 0), 0);
+        tEl('t-slow-note').classList.toggle('hidden', repSecs <= 6);
         tUpdateLabels();
     }
 
@@ -1105,7 +1253,7 @@
 
         const blk = tEl('t-block');
         blk.style.transition = 'none';
-        blk.style.transform = `translateY(${tSettings.startPos === 'Bottom' ? T_TRAVEL : 0}px)`;
+        blk.style.transform = `translateY(${tSettings.startPos === 'Bottom' ? tTravel() : 0}px)`;
         void blk.offsetHeight;
         tRenderLink();
     }
@@ -1183,12 +1331,15 @@
         tEl('t-ball').textContent = '';
 
         const L = tLabels();
-        const startY = tSettings.startPos === 'Bottom' ? T_TRAVEL : 0;
-        const endY = tSettings.startPos === 'Bottom' ? 0 : T_TRAVEL;
 
         for (let rep = 1; rep <= tSettings.reps; rep++) {
             if (!tRunning) break;
             tRepsLeft(tSettings.reps - rep + 1);
+
+            // worked out each rep so switching full screen mid-set keeps the ball on the track
+            const travel = tTravel();
+            const startY = tSettings.startPos === 'Bottom' ? travel : 0;
+            const endY = tSettings.startPos === 'Bottom' ? 0 : travel;
 
             await tPhase(L.C[1], tSettings.tempo.C, endY, 'C');
             if (!tRunning) break;
@@ -1227,8 +1378,10 @@
 
     // Boot
     buildRepTargetButtons();
+    buildRirButtons();
     enableSelectOnFocus();
     tInit();
+    setSegment('test-rir', 'off');
     setSegment('warmup-target', '5');   // paints the rep buttons and runs masterCalculate
 </script>
 </body>
