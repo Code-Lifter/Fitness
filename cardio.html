@@ -2,464 +2,715 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cardio Coach Pro (Verified)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title>Exercise Session Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-        h1, h2, h3, .brand-font { font-family: 'Teko', sans-serif; }
-        
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        .tab-active { background-color: #3b82f6; color: white; border-color: #3b82f6; }
-        .tab-inactive { background-color: #1e293b; color: #94a3b8; border-color: #334155; }
-        
-        .hidden-panel { display: none; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+        section[id] { scroll-margin-top: 5rem; }
 
-        /* Ranking Bar Styles */
-        .rank-segment { height: 8px; flex: 1; position: relative; }
-        .rank-marker { 
-            position: absolute; top: -6px; width: 4px; height: 20px; 
-            background: white; border: 1px solid black; box-shadow: 0 0 5px rgba(0,0,0,0.5);
-            transform: translateX(-50%); transition: left 0.5s ease-out; z-index: 10;
+        td input, td select {
+            width: 100%;
+            height: 100%;
+            min-height: 2.5rem;
+            padding: 0.5rem 0.625rem;
+            background: transparent;
+            outline: none;
+            border-radius: 0;
+        }
+        td input:focus, td select:focus {
+            background: #eef2ff;
+            box-shadow: inset 0 0 0 2px #6366f1;
+        }
+        td input::placeholder { color: #9ca3af; }
+
+        /* Show a chevron so the tempo picker reads as a dropdown */
+        select.input-tempo {
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            padding-right: 1.5rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.4rem center;
+        }
+
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #cbd5e1; }
+        thead th { background-color: #f8fafc; font-weight: 600; color: #334155; }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        .tip-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 1.1rem; height: 1.1rem; margin-left: 0.25rem;
+            border-radius: 9999px; background: #2563eb; color: #fff;
+            font-size: 0.65rem; font-weight: 700; line-height: 1;
+            vertical-align: middle; cursor: help;
+        }
+        .tip-btn:focus-visible, .guide-btn:focus-visible { outline: 2px solid #1e3a8a; outline-offset: 2px; }
+
+        /* "Add exercise" rows only exist in the phone layout */
+        .add-row { display: none; }
+
+        /* Mobile actions menu */
+        #mobile-menu summary { list-style: none; }
+        #mobile-menu summary::-webkit-details-marker { display: none; }
+
+        /* Sticky section tabs (phones) */
+        .sec-tab { border-radius: 0.6rem; padding: 0.35rem 0.25rem; transition: background-color .15s, box-shadow .15s; }
+        .sec-tab.is-active { background: #fff; box-shadow: 0 0 0 1px #cbd5e1, 0 1px 2px rgb(0 0 0 / 0.06); }
+
+        /* Guide bottom sheet */
+        #guide-sheet {
+            margin: auto 0 0; width: 100%; max-width: 100%; max-height: 85vh; max-height: 85dvh;
+            border: none; padding: 0; border-radius: 1rem 1rem 0 0; background: #fff; color: #0f172a;
+            overflow: auto; overscroll-behavior: contain;
+        }
+        #guide-sheet::backdrop { background: rgb(15 23 42 / 0.45); }
+        @media (prefers-reduced-motion: no-preference) {
+            #guide-sheet[open] { animation: sheet-up .22s ease-out; }
+            @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        }
+
+        /* ---------- Phone layout: tables become stacked cards ---------- */
+        @media screen and (max-width: 767px) {
+            /* 16px stops iOS zooming in when a field is focused */
+            input, select { font-size: 16px !important; }
+
+            /* Session info: label above each field, inside a card */
+            .info-table, .info-table tbody, .info-table tr, .info-table th, .info-table td { display: block; width: 100% !important; border: none; }
+            .info-table { min-width: 0 !important; }
+            .info-table th { background: none !important; padding: 0.75rem 0 0.3rem !important; font-size: 0.8rem; color: #334155; }
+            .info-wrap {
+                box-shadow: none !important; overflow: visible !important;
+                background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem !important; padding: 0 0.75rem 0.85rem;
+            }
+            .info-table input {
+                height: auto; border: 1px solid #cbd5e1; border-radius: 0.5rem; background: #fff; min-height: 2.75rem;
+                -webkit-appearance: none; appearance: none;
+            }
+            .info-table input::-webkit-date-and-time-value { text-align: left; }
+            .info-table input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #c7d2fe; background: #fff; }
+
+            .table-scroll:not(.info-wrap) { box-shadow: none !important; overflow: visible !important; border-radius: 0 !important; }
+            .plan-table { min-width: 0 !important; text-align: left !important; }
+            .plan-table, .plan-table tbody, .plan-table tfoot { display: block; }
+            .plan-table thead { display: none; }
+            .plan-table td { border: none; }
+
+            /* Subgroup headers (Cardio, Compound…) */
+            .plan-table tbody > tr:not(.calc-row) { display: block; }
+            .plan-table tbody > tr:not(.calc-row) td { display: block; background: none !important; padding: 0.75rem 0 0.4rem !important; }
+
+            /* Each exercise row is a card on a 6-column grid */
+            .plan-table .calc-row {
+                display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.5rem;
+                background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+                padding: 0.75rem; margin-bottom: 0.625rem;
+                box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+            }
+            .plan-table .calc-row:hover { background: #fff; }
+            .plan-table .calc-row:focus-within { border-color: #a5b4fc; }
+            .plan-table .calc-row.m-collapsed { display: none; }
+            .plan-table .calc-row td { display: block; padding: 0 !important; min-width: 0; }
+            .plan-table .calc-row td::before {
+                content: attr(data-label); display: block; margin-bottom: 0.2rem;
+                font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #64748b;
+            }
+            /* height:auto — the cell also holds the label, so 100% would overflow onto the next row */
+            .plan-table .calc-row input, .plan-table .calc-row select {
+                height: auto; border: 1px solid #cbd5e1; border-radius: 0.5rem; background-color: #fff; min-height: 2.75rem;
+            }
+            .plan-table .calc-row input:focus, .plan-table .calc-row select:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #c7d2fe; background-color: #fff; }
+            .plan-table .calc-row td:first-child input { font-weight: 600; text-align: left; }
+
+            .m-full  { grid-column: span 6; }
+            .m-half  { grid-column: span 3; }
+            .m-third { grid-column: span 2; }
+
+            /* Calculated time sits at the bottom of the card */
+            .plan-table .calc-row td.output-time {
+                grid-column: span 6; order: 99;
+                display: flex; justify-content: space-between; align-items: center;
+                background: #eff6ff !important; border-radius: 0.5rem; padding: 0.5rem 0.75rem !important;
+            }
+            .plan-table .calc-row td.output-time::before { margin: 0; color: #1e40af; }
+
+            /* "+ Add exercise" */
+            .plan-table tbody > tr.add-row td { padding: 0 0 0.5rem !important; }
+            .add-btn {
+                width: 100%; min-height: 2.75rem; border: 1.5px dashed #cbd5e1; border-radius: 0.75rem;
+                color: #4f46e5; font-weight: 600; font-size: 0.9rem; background: transparent;
+            }
+            .add-btn:active { background: #eef2ff; }
+
+            /* Section total */
+            .plan-table tfoot tr { display: flex; justify-content: space-between; align-items: center; background: #e2e8f0; border-radius: 0.5rem; margin-top: 0.25rem; }
+            .plan-table tfoot td { display: block; border: none; }
+            .plan-table tfoot td:empty { display: none; }
+        }
+
+        @media print {
+            @page { margin: 10mm; }
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .sheet { box-shadow: none !important; max-width: 100% !important; padding: 0 !important; border: none !important; background: white !important; }
+            .table-scroll { overflow: visible !important; }
+            .table-scroll table { min-width: 0 !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            html { font-size: 11px; }
+            th, td { border-color: #374151 !important; }
+            input::placeholder { color: transparent !important; }
+            select.input-tempo { background-image: none; }
+            section { break-inside: avoid; }
         }
     </style>
 </head>
-<body class="min-h-screen pb-20 selection:bg-blue-500 selection:text-white">
+<body class="bg-slate-100 text-slate-900 font-sans sm:p-6 md:p-8">
 
-<!-- Your placeholder -->
-<div id="nav-placeholder"></div>
+    <div class="sheet max-w-[90rem] mx-auto bg-slate-50 md:bg-white sm:shadow-sm sm:ring-1 ring-slate-200 p-4 sm:p-6 min-h-screen sm:min-h-0 sm:rounded-xl">
 
-    <div class="max-w-4xl mx-auto px-6 mt-8 space-y-8">
+        <!-- Toolbar -->
+        <header class="no-print md:sticky top-0 z-40 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 mb-4 md:mb-5 px-4 sm:px-6 py-1.5 md:py-3 bg-white/95 backdrop-blur border-b border-slate-200 sm:rounded-t-xl">
+            <div class="flex items-center justify-between gap-3">
+                <nav class="flex items-center gap-1 sm:gap-2 text-sm -ml-3 min-w-0">
+                    <a href="/" class="px-3 py-2.5 rounded-md text-slate-700 hover:bg-slate-100 font-medium whitespace-nowrap">&larr; Home</a>
+                    <span class="text-slate-300">/</span>
+                    <a href="health-bench.html" class="px-3 py-2.5 rounded-md text-slate-700 hover:bg-slate-100 font-medium truncate">Health Bench</a>
+                </nav>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-white text-xl uppercase tracking-wide brand-font mb-4 flex items-center gap-2">
-                <span class="text-blue-500">1.</span> Your Profile
-            </h2>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Age</label>
-                    <input type="number" id="input-age" value="30" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:border-blue-500 outline-none font-bold text-lg transition-colors">
+                <!-- Desktop / tablet actions -->
+                <div class="hidden md:flex flex-wrap items-center justify-end gap-2">
+                    <span id="save-status-lg" class="text-xs text-slate-500 mr-1">Changes save automatically</span>
+                    <input type="file" id="json-upload" class="hidden" accept=".json,application/json" onchange="importJSON(event)">
+                    <button type="button" onclick="openImport()" class="px-3 py-1.5 text-sm font-medium rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50">Import</button>
+                    <button type="button" onclick="exportJSON()" class="px-3 py-1.5 text-sm font-medium rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50">Export</button>
+                    <button type="button" onclick="window.print()" class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm">Print</button>
+                    <button type="button" onclick="resetPlan()" class="px-3 py-1.5 text-sm font-medium rounded-md text-red-600 hover:bg-red-50">Reset</button>
                 </div>
-                <div>
-                    <label class="block text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Gender</label>
-                    <div class="flex bg-slate-950 rounded-xl p-1 border border-slate-800 h-[54px]">
-                        <button onclick="setGender('male')" id="btn-male" class="flex-1 rounded-lg text-sm font-bold bg-blue-600 text-white transition-all">Male</button>
-                        <button onclick="setGender('female')" id="btn-female" class="flex-1 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all">Female</button>
+
+                <!-- Phone actions -->
+                <details id="mobile-menu" class="md:hidden relative shrink-0">
+                    <summary class="flex items-center justify-center w-11 h-11 -mr-2 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer" aria-label="More actions">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </summary>
+                    <div class="absolute right-0 mt-1 w-52 bg-white rounded-xl shadow-lg ring-1 ring-slate-200 py-1.5 z-50 text-[15px]">
+                        <button type="button" onclick="closeMenu(); openImport()" class="w-full text-left px-4 py-3 hover:bg-slate-50 active:bg-slate-100">Import plan…</button>
+                        <button type="button" onclick="closeMenu(); exportJSON()" class="w-full text-left px-4 py-3 hover:bg-slate-50 active:bg-slate-100">Export plan</button>
+                        <button type="button" onclick="closeMenu(); window.print()" class="w-full text-left px-4 py-3 hover:bg-slate-50 active:bg-slate-100">Print</button>
+                        <div class="my-1 border-t border-slate-100"></div>
+                        <button type="button" onclick="closeMenu(); resetPlan()" class="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 active:bg-red-100">Reset plan</button>
                     </div>
-                </div>
+                </details>
             </div>
+        </header>
+
+        <div class="mb-3 md:mb-5">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Exercise Session Plan</h1>
+            <p id="save-status" class="md:hidden text-xs text-slate-500 mt-1" aria-live="polite">Changes save automatically</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <button onclick="switchTab('gym')" id="tab-gym" class="tab-active border rounded-xl p-4 flex flex-col items-center gap-2 transition-all">
-                <span class="text-3xl">🏃‍♂️</span>
-                <div class="text-center">
-                    <span class="block font-bold uppercase brand-font text-xl">Gym Tests</span>
-                    <span class="block text-[10px] opacity-70 font-sans">Performance Benchmarks</span>
-                </div>
-            </button>
-            <button onclick="switchTab('watch')" id="tab-watch" class="tab-inactive border rounded-xl p-4 flex flex-col items-center gap-2 transition-all">
-                <span class="text-3xl">⌚</span>
-                <div class="text-center">
-                    <span class="block font-bold uppercase brand-font text-xl">Smartwatch</span>
-                    <span class="block text-[10px] opacity-70 font-sans">Biometric Data</span>
-                </div>
-            </button>
-        </div>
+        <!-- Phone: sticky section tabs with live totals -->
+        <nav id="mobile-tabs" class="no-print md:hidden sticky top-0 z-30 -mx-4 px-3 py-2 mb-4 bg-slate-50/95 backdrop-blur border-b border-slate-200 grid grid-cols-4 gap-1 text-center" aria-label="Sections">
+            <a href="#sec-warmup" data-sec="warmup" class="sec-tab"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-amber-800">Warm up</span><span class="block text-sm font-bold" data-sum="warmup">-</span></a>
+            <a href="#sec-conditioning" data-sec="conditioning" class="sec-tab"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-blue-800">Main</span><span class="block text-sm font-bold" data-sum="conditioning">-</span></a>
+            <a href="#sec-cooldown" data-sec="cooldown" class="sec-tab"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-teal-800">Cool down</span><span class="block text-sm font-bold" data-sum="cooldown">-</span></a>
+            <div class="rounded-[0.6rem] bg-slate-800 text-white py-[0.35rem]"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-slate-300">Total</span><span class="block text-sm font-bold" data-sum="total">-</span></div>
+        </nav>
 
-        <div id="panel-gym" class="fade-in space-y-6">
-            
-            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="setGymTest('cooper')" id="btn-test-cooper" class="gym-test-btn bg-blue-500/20 border-blue-500 text-blue-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap">1.5 Mile Run</button>
-                <button onclick="setGymTest('step')" id="btn-test-step" class="gym-test-btn bg-slate-800 border-slate-700 text-slate-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap">YMCA Step Test</button>
-                <button onclick="setGymTest('row')" id="btn-test-row" class="gym-test-btn bg-slate-800 border-slate-700 text-slate-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap">2k Row</button>
+        <!-- Session Info -->
+        <section class="mb-6">
+            <div class="table-scroll info-wrap overflow-x-auto rounded-lg ring-1 ring-slate-300">
+                <table class="info-table w-full min-w-[36rem] text-sm">
+                    <tbody>
+                        <tr>
+                            <th scope="row" class="w-1/4 p-2 text-left bg-slate-50"><label for="session-date">Date of Session</label></th>
+                            <td class="p-0"><input type="text" placeholder="YYYY-MM-DD" id="session-date" autocomplete="off"></td>
+                            <th scope="row" class="w-1/4 p-2 text-left bg-slate-50"><label for="session-type">Assigned Exercise Type</label></th>
+                            <td class="p-0"><input type="text" id="session-type" placeholder="e.g. Full body strength" autocomplete="off" autocapitalize="sentences"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="p-2 text-left bg-slate-50"><label for="session-freq">Session Frequency</label></th>
+                            <td class="p-0"><input type="text" id="session-freq" placeholder="e.g. 3× per week" autocomplete="off"></td>
+                            <th scope="row" class="p-2 text-left bg-slate-50"><label for="session-dur">Session Duration</label></th>
+                            <td class="p-0"><input type="text" id="session-dur" placeholder="e.g. 60 min" autocomplete="off"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
-                <div id="gym-input-container">
-                    </div>
-                
-                <button onclick="calculateGym()" class="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-900/20">
-                    ANALYZE PERFORMANCE
-                </button>
+            <!-- Time summary (phones get the sticky tabs instead) -->
+            <dl class="hidden md:grid grid-cols-4 gap-2 mt-3 text-sm">
+                <div class="rounded-lg bg-amber-50 ring-1 ring-amber-200 px-3 py-2"><dt class="text-amber-800 text-xs font-semibold uppercase">Warm Up</dt><dd data-sum="warmup" class="font-bold text-lg">-</dd></div>
+                <div class="rounded-lg bg-blue-50 ring-1 ring-blue-200 px-3 py-2"><dt class="text-blue-800 text-xs font-semibold uppercase">Conditioning</dt><dd data-sum="conditioning" class="font-bold text-lg">-</dd></div>
+                <div class="rounded-lg bg-teal-50 ring-1 ring-teal-200 px-3 py-2"><dt class="text-teal-800 text-xs font-semibold uppercase">Cool Down</dt><dd data-sum="cooldown" class="font-bold text-lg">-</dd></div>
+                <div class="rounded-lg bg-slate-800 text-white px-3 py-2"><dt class="text-slate-300 text-xs font-semibold uppercase">Estimated Total</dt><dd data-sum="total" class="font-bold text-lg">-</dd></div>
+            </dl>
+        </section>
+
+        <!-- WARM UP -->
+        <section id="sec-warmup" class="mb-6">
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <h2 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>Warm Up</h2>
+                <button type="button" class="guide-btn no-print md:hidden inline-flex items-center gap-1 px-3 py-2 -my-1 rounded-full text-xs font-semibold bg-white text-indigo-700 ring-1 ring-indigo-200" data-guide="intensityDetail">ⓘ Guide</button>
             </div>
-
-            <div id="gym-result" class="hidden-panel bg-slate-800 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
-                <div class="text-center mb-6">
-                    <div id="res-metric-label" class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Your Result</div>
-                    <div id="gym-score-val" class="text-5xl font-bold text-white brand-font">--</div>
-                    <div id="gym-score-rating" class="inline-block mt-2 px-4 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300">--</div>
-                </div>
-
-                <div class="mb-6 relative pt-4 px-2">
-                    <div class="flex rounded-full overflow-hidden w-full bg-slate-900 h-3">
-                        <div class="rank-segment bg-red-500/40"></div>
-                        <div class="rank-segment bg-orange-500/40"></div>
-                        <div class="rank-segment bg-yellow-500/40"></div>
-                        <div class="rank-segment bg-blue-500/40"></div>
-                        <div class="rank-segment bg-emerald-500/40"></div>
-                    </div>
-                    <div class="flex justify-between text-[8px] text-slate-500 uppercase font-bold mt-1 px-1">
-                        <span>Poor</span><span>Fair</span><span>Avg</span><span>Good</span><span>Elite</span>
-                    </div>
-                    <div id="gym-rank-marker" class="rank-marker left-0"></div>
-                </div>
-
-                <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
-                    <h4 class="text-slate-300 font-bold text-sm mb-2 flex items-center gap-2">💡 Coach's Advice</h4>
-                    <p id="gym-feedback" class="text-xs text-slate-400 leading-relaxed"></p>
-                </div>
+            <div class="table-scroll overflow-x-auto rounded-lg ring-1 ring-slate-300">
+                <table class="plan-table w-full min-w-[56rem] text-center text-sm">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="p-2 w-56 text-left">Exercise</th>
+                            <th colspan="2" class="p-2">Volume</th>
+                            <th rowspan="2" class="p-2 w-32">Tempo<button type="button" class="tip-btn no-print" data-tip="tempo" aria-label="Tempo guide">i</button></th>
+                            <th rowspan="2" class="p-2 w-28">Rest (sec)<button type="button" class="tip-btn no-print" data-tip="rest" aria-label="Rest guide">i</button></th>
+                            <th rowspan="2" class="p-2 w-32">Intensity<button type="button" class="tip-btn no-print" data-tip="intensityDetail" aria-label="Intensity guide">i</button></th>
+                            <th rowspan="2" class="p-2 text-left">Equipment Required</th>
+                            <th rowspan="2" class="p-2 w-24 text-blue-700">Time<br><span class="font-normal text-xs">auto</span></th>
+                        </tr>
+                        <tr><th class="p-2 w-16">Sets</th><th class="p-2 w-16">Reps</th></tr>
+                    </thead>
+                    <tbody class="warmup-body"></tbody>
+                    <tfoot>
+                        <tr class="bg-slate-50"><td colspan="7" class="text-right font-bold p-2 uppercase text-xs tracking-wide">Warm Up Total</td><td id="warmup-total" class="font-bold p-2 text-blue-800">-</td></tr>
+                    </tfoot>
+                </table>
             </div>
-        </div>
+        </section>
 
-
-        <div id="panel-watch" class="hidden-panel fade-in space-y-6">
-            
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-white font-bold text-lg brand-font uppercase">VO2 Max</h3>
-                        <p class="text-[10px] text-slate-500 uppercase font-bold">From Apple Health / Garmin</p>
-                    </div>
-                    <input type="number" id="watch-vo2" placeholder="-" class="w-20 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold">
-                </div>
-                <div class="relative h-1.5 bg-slate-950 rounded-full mb-3 overflow-hidden">
-                    <div id="bar-vo2" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
-                </div>
-                <div id="res-vo2" class="text-xs text-slate-500">Enter value to grade</div>
-                <div id="adv-vo2" class="hidden-panel mt-3 text-xs text-slate-400 bg-slate-950 p-2 rounded border border-slate-800"></div>
+        <!-- CONDITIONING -->
+        <section id="sec-conditioning" class="mb-6">
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <h2 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-blue-800"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>Conditioning</h2>
+                <button type="button" class="guide-btn no-print md:hidden inline-flex items-center gap-1 px-3 py-2 -my-1 rounded-full text-xs font-semibold bg-white text-indigo-700 ring-1 ring-indigo-200" data-guide="intensity">ⓘ Guide</button>
             </div>
-
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-white font-bold text-lg brand-font uppercase">Resting Heart Rate</h3>
-                        <p class="text-[10px] text-slate-500 uppercase font-bold">Avg Sleeping HR</p>
-                    </div>
-                    <input type="number" id="watch-rhr" placeholder="-" class="w-20 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold">
-                </div>
-                 <div class="relative h-1.5 bg-slate-950 rounded-full mb-3 overflow-hidden">
-                    <div id="bar-rhr" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
-                </div>
-                <div id="res-rhr" class="text-xs text-slate-500">Enter value to grade</div>
-                <div id="adv-rhr" class="hidden-panel mt-3 text-xs text-slate-400 bg-slate-950 p-2 rounded border border-slate-800"></div>
+            <div class="table-scroll overflow-x-auto rounded-lg ring-1 ring-slate-300">
+                <table class="plan-table w-full min-w-[56rem] text-center text-sm">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="p-2 w-56 text-left">Exercise</th>
+                            <th colspan="2" class="p-2">Volume</th>
+                            <th rowspan="2" class="p-2 w-32">Tempo<button type="button" class="tip-btn no-print" data-tip="tempo" aria-label="Tempo guide">i</button></th>
+                            <th rowspan="2" class="p-2 w-24 text-blue-700">Time<br><span class="font-normal text-xs">auto</span></th>
+                            <th rowspan="2" class="p-2 w-32">Intensity<button type="button" class="tip-btn no-print" data-tip="intensity" aria-label="Intensity guide">i</button></th>
+                            <th rowspan="2" class="p-2 w-28">Rest (sec)<button type="button" class="tip-btn no-print" data-tip="rest" aria-label="Rest guide">i</button></th>
+                            <th rowspan="2" class="p-2 text-left">Equipment Required</th>
+                        </tr>
+                        <tr><th class="p-2 w-16">Sets</th><th class="p-2 w-16">Reps</th></tr>
+                    </thead>
+                    <tbody class="conditioning-body"></tbody>
+                    <tfoot>
+                        <tr class="bg-slate-50"><td colspan="4" class="text-right font-bold p-2 uppercase text-xs tracking-wide">Conditioning Total</td><td id="conditioning-total" class="font-bold p-2 text-blue-800">-</td><td colspan="3"></td></tr>
+                    </tfoot>
+                </table>
             </div>
+        </section>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-white font-bold text-lg brand-font uppercase">Heart Rate Recovery</h3>
-                        <p class="text-[10px] text-slate-500 uppercase font-bold">Peak HR minus 1-min Post HR</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                         <input type="number" id="watch-hrr-peak" placeholder="Peak" class="w-16 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold text-xs">
-                         <span class="text-slate-600">-</span>
-                         <input type="number" id="watch-hrr-post" placeholder="1min" class="w-16 bg-slate-950 text-white text-center p-2 rounded-lg border border-slate-800 focus:border-blue-500 outline-none font-bold text-xs">
-                    </div>
-                </div>
-                 <div class="relative h-1.5 bg-slate-950 rounded-full mb-3 overflow-hidden">
-                    <div id="bar-hrr" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
-                </div>
-                <div id="res-hrr" class="text-xs text-slate-500">Enter values to calc drop</div>
-                <div id="adv-hrr" class="hidden-panel mt-3 text-xs text-slate-400 bg-slate-950 p-2 rounded border border-slate-800"></div>
+        <!-- COOL DOWN -->
+        <section id="sec-cooldown" class="mb-2">
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <h2 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-teal-800"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>Cool Down</h2>
+                <button type="button" class="guide-btn no-print md:hidden inline-flex items-center gap-1 px-3 py-2 -my-1 rounded-full text-xs font-semibold bg-white text-indigo-700 ring-1 ring-indigo-200" data-guide="intensity">ⓘ Guide</button>
             </div>
-
-             <button onclick="analyzeWatch()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-900/20">
-                CHECK VITALS
-            </button>
-
-        </div>
-        
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 mt-8">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-white font-bold brand-font text-lg">📋 Coach's Report</h3>
-                <button onclick="copyReport()" class="bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-lg">
-                    Copy Report
-                </button>
+            <div class="table-scroll overflow-x-auto rounded-lg ring-1 ring-slate-300">
+                <table class="plan-table w-full min-w-[56rem] text-center text-sm">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="p-2 w-56 text-left">Exercise</th>
+                            <th colspan="2" class="p-2">Volume</th>
+                            <th rowspan="2" class="p-2 w-32">Tempo<button type="button" class="tip-btn no-print" data-tip="tempo" aria-label="Tempo guide">i</button></th>
+                            <th rowspan="2" class="p-2 w-28">Rest (sec)<button type="button" class="tip-btn no-print" data-tip="rest" aria-label="Rest guide">i</button></th>
+                            <th rowspan="2" class="p-2 w-32">Intensity<button type="button" class="tip-btn no-print" data-tip="intensity" aria-label="Intensity guide">i</button></th>
+                            <th rowspan="2" class="p-2 text-left">Equipment Required</th>
+                            <th rowspan="2" class="p-2 w-24 text-blue-700">Time<br><span class="font-normal text-xs">auto</span></th>
+                        </tr>
+                        <tr><th class="p-2 w-16">Sets</th><th class="p-2 w-16">Reps</th></tr>
+                    </thead>
+                    <tbody class="cooldown-body"></tbody>
+                    <tfoot>
+                        <tr class="bg-slate-50"><td colspan="7" class="text-right font-bold p-2 uppercase text-xs tracking-wide">Cool Down Total</td><td id="cooldown-total" class="font-bold p-2 text-blue-800">-</td></tr>
+                    </tfoot>
+                </table>
             </div>
-            <textarea id="report-output" readonly class="w-full h-48 bg-slate-800 rounded-xl border border-slate-700 p-4 text-slate-300 text-xs font-mono focus:outline-none resize-none" placeholder="Run a test to generate your report..."></textarea>
-        </div>
+        </section>
 
+        <p class="no-print hidden md:block mt-4 text-xs text-slate-500 text-center">Tip: press <kbd class="px-1 rounded bg-slate-100 ring-1 ring-slate-300">Enter</kbd> to jump to the same column in the next row.</p>
     </div>
 
+    <!-- Suggestions for the intensity field -->
+    <datalist id="intensity-options">
+        <option value="Low"></option>
+        <option value="Moderate"></option>
+        <option value="High"></option>
+    </datalist>
+
+    <!-- Shared tooltip (fixed-position so scrolling tables never clip it) -->
+    <div id="tooltip" role="tooltip" class="no-print hidden fixed z-50 w-64 bg-slate-900 text-white text-xs rounded-md p-3 shadow-xl text-left pointer-events-none"></div>
+
+    <!-- Phone guide: bottom sheet -->
+    <dialog id="guide-sheet" class="no-print" aria-labelledby="guide-title">
+        <div class="px-5 pt-3" style="padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));">
+            <div class="mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-300" aria-hidden="true"></div>
+            <div class="flex items-center justify-between mb-2">
+                <h3 id="guide-title" class="text-lg font-bold">Quick guide</h3>
+                <button type="button" data-close class="w-10 h-10 -mr-2 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100" aria-label="Close guide">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.3 5.3a1 1 0 0 1 1.4 0L10 8.6l3.3-3.3a1 1 0 1 1 1.4 1.4L11.4 10l3.3 3.3a1 1 0 0 1-1.4 1.4L10 11.4l-3.3 3.3a1 1 0 0 1-1.4-1.4L8.6 10 5.3 6.7a1 1 0 0 1 0-1.4z"/></svg>
+                </button>
+            </div>
+            <div id="guide-body" class="text-sm text-slate-700 space-y-4"></div>
+        </div>
+    </dialog>
+
+    <!-- Toast -->
+    <div id="toast" class="no-print fixed left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm shadow-lg opacity-0 translate-y-2 transition-all pointer-events-none" style="bottom: calc(1rem + env(safe-area-inset-bottom));" aria-live="polite"></div>
+
     <script>
+        // ---------- Tooltip content ----------
+        const TIPS = {
+            tempo: `
+                <span class="block mb-1">🎯 <b>Hypertrophy:</b> 3-1-1-0, 4-1-1-0</span>
+                <span class="block mb-1">⚡ <b>Explosive:</b> 2-0-X-0, 1-0-X-0</span>
+                <span class="block mb-1">⏸️ <b>Pause Heavy:</b> 3-3-1-0, 2-2-1-1</span>
+                <span class="block mb-1">🔄 <b>Continuous:</b> 2-0-2-0</span>
+                <span class="block">🔥 <b>Eccentric:</b> 5-0-1-0, 6-1-1-0</span>`,
+            rest: `
+                <span class="block mb-1">⏱️ <b>Power/Strength:</b> 180–300s+</span>
+                <span class="block mb-1">💪 <b>Hypertrophy:</b> 60–120s</span>
+                <span class="block">🏃 <b>Endurance:</b> 30–60s</span>`,
+            intensityDetail: `
+                <span class="block mb-1.5">🟢 <b>Low</b><br>40-60% 1RM (RPE 3-4)<br>Zone 1-2 (50-70% MHR)</span>
+                <span class="block mb-1.5">🟡 <b>Moderate</b><br>60-80% 1RM (RPE 5-7)<br>Zone 3 (70-80% MHR)</span>
+                <span class="block">🔴 <b>High</b><br>80-100% 1RM (RPE 8-10)<br>Zone 4-5 (85-100% MHR)</span>`,
+            intensity: `
+                <span class="block mb-1">🟢 <b>Low:</b> RPE 3-4 (Recovery)</span>
+                <span class="block mb-1">🟡 <b>Moderate:</b> RPE 5-7 (60-75%)</span>
+                <span class="block">🔴 <b>High:</b> RPE 8-10 (80-100%)</span>`
+        };
 
-        // --- NAV ---
-  fetch('nav.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('nav-placeholder').innerHTML = data;
-    });
-        
-        // --- STATE ---
-        let gender = 'male';
-        let currentGymTest = 'cooper';
-        let reportData = [];
+        // ---------- Row templates ----------
+        const tempoSelectHTML = `
+            <select class="input-tempo text-center text-sm" aria-label="Tempo">
+                <option value="" disabled selected hidden>-</option>
+                <optgroup label="Hypertrophy"><option value="3-1-1-0">3-1-1-0</option><option value="4-1-1-0">4-1-1-0</option></optgroup>
+                <optgroup label="Explosive Power"><option value="2-0-X-0">2-0-X-0</option><option value="1-0-X-0">1-0-X-0</option></optgroup>
+                <optgroup label="Pause Heavy"><option value="3-3-1-0">3-3-1-0</option><option value="2-2-1-1">2-2-1-1</option></optgroup>
+                <optgroup label="Continuous Tension"><option value="2-0-2-0">2-0-2-0</option></optgroup>
+                <optgroup label="Eccentric Overload"><option value="5-0-1-0">5-0-1-0</option><option value="6-1-1-0">6-1-1-0</option></optgroup>
+            </select>`;
 
-        // --- DOM ELEMENTS ---
-        const btnMale = document.getElementById('btn-male');
-        const btnFemale = document.getElementById('btn-female');
-        const panelGym = document.getElementById('panel-gym');
-        const panelWatch = document.getElementById('panel-watch');
-        const tabGym = document.getElementById('tab-gym');
-        const tabWatch = document.getElementById('tab-watch');
-        const gymInputContainer = document.getElementById('gym-input-container');
-        const reportOutput = document.getElementById('report-output');
+        const num = (cls, label, ph) => `<input type="number" inputmode="numeric" class="${cls} text-center" min="0" placeholder="${ph}" aria-label="${label}">`;
+        // data-label + m-* classes drive the phone card layout (see CSS)
+        const outCell = `<td class="p-2 bg-blue-50/60 font-semibold text-blue-800 output-time" data-label="Estimated time">-</td>`;
+        const exerciseCell = `<td class="p-0 m-full" data-label="Exercise"><input type="text" placeholder="Exercise name" aria-label="Exercise" autocomplete="off" autocapitalize="words"></td>`;
+        const setsRepsTempo = `
+                <td class="p-0 m-third" data-label="Sets">${num('input-sets', 'Sets', '0')}</td>
+                <td class="p-0 m-third" data-label="Reps">${num('input-reps', 'Reps', '0')}</td>
+                <td class="p-0 m-third" data-label="Tempo">${tempoSelectHTML}</td>`;
+        const restCell = `<td class="p-0 m-half" data-label="Rest (sec)">${num('input-rest', 'Rest in seconds', 'sec')}</td>`;
+        const intensityCell = `<td class="p-0 m-half" data-label="Intensity"><input type="text" class="text-center" placeholder="Low/Mod/High" aria-label="Intensity" list="intensity-options" autocomplete="off" autocapitalize="words"></td>`;
+        const equipmentCell = `<td class="p-0 m-full" data-label="Equipment"><input type="text" placeholder="e.g. Dumbbells" aria-label="Equipment required" autocomplete="off" autocapitalize="sentences"></td>`;
 
-        // --- INITIALIZATION ---
-        function init() {
-            setGymTest('cooper');
+        // Cell order must stay the same (saved data is keyed by input order)
+        const standardRow = `
+            <tr class="calc-row hover:bg-slate-50 transition-colors">
+                ${exerciseCell}${setsRepsTempo}${restCell}${intensityCell}${equipmentCell}${outCell}
+            </tr>`;
+        const conditioningRow = `
+            <tr class="calc-row hover:bg-slate-50 transition-colors">
+                ${exerciseCell}${setsRepsTempo}${outCell}${intensityCell}${restCell}${equipmentCell}
+            </tr>`;
+        const subHeader = (title) => `<tr><td colspan="8" class="bg-slate-100 font-semibold text-slate-600 uppercase text-xs tracking-wide py-1.5 px-3 text-left">${title}</td></tr>`;
+        // On phones, empty rows fold away behind an "Add exercise" button
+        const addRow = `<tr class="add-row no-print"><td colspan="8"><button type="button" class="add-btn">+ Add exercise</button></td></tr>`;
+        const group = (title, row, n) => subHeader(title) + row.repeat(n) + (n > 1 ? addRow : '');
+
+        document.querySelector('.warmup-body').innerHTML = group("Cardio", standardRow, 1) + group("Dynamic Stretching", standardRow, 4);
+        document.querySelector('.conditioning-body').innerHTML = group("Compound", conditioningRow, 4) + group("Isolation", conditioningRow, 4);
+        document.querySelector('.cooldown-body').innerHTML = group("Cardio", standardRow, 1) + group("Static Stretch", standardRow, 8);
+
+        // IDs are index-based; the order of inputs/selects must stay the same so existing saved data still loads.
+        const allInputs = document.querySelectorAll('input, select');
+        allInputs.forEach((input, index) => {
+            if (!input.id && input.type !== 'file') input.id = 'workout_input_v2_' + index;
+        });
+        const dataInputs = [...allInputs].filter(i => i.type !== 'file');
+        dataInputs.forEach(i => i.setAttribute('enterkeyhint', 'next'));
+
+        const isPhone = () => window.matchMedia('(max-width: 767px)').matches;
+
+        // ---------- Safe storage ----------
+        const store = {
+            get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+            set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+            remove(k) { try { localStorage.removeItem(k); } catch {} }
+        };
+
+        // ---------- Date field: native picker when the value fits ----------
+        const dateInput = document.getElementById('session-date');
+        function setDateValue(v) {
+            v = v ?? '';
+            if (v === '' || /^\d{4}-\d{2}-\d{2}$/.test(v)) { dateInput.type = 'date'; dateInput.value = v; }
+            else { dateInput.type = 'text'; dateInput.value = v; } // keep older free-text dates intact
         }
 
-        // --- TABS & UI ---
-        function setGender(g) {
-            gender = g;
-            if (g === 'male') {
-                btnMale.className = "flex-1 rounded-lg text-sm font-bold bg-blue-600 text-white transition-all";
-                btnFemale.className = "flex-1 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all";
-            } else {
-                btnFemale.className = "flex-1 rounded-lg text-sm font-bold bg-pink-600 text-white transition-all";
-                btnMale.className = "flex-1 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all";
-            }
+        // ---------- Time calculations ----------
+        function formatTime(totalSeconds) {
+            if (totalSeconds <= 0) return "-";
+            const secs = Math.round(totalSeconds);
+            const h = Math.floor(secs / 3600);
+            const m = Math.floor((secs % 3600) / 60);
+            const s = secs % 60;
+            if (h > 0) return `${h}h ${m}m`;
+            return m > 0 ? `${m}m ${s}s` : `${s}s`;
         }
 
-        function switchTab(tab) {
-            if (tab === 'gym') {
-                panelGym.classList.remove('hidden-panel');
-                panelWatch.classList.add('hidden-panel');
-                tabGym.className = "tab-active border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
-                tabWatch.className = "tab-inactive border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
-            } else {
-                panelWatch.classList.remove('hidden-panel');
-                panelGym.classList.add('hidden-panel');
-                tabWatch.className = "tab-active border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
-                tabGym.className = "tab-inactive border rounded-xl p-4 flex flex-col items-center gap-2 transition-all";
-            }
-        }
+        function calculateTimes() {
+            const totals = { warmup: 0, conditioning: 0, cooldown: 0 };
 
-        // --- GYM TESTS LOGIC ---
-        function setGymTest(test) {
-            currentGymTest = test;
-            document.querySelectorAll('.gym-test-btn').forEach(btn => {
-                btn.className = "gym-test-btn bg-slate-800 border-slate-700 text-slate-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors";
+            document.querySelectorAll('.calc-row').forEach(row => {
+                const sets = parseFloat(row.querySelector('.input-sets')?.value) || 0;
+                const reps = parseFloat(row.querySelector('.input-reps')?.value) || 0;
+                const tempo = row.querySelector('.input-tempo')?.value || "";
+                const rest = parseFloat(row.querySelector('.input-rest')?.value) || 0;
+                const output = row.querySelector('.output-time');
+                if (!output) return;
+
+                // Sum tempo segments; "X" (explosive) counts as 1s
+                const tempoSum = (tempo.match(/(\d+(\.\d+)?|[Xx])/g) || [])
+                    .reduce((sum, v) => sum + (v.toUpperCase() === 'X' ? 1 : parseFloat(v)), 0);
+
+                const rowSecs = (sets > 0 && reps > 0) ? ((tempoSum * reps) + rest) * sets : 0;
+                output.textContent = formatTime(rowSecs);
+
+                if (row.closest('.warmup-body')) totals.warmup += rowSecs;
+                else if (row.closest('.conditioning-body')) totals.conditioning += rowSecs;
+                else if (row.closest('.cooldown-body')) totals.cooldown += rowSecs;
             });
-            document.getElementById(`btn-test-${test}`).className = "gym-test-btn bg-blue-500/20 border-blue-500 text-blue-400 border px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors";
 
-            let content = "";
-            if (test === 'cooper') {
-                content = `
-                    <h3 class="text-white font-bold text-lg brand-font mb-4 uppercase">Cooper 1.5 Mile Run</h3>
-                    <p class="text-xs text-slate-400 mb-4">Run 1.5 miles (2.4km) as fast as possible on flat ground.</p>
-                    <div class="flex gap-2"><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Min</label><input type="number" id="gym-min" placeholder="12" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Sec</label><input type="number" id="gym-sec" placeholder="30" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div></div>`;
-            } else if (test === 'step') {
-                content = `
-                    <h3 class="text-white font-bold text-lg brand-font mb-4 uppercase">YMCA 3-Min Step Test</h3>
-                    <p class="text-xs text-slate-400 mb-4"><strong>Crucial:</strong> Use 12" step. Set metronome to 96 bpm. Step up-up-down-down to the beat for 3 mins. Sit immediately. Count 1-min pulse.</p>
-                    <div><label class="text-[10px] text-slate-500 uppercase font-bold">1-Min Pulse (bpm)</label><input type="number" id="gym-hr" placeholder="105" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold text-center text-2xl"></div>`;
-            } else if (test === 'row') {
-                content = `
-                    <h3 class="text-white font-bold text-lg brand-font mb-4 uppercase">Concept2 2000m Row</h3>
-                    <p class="text-xs text-slate-400 mb-4">Row exactly 2000m on max effort (damper setting 4-6 recommended).</p>
-                    <div class="flex gap-2"><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Min</label><input type="number" id="gym-min" placeholder="7" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div><div class="flex-1"><label class="text-[10px] text-slate-500 uppercase font-bold">Sec</label><input type="number" id="gym-sec" placeholder="45" class="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 outline-none font-bold"></div></div>`;
+            const all = { ...totals, total: totals.warmup + totals.conditioning + totals.cooldown };
+            for (const [k, v] of Object.entries(totals)) document.getElementById(`${k}-total`).textContent = formatTime(v);
+            document.querySelectorAll('[data-sum]').forEach(el => { el.textContent = formatTime(all[el.dataset.sum]); });
+        }
+
+        // ---------- Phone: fold empty rows ----------
+        const rowHasData = (row) => [...row.querySelectorAll('input, select')].some(i => i.value.trim() !== '');
+        function getGroups() {
+            const groups = [];
+            document.querySelectorAll('.plan-table tbody').forEach(tbody => {
+                let cur = null;
+                [...tbody.rows].forEach(tr => {
+                    if (tr.classList.contains('calc-row')) { if (!cur) groups.push(cur = { rows: [], add: null }); cur.rows.push(tr); }
+                    else if (tr.classList.contains('add-row')) { if (cur) cur.add = tr; cur = null; }
+                    else cur = null; // subheader starts a new group
+                });
+            });
+            return groups;
+        }
+        const GROUPS = getGroups();
+        function updateAddButton(g) {
+            if (g.add) g.add.style.display = g.rows.some(r => r.classList.contains('m-collapsed')) ? '' : 'none';
+        }
+        function refreshCollapse() {
+            GROUPS.forEach(g => {
+                let last = 0;
+                g.rows.forEach((r, i) => { if (rowHasData(r)) last = i; });
+                g.rows.forEach((r, i) => r.classList.toggle('m-collapsed', i > last));
+                updateAddButton(g);
+            });
+        }
+        GROUPS.forEach(g => {
+            g.add?.querySelector('button').addEventListener('click', () => {
+                const next = g.rows.find(r => r.classList.contains('m-collapsed'));
+                if (!next) return;
+                next.classList.remove('m-collapsed');
+                updateAddButton(g);
+                next.querySelector('input')?.focus({ preventScroll: true });
+                next.scrollIntoView({ block: 'center' });
+            });
+        });
+
+        // ---------- Feedback ----------
+        let toastTimer;
+        function toast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.remove('opacity-0', 'translate-y-2');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.add('opacity-0', 'translate-y-2'), 2200);
+        }
+        // Two status labels: one under the title on phones, one in the desktop toolbar
+        function setStatus(text, color) {
+            const sm = document.getElementById('save-status');
+            const lg = document.getElementById('save-status-lg');
+            sm.textContent = lg.textContent = text;
+            sm.className = `md:hidden text-xs mt-1 ${color}`;
+            lg.className = `text-xs mr-1 ${color}`;
+        }
+        function markSaved(ok = true) {
+            if (!ok) return setStatus('⚠ Not saved (storage blocked)', 'text-red-600');
+            const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            setStatus(`✓ Saved ${t}`, 'text-emerald-600');
+        }
+
+        // ---------- Data management ----------
+        function initStorage() {
+            dataInputs.forEach(input => {
+                const saved = store.get(input.id);
+                if (input === dateInput) setDateValue(saved);
+                else if (saved !== null) input.value = saved;
+                const handler = () => { markSaved(store.set(input.id, input.value)); calculateTimes(); };
+                input.addEventListener('input', handler);
+                if (input.tagName === 'SELECT' || input === dateInput) input.addEventListener('change', handler);
+            });
+            calculateTimes();
+            refreshCollapse();
+        }
+
+        function openImport() { document.getElementById('json-upload').click(); }
+
+        function exportJSON() {
+            const data = {};
+            dataInputs.forEach(input => { data[input.id] = input.value; });
+            const date = dateInput.value.trim().replace(/[^\w-]+/g, '_');
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = date ? `workout_plan_${date}.json` : 'workout_plan_data.json';
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            toast('Plan exported');
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    let count = 0;
+                    dataInputs.forEach(input => {
+                        if (data[input.id] !== undefined) {
+                            if (input === dateInput) setDateValue(data[input.id]);
+                            else input.value = data[input.id];
+                            store.set(input.id, data[input.id]);
+                            count++;
+                        }
+                    });
+                    calculateTimes();
+                    refreshCollapse();
+                    markSaved();
+                    toast(count ? `Imported ${file.name}` : 'No matching fields found in that file');
+                } catch {
+                    toast('That file isn\'t valid JSON');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetPlan() {
+            if (!confirm("Clear every field on this plan? Export first if you want a backup.")) return;
+            // Only remove this page's keys, not everything else stored on the site
+            dataInputs.forEach(input => { store.remove(input.id); input.value = ''; });
+            setDateValue('');
+            calculateTimes();
+            refreshCollapse();
+            setStatus('Plan cleared', 'text-slate-500');
+            toast('Plan cleared');
+        }
+
+        // ---------- Mobile menu ----------
+        const menu = document.getElementById('mobile-menu');
+        function closeMenu() { menu.open = false; }
+        document.addEventListener('click', (e) => { if (menu.open && !menu.contains(e.target)) closeMenu(); });
+
+        // ---------- Enter key ----------
+        // Desktop: spreadsheet style (same column, next row). Phone: next field on screen.
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || e.target.type === 'file') return;
+            if (isPhone()) {
+                e.preventDefault();
+                const visible = dataInputs.filter(i => i.offsetParent !== null);
+                const next = visible[visible.indexOf(e.target) + 1];
+                if (next) { next.focus({ preventScroll: true }); next.scrollIntoView({ block: 'nearest' }); }
+                else e.target.blur();
+                return;
             }
-            gymInputContainer.innerHTML = content;
-            document.getElementById('gym-result').classList.add('hidden-panel');
+            const td = e.target.closest('td');
+            const row = e.target.closest('.calc-row');
+            if (!td || !row) return;
+            e.preventDefault();
+            const rows = [...row.closest('tbody').querySelectorAll('.calc-row')];
+            const next = rows[rows.indexOf(row) + (e.shiftKey ? -1 : 1)];
+            next?.cells[td.cellIndex]?.querySelector('input, select')?.focus();
+        });
+
+        // ---------- Tooltips (desktop headers): hover, keyboard focus and tap ----------
+        const tooltip = document.getElementById('tooltip');
+        let pinned = null;
+        function showTip(btn) {
+            tooltip.innerHTML = TIPS[btn.dataset.tip] || '';
+            tooltip.classList.remove('hidden');
+            const r = btn.getBoundingClientRect();
+            const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+            let left = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 8);
+            let top = r.bottom + 8;
+            if (top + th > window.innerHeight - 8) top = r.top - th - 8;
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
         }
+        function hideTip() { tooltip.classList.add('hidden'); pinned = null; }
 
-        function calculateGym() {
-            const age = parseFloat(document.getElementById('input-age').value) || 30;
-            let rating = "", score = 0, feedback = "", rankPercent = 0;
-            let metricLabel = "";
+        document.querySelectorAll('[data-tip]').forEach(btn => {
+            btn.addEventListener('mouseenter', () => showTip(btn));
+            btn.addEventListener('mouseleave', () => { if (pinned !== btn) hideTip(); });
+            btn.addEventListener('focus', () => showTip(btn));
+            btn.addEventListener('blur', hideTip);
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (pinned === btn) hideTip(); else { showTip(btn); pinned = btn; }
+            });
+        });
+        document.addEventListener('click', hideTip);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip(); });
+        window.addEventListener('scroll', hideTip, true);
+        window.addEventListener('resize', hideTip);
 
-            if (currentGymTest === 'cooper') {
-                const min = parseFloat(document.getElementById('gym-min').value) || 0;
-                const sec = parseFloat(document.getElementById('gym-sec').value) || 0;
-                if (min === 0) return;
-                const totalMin = min + (sec/60);
-                score = (483 / totalMin) + 3.5; // Cooper VO2 Formula
-                metricLabel = "VO2 Max";
-                let r = getRating(score, age, gender, 'vo2');
-                rating = r.label; rankPercent = r.percent;
-                feedback = getAdvice('vo2', rating);
-                reportData = [`Cooper Test: ${min}:${sec < 10 ? '0'+sec : sec} (Est. VO2: ${score.toFixed(1)})`, `Rating: ${rating}`, `Coach's Note: ${feedback}`];
+        // ---------- Phone guide (bottom sheet) ----------
+        const sheet = document.getElementById('guide-sheet');
+        const guideSection = (title, sub, html) =>
+            `<div><h4 class="font-semibold text-slate-900">${title}</h4>${sub ? `<p class="text-xs text-slate-500 mb-1.5">${sub}</p>` : ''}<div class="leading-relaxed">${html}</div></div>`;
+        document.querySelectorAll('[data-guide]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('guide-body').innerHTML =
+                    guideSection('Tempo', 'Seconds for lower – pause – lift – pause. X = as fast as possible.', TIPS.tempo) +
+                    guideSection('Rest', 'Between sets, in seconds.', TIPS.rest) +
+                    guideSection('Intensity', '', TIPS[btn.dataset.guide]);
+                if (sheet.showModal) sheet.showModal(); else sheet.setAttribute('open', '');
+            });
+        });
+        sheet.querySelector('[data-close]').addEventListener('click', () => sheet.close());
+        sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); }); // tap backdrop
 
-            } else if (currentGymTest === 'step') {
-                const hr = parseFloat(document.getElementById('gym-hr').value);
-                if (!hr) return;
-                score = hr; // Score is just HR
-                metricLabel = "Recovery HR";
-                // YMCA Standards Lookup Logic (Simplified)
-                let r = getYMCARating(hr, age, gender);
-                rating = r.label; rankPercent = r.percent;
-                feedback = getAdvice('step', rating);
-                reportData = [`YMCA Step Test HR: ${hr}bpm`, `Rating: ${rating}`, `Coach's Note: ${feedback}`];
-
-            } else if (currentGymTest === 'row') {
-                 const min = parseFloat(document.getElementById('gym-min').value) || 0;
-                 const sec = parseFloat(document.getElementById('gym-sec').value) || 0;
-                 if (min === 0) return;
-                 const totalSeconds = (min * 60) + sec;
-                 metricLabel = "2k Time";
-                 score = `${min}:${sec < 10 ? '0'+sec : sec}`; 
-                 
-                 // Concept 2 Grading (Roughly adjusted for age)
-                 let baseTarget = gender === 'male' ? 450 : 510; // 7:30 vs 8:30 (age 30)
-                 baseTarget += (age - 30); // Add 1 sec per year over 30
-                 
-                 if (totalSeconds < baseTarget - 45) { rating = "Elite"; rankPercent = 95; }
-                 else if (totalSeconds < baseTarget - 15) { rating = "Excellent"; rankPercent = 80; }
-                 else if (totalSeconds < baseTarget + 15) { rating = "Good"; rankPercent = 60; }
-                 else if (totalSeconds < baseTarget + 45) { rating = "Average"; rankPercent = 40; }
-                 else { rating = "Poor"; rankPercent = 15; }
-                 
-                 feedback = getAdvice('row', rating);
-                 reportData = [`2k Row: ${score}`, `Rating: ${rating}`, `Coach's Note: ${feedback}`];
+        // ---------- Phone: highlight the section you're in ----------
+        const tabs = document.querySelectorAll('#mobile-tabs [data-sec]');
+        let tabTick = false;
+        function updateActiveTab() {
+            tabTick = false;
+            let current = 'warmup';
+            for (const k of ['warmup', 'conditioning', 'cooldown']) {
+                if (document.getElementById('sec-' + k).getBoundingClientRect().top < 140) current = k;
             }
-
-            // Render Gym Result
-            document.getElementById('gym-result').classList.remove('hidden-panel');
-            document.getElementById('res-metric-label').innerText = metricLabel;
-            document.getElementById('gym-score-val').innerText = currentGymTest === 'row' ? score : score.toFixed(1);
-            document.getElementById('gym-score-rating').innerText = rating;
-            document.getElementById('gym-score-rating').className = `inline-block mt-2 px-4 py-1 rounded-full text-xs font-bold ${getColor(rating)}`;
-            document.getElementById('gym-feedback').innerText = feedback;
-            
-            // Move Marker
-            const marker = document.getElementById('gym-rank-marker');
-            marker.style.left = `${rankPercent}%`;
-            
-            updateReport();
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = 'cooldown';
+            tabs.forEach(t => t.classList.toggle('is-active', t.dataset.sec === current));
         }
+        window.addEventListener('scroll', () => { if (!tabTick) { tabTick = true; requestAnimationFrame(updateActiveTab); } }, { passive: true });
 
-        // --- WATCH LOGIC ---
-        function analyzeWatch() {
-            const age = parseFloat(document.getElementById('input-age').value) || 30;
-            reportData = [];
-
-            // 1. VO2
-            const vo2 = parseFloat(document.getElementById('watch-vo2').value);
-            if (vo2) {
-                const r = getRating(vo2, age, gender, 'vo2');
-                renderWatchResult('res-vo2', 'bar-vo2', 'adv-vo2', r, getAdvice('vo2', r.label));
-                reportData.push(`VO2 Max: ${vo2} (${r.label})`);
-            }
-
-            // 2. RHR
-            const rhr = parseFloat(document.getElementById('watch-rhr').value);
-            if (rhr) {
-                const r = getRating(rhr, age, gender, 'rhr');
-                renderWatchResult('res-rhr', 'bar-rhr', 'adv-rhr', r, getAdvice('rhr', r.label));
-                 reportData.push(`RHR: ${rhr} bpm (${r.label})`);
-            }
-
-            // 3. HRR
-            const peak = parseFloat(document.getElementById('watch-hrr-peak').value);
-            const post = parseFloat(document.getElementById('watch-hrr-post').value);
-            if (peak && post) {
-                const diff = peak - post;
-                const r = getRating(diff, age, gender, 'hrr');
-                renderWatchResult('res-hrr', 'bar-hrr', 'adv-hrr', r, getAdvice('hrr', r.label));
-                reportData.push(`HR Recovery: -${diff} beats (${r.label})`);
-            }
-            updateReport();
-        }
-
-        function renderWatchResult(resId, barId, advId, ratingObj, advice) {
-            const resEl = document.getElementById(resId);
-            const barEl = document.getElementById(barId);
-            const advEl = document.getElementById(advId);
-            
-            const colorClass = ratingObj.label === 'Elite' || ratingObj.label === 'Excellent' || ratingObj.label === 'Athlete' ? 'text-emerald-400' : 
-                               ratingObj.label === 'Good' || ratingObj.label === 'Fair' ? 'text-blue-400' : 'text-amber-400';
-            
-            resEl.innerHTML = `<span class="font-bold ${colorClass} uppercase">${ratingObj.label}</span>`;
-            
-            barEl.style.width = `${ratingObj.percent}%`;
-            barEl.className = `h-full transition-all duration-1000 ${ratingObj.label === 'Poor' ? 'bg-red-500' : ratingObj.label === 'Average' ? 'bg-yellow-500' : 'bg-emerald-500'}`;
-
-            advEl.innerText = `💡 ${advice}`;
-            advEl.classList.remove('hidden-panel');
-        }
-
-        // --- RATING LOGIC ---
-        function getRating(val, age, gender, type) {
-            // ACSM-aligned approximation for UI
-            if (type === 'vo2') {
-                let base = gender === 'male' ? 40 : 35; 
-                base -= (age - 30) * 0.5; // Slight age decay
-                if (val > base + 12) return { label: "Elite", percent: 95 };
-                if (val > base + 6) return { label: "Excellent", percent: 80 };
-                if (val > base) return { label: "Good", percent: 60 };
-                if (val > base - 6) return { label: "Average", percent: 40 };
-                return { label: "Poor", percent: 15 };
-            }
-            if (type === 'rhr') {
-                if (val < 50) return { label: "Athlete", percent: 95 };
-                if (val < 60) return { label: "Excellent", percent: 80 };
-                if (val < 70) return { label: "Good", percent: 60 };
-                if (val < 80) return { label: "Average", percent: 40 };
-                return { label: "Poor", percent: 15 };
-            }
-            if (type === 'hrr') {
-                if (val > 40) return { label: "Elite", percent: 95 };
-                if (val > 30) return { label: "Excellent", percent: 80 };
-                if (val > 20) return { label: "Good", percent: 60 };
-                if (val > 12) return { label: "Fair", percent: 35 };
-                return { label: "Poor", percent: 10 };
-            }
-        }
-
-        function getYMCARating(hr, age, gender) {
-            // YMCA 3-min Step Test Standards (Rough averages for code)
-            let excellent = gender === 'male' ? 85 : 95;
-            let good = gender === 'male' ? 100 : 110;
-            let average = gender === 'male' ? 115 : 125;
-            
-            // Adjust for age (HR stays higher for younger, drops slightly with fitness but age norm increases allowed HR)
-            // Actually YMCA norms allow slightly HIGHER HR for older people to still be considered good
-            if (age > 40) { excellent += 5; good += 5; average += 5; }
-
-            if (hr < excellent) return { label: "Excellent", percent: 90 };
-            if (hr < good) return { label: "Good", percent: 65 };
-            if (hr < average) return { label: "Average", percent: 40 };
-            return { label: "Poor", percent: 15 };
-        }
-
-        function getAdvice(type, rating) {
-            if (rating === 'Poor' || rating === 'Average' || rating === 'Fair') {
-                if (type === 'vo2' || type === 'row' || type === 'step') return "Your aerobic base is weak. Focus on 'Zone 2' cardio (steady pace where you can still talk) for 30-45 mins, 3x a week.";
-                if (type === 'rhr') return "Elevated RHR often means chronic stress or lack of sleep. Try to get 7+ hours of sleep and avoid alcohol 3 hours before bed.";
-                if (type === 'hrr') return "Slow recovery means your heart isn't efficient at switching off. Add 'Intervals': 1 min hard run, 2 min walk. x5 Rounds.";
-            } else {
-                if (type === 'vo2' || type === 'row' || type === 'step') return "Great base! To get to Elite, introduce 'VO2 Max Intervals': 4x4 method (4 mins hard, 3 mins light jog, 4 rounds).";
-                if (type === 'rhr') return "Heart efficiency is high. Maintenance is key. Keep doing long, slow distance cardio once a week.";
-                if (type === 'hrr') return "Excellent vagal tone. Your heart handles stress well.";
-            }
-        }
-
-        function getColor(rating) {
-            if (rating === 'Elite' || rating === 'Excellent' || rating === 'Athlete') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50';
-            if (rating === 'Good' || rating === 'Fair') return 'bg-blue-500/20 text-blue-400 border border-blue-500/50';
-            return 'bg-amber-500/20 text-amber-400 border border-amber-500/50';
-        }
-
-        function updateReport() {
-            const date = new Date().toLocaleDateString();
-            reportOutput.value = `CARDIO COACH REPORT (${date})\n------------------------------\n` + reportData.join('\n\n') + `\n\n------------------------------\nRecommended Retest: 4 Weeks`;
-        }
-
-        function copyReport() {
-            reportOutput.select();
-            document.execCommand('copy');
-            alert("Report copied!");
-        }
-
-        init();
+        initStorage();
+        updateActiveTab();
     </script>
 </body>
 </html>
