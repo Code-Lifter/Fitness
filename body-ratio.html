@@ -39,6 +39,24 @@
 
     <div class="max-w-4xl mx-auto px-4 md:px-6 mt-6 space-y-8">
 
+        <div class="flex justify-between items-center gap-3">
+            <div class="inline-flex items-center gap-2">
+                <button onclick="openJsonModal()" class="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 hover:border-amber-500/60 text-slate-300 hover:text-white rounded-lg px-3 py-2 md:py-1.5 text-xs font-bold uppercase tracking-widest transition-all active:scale-95">
+                    <span class="text-amber-500 font-mono normal-case">{ }</span> JSON
+                </button>
+                <button onclick="quickSaveJson(this)" title="Download your current data as a .json file" class="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 hover:border-amber-500/60 text-slate-300 hover:text-white rounded-lg px-3 py-2 md:py-1.5 text-xs font-bold uppercase tracking-widest transition-all active:scale-95">
+                    <span class="text-amber-500">⬇</span> <span class="btn-label">Save</span>
+                </button>
+                <button onclick="quickCopyJson(this)" title="Copy your current data as JSON text" class="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 hover:border-amber-500/60 text-slate-300 hover:text-white rounded-lg px-3 py-2 md:py-1.5 text-xs font-bold uppercase tracking-widest transition-all active:scale-95">
+                    <span class="text-amber-500">⧉</span> <span class="btn-label">Copy</span>
+                </button>
+            </div>
+            <div class="inline-flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-lg p-1 text-xs font-bold uppercase tracking-widest">
+                <button id="btn-cm" onclick="setUnit('cm')" class="px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95">cm / kg</button>
+                <button id="btn-in" onclick="setUnit('in')" class="px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95">in / lbs</button>
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-3 md:gap-4 p-1 bg-slate-800 rounded-2xl border border-slate-700">
             <button onclick="switchMode('classic')" id="tab-classic" class="flex flex-col items-center py-3 md:py-4 rounded-xl transition-all bg-slate-700 border border-slate-600 shadow-lg group">
                 <span class="text-xl md:text-2xl mb-1 group-hover:scale-110 transition-transform">🏛️</span>
@@ -64,13 +82,21 @@
                         </h2>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-1">Wrist</label>
+                                <div class="flex items-center gap-1.5 mb-1"><label for="input-wrist" class="text-amber-500 text-[10px] font-bold uppercase tracking-widest">Wrist</label><button type="button" class="tip-btn inline-flex items-center justify-center w-4 h-4 rounded-full border border-slate-600 text-slate-400 hover:text-amber-500 hover:border-amber-500 text-[9px] font-bold leading-none normal-case tracking-normal shrink-0" data-tip="wrist" aria-label="How to measure Wrist" aria-expanded="false">?</button></div>
                                 <input type="number" id="input-wrist" value="17" oninput="calculateClassic()" class="w-full bg-slate-900 text-white p-3 rounded-xl border border-slate-600 focus:border-amber-500 outline-none font-bold text-lg">
                             </div>
                             <div>
-                                <label class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-1">Ankle</label>
+                                <div class="flex items-center gap-1.5 mb-1"><label for="input-ankle" class="text-amber-500 text-[10px] font-bold uppercase tracking-widest">Ankle</label><button type="button" class="tip-btn inline-flex items-center justify-center w-4 h-4 rounded-full border border-slate-600 text-slate-400 hover:text-amber-500 hover:border-amber-500 text-[9px] font-bold leading-none normal-case tracking-normal shrink-0" data-tip="ankle" aria-label="How to measure Ankle" aria-expanded="false">?</button></div>
                                 <input type="number" id="input-ankle" value="23" oninput="calculateClassic()" class="w-full bg-slate-900 text-white p-3 rounded-xl border border-slate-600 focus:border-amber-500 outline-none font-bold text-lg">
                             </div>
+                        </div>
+                        <div>
+                            <div class="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-1">System</div>
+                            <div class="inline-flex items-center gap-1 bg-slate-900 border border-slate-600 rounded-lg p-1 text-xs font-bold uppercase tracking-widest">
+                                <button type="button" id="sys-mccallum" onclick="setSystem('mccallum')" class="px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95">McCallum</button>
+                                <button type="button" id="sys-reeves" onclick="setSystem('reeves')" class="px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95">Reeves</button>
+                            </div>
+                            <p id="system-note" class="text-[10px] text-slate-400 mt-2 leading-relaxed"></p>
                         </div>
                     </div>
 
@@ -90,6 +116,7 @@
                             <span>Classic</span>
                             <span>Mass</span>
                         </div>
+                        <p id="mass-note" class="hidden text-[10px] text-amber-400/80 mt-3 leading-relaxed">Above 100% = beyond classic McCallum/Reeves proportions.</p>
                     </div>
                 </div>
             </div>
@@ -102,17 +129,36 @@
                     <span class="text-slate-500 text-xs font-normal cursor-pointer hover:text-white bg-slate-800 px-3 py-1 rounded-full" onclick="toggleCurrentStats()">Toggle Inputs</span>
                 </div>
                 
-                <div id="current-stats-panel" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <details id="measure-guide" class="group mb-4 bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+                    <summary class="flex items-center justify-between cursor-pointer select-none px-4 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors list-none [&::-webkit-details-marker]:hidden">
+                        <span>📏 How to Measure</span>
+                        <span class="text-amber-500 text-xs transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-1 space-y-4 border-t border-slate-700">
+                        <div class="bg-slate-900/60 border border-amber-500/20 rounded-lg p-3 mt-3">
+                            <div class="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-1">General Rules</div>
+                            <p id="measure-general" class="text-xs text-slate-300 leading-relaxed"></p>
+                        </div>
+                        <dl id="measure-list" class="grid md:grid-cols-2 gap-x-6 gap-y-3"></dl>
+                    </div>
+                </details>
+
+                <div id="current-stats-panel" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     </div>
             </div>
 
-            <div id="classic-results" class="grid gap-3 md:gap-4">
+            <div id="classic-results" class="grid gap-2 md:grid-cols-2 md:gap-3">
                 </div>
+
+            <p class="text-[10px] text-slate-500 leading-relaxed px-1">
+                <span class="inline-flex items-center justify-center w-4 h-4 mr-1 rounded-full border border-slate-600 text-slate-400 font-bold not-italic cursor-help" title="Formula sources">i</span>
+                <span class="text-slate-400">McCallum:</span> Strength &amp; Health, Nov 1964 (via Strossen, <em>Super Squats</em>). <span class="text-slate-400">Reeves:</span> <em>Building the Classic Physique the Natural Way</em> (1995). <span class="text-slate-400">Shoulders:</span> Adonis Index (John Barban), golden ratio 1.618. These are aesthetic targets, not scientific norms. Tape error is about ±0.5–1 cm, so treat Close/Perfect as approximate.
+            </p>
 
             <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 mt-8">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-white font-bold brand-font text-lg">📋 Coach's Report</h3>
-                    <button onclick="copyReport()" class="bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-bold px-4 py-2 rounded-lg transition shadow-lg active:scale-95">
+                    <button id="copy-btn" onclick="copyReport()" class="bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-bold px-4 py-2 rounded-lg transition shadow-lg active:scale-95">
                         Copy Report
                     </button>
                 </div>
@@ -125,6 +171,16 @@
              <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 md:p-8 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 <h2 class="text-white font-bold mb-6 text-center brand-font text-xl md:text-2xl">COMPETITION <span class="text-amber-500">WEIGHT CAP</span></h2>
+                <div class="max-w-md mx-auto mb-6 relative">
+                    <label for="select-division" class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-2 text-center">Federation / Division</label>
+                    <select id="select-division" onchange="setDivision(this.value)" class="w-full bg-black/30 text-white p-3 rounded-xl border border-slate-600 focus:border-amber-500 outline-none font-bold text-sm">
+                        <option value="ifbb-cp">IFBB Classic Physique — Senior &amp; Masters</option>
+                        <option value="ifbb-junior">IFBB Classic Physique — Junior (16–23)</option>
+                        <option value="ifbb-cb">IFBB Classic Bodybuilding</option>
+                        <option value="npc">NPC / NPC Worldwide Classic Physique (amateur)</option>
+                        <option value="pro">IFBB Pro League Classic Physique</option>
+                    </select>
+                </div>
                 <div class="grid md:grid-cols-2 gap-6 md:gap-8 mb-8">
                     <div class="relative">
                         <label class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-2 text-center">Your Height</label>
@@ -143,12 +199,53 @@
                 </div>
                 <div class="bg-black/40 rounded-xl p-6 border border-slate-600 text-center relative backdrop-blur-sm">
                     <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Maximum Stage Weight</p>
-                    <div id="modern-result-display" class="text-4xl md:text-6xl font-black text-white brand-font mb-2">-- <span class="text-xl md:text-2xl text-slate-500 unit-mass">kg</span></div>
+                    <div id="modern-result-display" class="text-4xl md:text-6xl font-black text-white brand-font mb-1">-- <span class="text-xl md:text-2xl text-slate-500 unit-mass">kg</span></div>
+                    <div id="modern-result-alt" class="text-xs text-slate-500 font-bold mb-1 min-h-[1rem]"></div>
+                    <div id="modern-height-ft" class="text-xs text-slate-400 mb-3 min-h-[1rem]"></div>
                     <div id="modern-status" class="inline-block px-4 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300">Enter height</div>
                 </div>
+                <p class="text-[10px] text-slate-500 leading-relaxed mt-4 text-center">Limits from IFBB rules (2024 edition) / NPC &amp; IFBB Pro League official charts. Always confirm with your federation's current rulebook.</p>
             </div>
         </div>
 
+    </div>
+
+    <!-- MEASURING TIP POPOVER -->
+    <div id="tip-popover" role="tooltip" class="hidden fixed z-40 max-w-[260px] bg-slate-900 border border-amber-500/40 rounded-xl shadow-2xl p-3 text-left">
+        <div id="tip-title" class="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-1"></div>
+        <p id="tip-body" class="text-xs text-slate-300 leading-relaxed"></p>
+    </div>
+
+    <!-- JSON IMPORT MODAL -->
+    <div id="json-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="json-modal-title">
+        <div class="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-5 md:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 id="json-modal-title" class="text-white font-bold brand-font text-lg"><span class="text-amber-500 font-mono">{ }</span> Import JSON</h3>
+                <button onclick="closeJsonModal()" class="text-slate-400 hover:text-white text-2xl leading-none px-2" aria-label="Close">&times;</button>
+            </div>
+
+            <label id="json-drop" for="json-file" class="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-slate-600 rounded-xl py-6 px-4 text-center cursor-pointer hover:border-amber-500/60 transition-colors">
+                <span class="text-2xl">📂</span>
+                <span class="text-sm font-bold text-white">Drop a .json file here</span>
+                <span class="text-[11px] text-slate-400">or tap to choose a file</span>
+                <input id="json-file" type="file" accept=".json,application/json" class="hidden" onchange="readJsonFile(this.files[0]); this.value='';">
+            </label>
+
+            <div>
+                <div class="flex justify-between items-end mb-1">
+                    <label for="json-text" class="block text-amber-500 text-[10px] font-bold uppercase tracking-widest">Or paste JSON</label>
+                    <button onclick="fillCurrentJson()" class="text-[10px] text-slate-400 hover:text-white uppercase font-bold tracking-wider">Show current</button>
+                </div>
+                <textarea id="json-text" spellcheck="false" placeholder='{ "unit": "cm", "wrist": 17, "ankle": 23, "currentStats": { "chest": 105, "waist": 80, "arm": 40 } }' class="w-full h-48 bg-slate-800 rounded-xl border border-slate-600 focus:border-amber-500 p-3 text-slate-300 text-xs font-mono outline-none resize-none"></textarea>
+                <p id="json-msg" class="text-xs min-h-[1rem]"></p>
+            </div>
+
+            <div class="flex flex-wrap justify-end gap-2">
+                <button onclick="copyJsonText(this)" title="Copy the text box (or your current data if empty)" class="text-slate-300 hover:text-white bg-slate-800 border border-slate-600 text-xs font-bold px-4 py-2 rounded-lg transition active:scale-95">Copy</button>
+                <button onclick="saveJsonText(this)" title="Save the text box (or your current data if empty) as a .json file" class="text-slate-300 hover:text-white bg-slate-800 border border-slate-600 text-xs font-bold px-4 py-2 rounded-lg transition active:scale-95">Save</button>
+                <button onclick="importJson()" class="bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-bold px-4 py-2 rounded-lg transition shadow-lg active:scale-95">Import</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -158,20 +255,24 @@
     .then(response => response.text())
     .then(data => {
       document.getElementById('nav-placeholder').innerHTML = data;
-    });
+    })
+    .catch(() => { /* nav.html unavailable - page works without it */ });
         
         // --- CONFIG ---
         let unit = 'cm';
         let massMultiplier = 1.0; // 100%
         let currentMode = 'classic';
-        let currentStats = { shoulders: 0, chest: 0, arm: 0, forearm: 0, waist: 0, thigh: 0, calf: 0, neck: 0 };
+        let proportionSystem = 'mccallum'; // 'mccallum' | 'reeves'
+        let currentDivision = 'ifbb-cp';
+        let currentStats = { shoulders: 0, chest: 0, arm: 0, forearm: 0, waist: 0, hips: 0, thigh: 0, calf: 0, neck: 0 };
         
         const parts = [
-            { key: 'shoulders', label: 'Shoulders', sub: 'Golden V-Taper' },
+            { key: 'shoulders', label: 'Shoulders', sub: 'Adonis Index 1.618' },
             { key: 'chest', label: 'Chest', sub: 'Armor Plate' },
             { key: 'arm', label: 'Arms', sub: 'Flexed Bicep' },
             { key: 'forearm', label: 'Forearms', sub: 'Power Look' },
             { key: 'waist', label: 'Waist', sub: 'The Pivot' },
+            { key: 'hips', label: 'Hips', sub: 'Optional' },
             { key: 'thigh', label: 'Thighs', sub: 'Quadriceps' },
             { key: 'calf', label: 'Calves', sub: 'Diamond' },
             { key: 'neck', label: 'Neck', sub: 'The Collar' }
@@ -187,6 +288,7 @@
         const sliderValDisplay = document.getElementById('slider-val');
 
         function init() {
+            renderMeasureGuide();
             loadState(); // LOAD SAVED DATA FIRST
             renderCurrentStatsInputs(); // Render inputs (populates with loaded data if any)
             updateUIForUnit(); // Fix button colors
@@ -202,45 +304,356 @@
                 unit: unit,
                 massMultiplier: massMultiplier,
                 currentMode: currentMode,
+                system: proportionSystem,
+                division: currentDivision,
+                federation: divisions[currentDivision].federation,
                 currentStats: currentStats,
                 wrist: document.getElementById('input-wrist').value,
                 ankle: document.getElementById('input-ankle').value,
                 height: document.getElementById('input-height').value,
                 weight: document.getElementById('input-weight').value
             };
-            localStorage.setItem('physiqueArchitectData', JSON.stringify(state));
+            try {
+                localStorage.setItem('physiqueArchitectData', JSON.stringify(state));
+            } catch (e) {
+                // Storage blocked or full - page keeps working without persistence
+            }
         }
 
         function loadState() {
-            const saved = localStorage.getItem('physiqueArchitectData');
+            let saved = null;
+            try {
+                saved = localStorage.getItem('physiqueArchitectData');
+            } catch (e) {
+                saved = null;
+            }
             if (saved) {
                 try {
-                    const data = JSON.parse(saved);
-                    
-                    // Restore Variables
-                    if(data.unit) unit = data.unit;
-                    if(data.massMultiplier) massMultiplier = parseFloat(data.massMultiplier);
-                    if(data.currentMode) currentMode = data.currentMode;
-                    if(data.currentStats) currentStats = data.currentStats;
-
-                    // Restore Inputs
-                    if(data.wrist) document.getElementById('input-wrist').value = data.wrist;
-                    if(data.ankle) document.getElementById('input-ankle').value = data.ankle;
-                    if(data.height) document.getElementById('input-height').value = data.height;
-                    if(data.weight) document.getElementById('input-weight').value = data.weight;
-
-                    // Restore Slider Visual
-                    const slider = document.getElementById('mass-slider');
-                    if (slider && data.massMultiplier) {
-                        slider.value = Math.round(data.massMultiplier * 100);
-                        sliderValDisplay.innerText = `${slider.value}%`;
-                    }
-
+                    applyState(JSON.parse(saved));
                 } catch (e) {
                     console.error("Failed to load saved data", e);
                 }
             }
         }
+
+        // Applies a state object (from storage or JSON import). Ignores unknown/invalid fields.
+        // Returns the number of fields applied.
+        function applyState(data) {
+            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                throw new Error('JSON must be an object, e.g. { "wrist": 17, "currentStats": { ... } }');
+            }
+            let applied = 0;
+            const num = v => {
+                const n = parseFloat(v);
+                return isFinite(n) && n >= 0 ? n : null;
+            };
+
+            if (data.unit === 'cm' || data.unit === 'in') { unit = data.unit; applied++; }
+            if (data.currentMode === 'classic' || data.currentMode === 'modern') { currentMode = data.currentMode; applied++; }
+            if (data.system === 'mccallum' || data.system === 'reeves') { proportionSystem = data.system; applied++; }
+            if (typeof data.division === 'string' && divisions[data.division]) {
+                currentDivision = data.division; applied++;
+            } else if (typeof data.federation === 'string') {
+                const f = data.federation.trim().toLowerCase();
+                const byFed = { 'ifbb': 'ifbb-cp', 'npc': 'npc', 'npc worldwide': 'npc', 'ifbb pro league': 'pro', 'ifbb pro': 'pro' };
+                if (byFed[f]) { currentDivision = byFed[f]; applied++; }
+            }
+
+            const mm = num(data.massMultiplier);
+            if (mm !== null && mm > 0) {
+                // Accept 1.1 or 110 (percent); clamp to slider range
+                massMultiplier = Math.min(1.3, Math.max(0.9, mm > 5 ? mm / 100 : mm));
+                applied++;
+            }
+
+            // Measurements: accept a currentStats object, or part keys at the top level
+            const statsSource = (data.currentStats && typeof data.currentStats === 'object') ? data.currentStats : data;
+            const newStats = { ...currentStats };
+            parts.forEach(p => {
+                if (p.key in statsSource) {
+                    const v = num(statsSource[p.key]);
+                    if (v !== null) { newStats[p.key] = v; applied++; }
+                }
+            });
+            currentStats = newStats;
+
+            ['wrist', 'ankle', 'height', 'weight'].forEach(k => {
+                const v = num(data[k]);
+                if (v !== null && v > 0) { document.getElementById('input-' + k).value = v; applied++; }
+            });
+
+            // Sync slider visual
+            const slider = document.getElementById('mass-slider');
+            if (slider) {
+                slider.value = Math.round(massMultiplier * 100);
+                sliderValDisplay.textContent = `${slider.value}%`;
+            }
+            return applied;
+        }
+
+        function getStateObject() {
+            return {
+                unit: unit,
+                massMultiplier: massMultiplier,
+                currentMode: currentMode,
+                system: proportionSystem,
+                division: currentDivision,
+                federation: divisions[currentDivision].federation,
+                wrist: parseFloat(document.getElementById('input-wrist').value) || 0,
+                ankle: parseFloat(document.getElementById('input-ankle').value) || 0,
+                height: parseFloat(document.getElementById('input-height').value) || 0,
+                weight: parseFloat(document.getElementById('input-weight').value) || 0,
+                currentStats: Object.fromEntries(parts.map(p => [p.key, parseFloat((currentStats[p.key] || 0).toFixed(2))]))
+            };
+        }
+
+        // --- JSON MODAL ---
+        const jsonModal = document.getElementById('json-modal');
+        const jsonText = document.getElementById('json-text');
+        const jsonMsg = document.getElementById('json-msg');
+        const jsonDrop = document.getElementById('json-drop');
+
+        function setJsonMsg(text, ok) {
+            jsonMsg.textContent = text;
+            jsonMsg.className = 'text-xs min-h-[1rem] ' + (ok ? 'text-emerald-400' : 'text-red-400');
+        }
+
+        function openJsonModal() {
+            setJsonMsg('', true);
+            jsonModal.classList.remove('hidden');
+            jsonModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => jsonText.focus(), 50);
+        }
+
+        function closeJsonModal() {
+            jsonModal.classList.add('hidden');
+            jsonModal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        function fillCurrentJson() {
+            jsonText.value = JSON.stringify(getStateObject(), null, 2);
+            setJsonMsg('Current data loaded below — edit it or copy it.', true);
+        }
+
+        function downloadJson(text) {
+            const blob = new Blob([text], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            a.download = `physique-data-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+
+        // Briefly swap a button's label (uses .btn-label child if present)
+        const flashTimers = new WeakMap();
+        function flashButton(btn, msg) {
+            if (!btn) return;
+            const target = btn.querySelector('.btn-label') || btn;
+            if (!flashTimers.has(btn)) target.dataset.label = target.textContent;
+            clearTimeout(flashTimers.get(btn));
+            target.textContent = msg;
+            flashTimers.set(btn, setTimeout(() => {
+                target.textContent = target.dataset.label;
+                flashTimers.delete(btn);
+            }, 1500));
+        }
+
+        // Text box contents (validated + pretty-printed), or current data if the box is empty.
+        // Returns null and shows an error if the text isn't valid JSON.
+        function getJsonTextForExport() {
+            const raw = jsonText.value.trim();
+            if (!raw) return JSON.stringify(getStateObject(), null, 2);
+            try {
+                return JSON.stringify(JSON.parse(raw), null, 2);
+            } catch (e) {
+                setJsonMsg('Fix the JSON before saving: ' + e.message, false);
+                return null;
+            }
+        }
+
+        function quickSaveJson(btn) {
+            downloadJson(JSON.stringify(getStateObject(), null, 2));
+            flashButton(btn, 'Saved!');
+        }
+
+        function copyToClipboard(text, btn) {
+            if (!navigator.clipboard || !navigator.clipboard.writeText) {
+                flashButton(btn, 'Copy failed');
+                return;
+            }
+            navigator.clipboard.writeText(text)
+                .then(() => flashButton(btn, 'Copied!'))
+                .catch(() => flashButton(btn, 'Copy failed'));
+        }
+
+        function quickCopyJson(btn) {
+            copyToClipboard(JSON.stringify(getStateObject(), null, 2), btn);
+        }
+
+        function saveJsonText(btn) {
+            const text = getJsonTextForExport();
+            if (text === null) return;
+            downloadJson(text);
+            flashButton(btn, 'Saved!');
+            setJsonMsg(jsonText.value.trim() ? 'Saved the text box as a .json file.' : 'Text box was empty, so your current data was saved.', true);
+        }
+
+        function copyJsonText(btn) {
+            const text = getJsonTextForExport();
+            if (text === null) return;
+            copyToClipboard(text, btn);
+        }
+
+        function readJsonFile(file) {
+            if (!file) return;
+            if (file.size > 1024 * 1024) { setJsonMsg('File is too large (max 1 MB).', false); return; }
+            const reader = new FileReader();
+            reader.onload = () => {
+                jsonText.value = reader.result;
+                setJsonMsg(`Loaded "${file.name}". Review it, then press Import.`, true);
+            };
+            reader.onerror = () => setJsonMsg('Could not read that file.', false);
+            reader.readAsText(file);
+        }
+
+        function importJson() {
+            const raw = jsonText.value.trim();
+            if (!raw) { setJsonMsg('Paste JSON or drop a .json file first.', false); return; }
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch (e) {
+                setJsonMsg('Invalid JSON: ' + e.message, false);
+                return;
+            }
+            let applied;
+            try {
+                applied = applyState(data);
+            } catch (e) {
+                setJsonMsg(e.message, false);
+                return;
+            }
+            if (applied === 0) {
+                setJsonMsg('No recognised fields found (e.g. wrist, ankle, height, weight, currentStats).', false);
+                return;
+            }
+            renderCurrentStatsInputs();
+            updateUIForUnit();
+            calculateClassic();
+            calculateModern();
+            switchMode(currentMode);
+            setJsonMsg(`Imported ${applied} field${applied === 1 ? '' : 's'}.`, true);
+            setTimeout(closeJsonModal, 700);
+        }
+
+        // Drag & drop
+        ['dragenter', 'dragover'].forEach(ev => jsonDrop.addEventListener(ev, e => {
+            e.preventDefault();
+            jsonDrop.classList.add('border-amber-500', 'bg-amber-500/5');
+        }));
+        ['dragleave', 'drop'].forEach(ev => jsonDrop.addEventListener(ev, e => {
+            e.preventDefault();
+            jsonDrop.classList.remove('border-amber-500', 'bg-amber-500/5');
+        }));
+        jsonDrop.addEventListener('drop', e => {
+            const file = e.dataTransfer && e.dataTransfer.files[0];
+            if (file) readJsonFile(file);
+        });
+        // Stop a file dropped elsewhere in the modal from opening in the browser
+        jsonModal.addEventListener('dragover', e => e.preventDefault());
+        jsonModal.addEventListener('drop', e => {
+            e.preventDefault();
+            const file = e.dataTransfer && e.dataTransfer.files[0];
+            if (file && !jsonDrop.contains(e.target)) readJsonFile(file);
+        });
+        jsonModal.addEventListener('click', e => { if (e.target === jsonModal) closeJsonModal(); });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && !jsonModal.classList.contains('hidden')) closeJsonModal();
+        });
+
+        // --- MEASURING INSTRUCTIONS ---
+        const measureGeneral = 'Use a soft, non-stretch tape. Snug against skin, not compressing, level all the way round. Measure in the morning before training (never pumped). Same side and time each check (right side default). Take 2–3 readings and average them.';
+        const measureTips = {
+            wrist: { label: 'Wrist', text: 'Smallest point, just on the hand side of the bony knob. Hand relaxed and open.' },
+            ankle: { label: 'Ankle', text: 'Smallest point, just above the ankle bones, standing with weight even.' },
+            shoulders: { label: 'Shoulders', text: "Stand tall, arms relaxed. Widest point round the delts and upper chest, tape horizontal. Don't flare lats." },
+            chest: { label: 'Chest', text: "Under armpits, across nipples, arms down. Measure after a normal breath out. Don't flare your lats." },
+            arm: { label: 'Arms', text: 'Arm out to the side, biceps flexed hard. Measure round the peak. Measure cold (before training, not pumped).' },
+            forearm: { label: 'Forearms', text: 'Arm straight, tight fist, palm up. Thickest part just below the elbow.' },
+            waist: { label: 'Waist', text: "Relaxed, normal breath out. Narrowest point, usually just above the belly button. Don't suck in. The Adonis Index traditionally measures the waist at the belly button, so your shoulder:waist ratio may read slightly differently." },
+            hips: { label: 'Hips', text: 'Feet together, standing relaxed. Widest point round the hips and glutes, tape level. Optional.' },
+            thigh: { label: 'Thighs', text: 'Feet shoulder-width, weight even, leg relaxed. Thickest point just below the glute fold. Always use the same spot, as mid-thigh gives a much smaller number.' },
+            calf: { label: 'Calves', text: 'Standing, weight even, not flexed. Thickest part of the calf.' },
+            neck: { label: 'Neck', text: "Look straight ahead. Tape horizontal, at the smallest point just below the Adam's apple (not angled down)." }
+        };
+
+        function renderMeasureGuide() {
+            document.getElementById('measure-general').textContent = measureGeneral;
+            const list = document.getElementById('measure-list');
+            list.innerHTML = '';
+            Object.values(measureTips).forEach(t => {
+                const wrap = document.createElement('div');
+                const dt = document.createElement('dt');
+                dt.className = 'text-amber-500 text-[10px] font-bold uppercase tracking-widest';
+                dt.textContent = t.label;
+                const dd = document.createElement('dd');
+                dd.className = 'text-xs text-slate-300 leading-relaxed';
+                dd.textContent = t.text;
+                wrap.append(dt, dd);
+                list.appendChild(wrap);
+            });
+        }
+
+        // Tap-to-open popover (works on touch; closes on outside tap, Esc, scroll or resize)
+        const tipPopover = document.getElementById('tip-popover');
+        let openTipBtn = null;
+
+        function closeTip() {
+            tipPopover.classList.add('hidden');
+            if (openTipBtn) openTipBtn.setAttribute('aria-expanded', 'false');
+            openTipBtn = null;
+        }
+
+        function openTip(btn) {
+            const tip = measureTips[btn.dataset.tip];
+            if (!tip) return;
+            if (openTipBtn) openTipBtn.setAttribute('aria-expanded', 'false');
+            document.getElementById('tip-title').textContent = 'How to measure: ' + tip.label;
+            document.getElementById('tip-body').textContent = tip.text;
+            tipPopover.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            openTipBtn = btn;
+
+            // Position below the button (or above if no room), kept 16px inside the viewport
+            const r = btn.getBoundingClientRect();
+            const pw = tipPopover.offsetWidth, ph = tipPopover.offsetHeight;
+            const gutter = 16, vw = window.innerWidth, vh = window.innerHeight;
+            let left = r.left + r.width / 2 - pw / 2;
+            left = Math.max(gutter, Math.min(left, vw - pw - gutter));
+            let top = r.bottom + 8;
+            if (top + ph > vh - gutter && r.top - ph - 8 > gutter) top = r.top - ph - 8;
+            tipPopover.style.left = left + 'px';
+            tipPopover.style.top = top + 'px';
+        }
+
+        document.addEventListener('click', e => {
+            const btn = e.target.closest('.tip-btn');
+            if (btn) {
+                e.preventDefault(); // don't focus the related input
+                if (openTipBtn === btn) closeTip(); else openTip(btn);
+                return;
+            }
+            if (openTipBtn && !tipPopover.contains(e.target)) closeTip();
+        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && openTipBtn) closeTip(); });
+        window.addEventListener('scroll', () => { if (openTipBtn) closeTip(); }, { passive: true });
+        window.addEventListener('resize', () => { if (openTipBtn) closeTip(); });
 
         // --- SWITCHER ---
         function switchMode(mode, save = true) {
@@ -274,9 +687,36 @@
         // --- SLIDER LOGIC ---
         function updateSlider(val) {
             massMultiplier = val / 100;
-            sliderValDisplay.innerText = `${val}%`;
-            calculateClassic();
-            saveState();
+            sliderValDisplay.textContent = `${val}%`;
+            calculateClassic(); // also saves state
+        }
+
+        function updateMassNote() {
+            const el = document.getElementById('mass-note');
+            if (el) el.classList.toggle('hidden', massMultiplier <= 1);
+        }
+
+        // --- PROPORTION SYSTEM ---
+        const systemNotes = {
+            mccallum: 'McCallum active: arm = chest × 0.36, calf = chest × 0.34, neck = chest × 0.37.',
+            reeves: 'Reeves active: arm = wrist × 2.52, calf = ankle × 1.92, neck = arm.'
+        };
+
+        function setSystem(sys) {
+            if (!systemNotes[sys] || sys === proportionSystem) return;
+            proportionSystem = sys;
+            calculateClassic(); // also saves state
+        }
+
+        function updateSystemUI() {
+            const activeCls = "px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95";
+            const idleCls = "px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95";
+            const m = document.getElementById('sys-mccallum');
+            const r = document.getElementById('sys-reeves');
+            if (m) m.className = proportionSystem === 'mccallum' ? activeCls : idleCls;
+            if (r) r.className = proportionSystem === 'reeves' ? activeCls : idleCls;
+            const note = document.getElementById('system-note');
+            if (note) note.textContent = systemNotes[proportionSystem];
         }
 
         // --- ROUNDING HELPER ---
@@ -284,219 +724,386 @@
             return (Math.round(num * 2) / 2).toFixed(1);
         }
 
+        // Parts that never scale with the mass multiplier (golden V-taper holds at every scale)
+        const FIXED_PARTS = ['waist', 'shoulders'];
+
+        // Pure target calculation (unit-independent). Returns null for a target that can't be computed.
+        function computeIdeals(wrist, ankle, system, multiplier = 1) {
+            const chest = wrist * 6.5;
+            const waist = chest * 0.70;
+            const base = {
+                chest: chest,
+                waist: waist,
+                shoulders: waist * 1.618,
+                forearm: chest * 0.29,
+                thigh: chest * 0.53,
+                hips: chest * 0.85
+            };
+            if (system === 'reeves') {
+                base.arm = wrist * 2.52;
+                base.calf = ankle > 0 ? ankle * 1.92 : null;
+                base.neck = base.arm;
+            } else {
+                base.arm = chest * 0.36;
+                base.calf = chest * 0.34;
+                base.neck = chest * 0.37;
+            }
+            const out = {};
+            for (const k in base) {
+                out[k] = base[k] === null ? null : (FIXED_PARTS.includes(k) ? base[k] : base[k] * multiplier);
+            }
+            return out;
+        }
+
         // --- CLASSIC LOGIC (SCALABLE) ---
         function calculateClassic() {
             const wrist = parseFloat(document.getElementById('input-wrist').value) || 0;
             const ankle = parseFloat(document.getElementById('input-ankle').value) || 0;
-            
+            const container = document.getElementById('classic-results');
+
             // Auto-save on calculation (covers all input changes)
             saveState();
+            updateMassNote();
+            updateSystemUI();
 
-            if(wrist === 0) return;
-
-            // 1. Calculate Standard Ideals (100%)
-            const baseChest = wrist * 6.5;
-            const baseWaist = baseChest * 0.70;
-            
-            let baseIdeals = {
-                chest: baseChest,
-                waist: baseWaist,
-                shoulders: baseWaist * 1.618, 
-                arm: wrist * 2.52,
-                forearm: wrist * 1.89,
-                thigh: baseChest * 0.53,
-                calf: ankle > 0 ? ankle * 1.92 : baseChest * 0.34,
-                neck: baseChest * 0.37
-            };
-
-            // 2. Apply Mass Multiplier
-            let scaledIdeals = {};
-            for (let key in baseIdeals) {
-                scaledIdeals[key] = baseIdeals[key] * massMultiplier;
+            if (wrist === 0) {
+                // Clear stale results
+                container.innerHTML = '';
+                reportOutput.value = 'Enter measurements to generate report.';
+                return;
             }
 
-            // 3. Render
-            const container = document.getElementById('classic-results');
-            container.innerHTML = ''; 
+            const ideals = computeIdeals(wrist, ankle, proportionSystem, massMultiplier);
+
+            container.innerHTML = '';
             let reportLines = [];
-            let deficits = []; // Store parts that need work
+            let priorities = []; // { pct, text }
 
             parts.forEach(part => {
-                let target = scaledIdeals[part.key];
-                // Range Window (±2.5%)
-                let min = target * 0.975;
-                let max = target * 1.025;
-                let current = currentStats[part.key];
+                const target = ideals[part.key];
+                const current = currentStats[part.key];
+                const isWaist = part.key === 'waist';
 
-                renderRangeCard(container, part.label, current, target, part.sub);
+                let note = '';
+                if (target === null) note = 'Enter ankle for Reeves calf target';
+
+                let ratio = '';
+                if (part.key === 'shoulders' && current > 0 && currentStats.waist > 0) {
+                    ratio = `Your ratio: ${(current / currentStats.waist).toFixed(2)} / ideal 1.618`;
+                }
+
+                renderRangeCard(container, part.label, current, target, part.sub, { isWaist, note, ratio });
 
                 // Report Logic
-                if (current > 0) {
-                    let currFmt = toNearestHalf(current);
-                    let targetFmt = toNearestHalf(target);
+                if (!(current > 0)) return;
+                const currFmt = toNearestHalf(current);
 
-                    if (current < min) {
-                        let diff = min - current;
-                        let diffFmt = toNearestHalf(diff);
-                        deficits.push({ label: part.label, diff: diff, unit: unit, diffFmt: diffFmt });
-                        reportLines.push(`[ ] ${part.label}: ${currFmt}${unit} (Perfect: ${targetFmt}) -> Needs +${diffFmt}${unit}`);
-                    } else if (current > max) {
-                        reportLines.push(`[!] ${part.label}: ${currFmt}${unit} (Perfect: ${targetFmt}) -> Exceeds Ratio`);
+                if (target === null) {
+                    reportLines.push(`[ ] ${part.label}: ${currFmt}${unit} -> Enter ankle for Reeves calf target`);
+                    return;
+                }
+
+                const min = target * 0.975;
+                const max = target * 1.025;
+                const targetFmt = toNearestHalf(target);
+
+                if (isWaist) {
+                    // Waist: smaller is better. Only "over" is a problem.
+                    if (current > max) {
+                        const diff = current - target;
+                        const diffFmt = toNearestHalf(diff);
+                        priorities.push({ pct: diff / target, text: `Reduce waist by ${diffFmt}${unit}` });
+                        reportLines.push(`[!] ${part.label}: ${currFmt}${unit} (Target: ${targetFmt}) -> Reduce by ${diffFmt}${unit}`);
                     } else {
-                        reportLines.push(`[x] ${part.label}: ${currFmt}${unit} -> Perfect Match`);
+                        reportLines.push(`[x] ${part.label}: ${currFmt}${unit} (Target: ${targetFmt}) -> On Target`);
                     }
+                } else if (current < min) {
+                    const diff = target - current;
+                    const diffFmt = toNearestHalf(diff);
+                    // Hips is optional and not a "grow" goal, so it stays out of the priority list
+                    if (part.key !== 'hips') {
+                        priorities.push({ pct: diff / target, text: `${part.label} (Grow +${diffFmt}${unit})` });
+                    }
+                    reportLines.push(`[ ] ${part.label}: ${currFmt}${unit} (Perfect: ${targetFmt}) -> Needs +${diffFmt}${unit}`);
+                } else if (current > max) {
+                    reportLines.push(`[!] ${part.label}: ${currFmt}${unit} (Perfect: ${targetFmt}) -> Exceeds Ratio`);
+                } else {
+                    reportLines.push(`[x] ${part.label}: ${currFmt}${unit} -> Perfect Match`);
                 }
             });
 
-            // 4. Sort and Build Priority Section
+            if (currentStats.shoulders > 0 && currentStats.waist > 0) {
+                reportLines.push(`Shoulder:Waist ratio: ${(currentStats.shoulders / currentStats.waist).toFixed(2)} (ideal 1.618)`);
+            }
+
+            // Sort (by % of target, not raw size) and Build Priority Section
             let prioritySection = "";
-            if (deficits.length > 0) {
-                deficits.sort((a, b) => b.diff - a.diff);
-                let top3 = deficits.slice(0, 3);
-                
+            if (priorities.length > 0) {
+                priorities.sort((a, b) => b.pct - a.pct);
                 prioritySection = "🚨 TOP 3 PRIORITIES:\n";
-                top3.forEach((d, i) => {
-                    prioritySection += `${i+1}. ${d.label} (Grow +${d.diffFmt}${d.unit})\n`;
+                priorities.slice(0, 3).forEach((d, i) => {
+                    prioritySection += `${i + 1}. ${d.text}\n`;
                 });
                 prioritySection += "-----------------------------------\n";
             }
 
-            // Report Text
             const scaleText = (massMultiplier * 100).toFixed(0) + '%';
-            reportOutput.value = `PHYSIQUE REPORT (Scale: ${scaleText})\n-----------------------------------\n${prioritySection}${reportLines.length > 0 ? reportLines.join('\n') : 'Enter measurements to generate report.'}`;
+            const sysName = proportionSystem === 'reeves' ? 'Reeves' : 'McCallum';
+            reportOutput.value = `PHYSIQUE REPORT (System: ${sysName}, Scale: ${scaleText})\n-----------------------------------\n${prioritySection}${reportLines.length > 0 ? reportLines.join('\n') : 'Enter measurements to generate report.'}`;
         }
 
-        function renderRangeCard(container, partName, current, target, subtitle) {
-            // Logic for Status and Color
-            // View range: 0.8 to 1.2 of Target
-            
+        function renderRangeCard(container, partName, current, target, subtitle, opts = {}) {
+            const isWaist = !!opts.isWaist;
+            const note = opts.note || '';
+            const ratio = opts.ratio || '';
+            const hasTarget = target !== null && target > 0;
+
             let statusText = "Pending";
             let statusColor = "bg-slate-700 text-slate-400";
             let markerPos = 0; // 0 to 100%
+            const pctOfTarget = hasTarget ? current / target : 0;
 
-            // Percentage of Target
-            const pctOfTarget = (current / target);
-            
-            // Map status
-            if (current > 0) {
-                if (pctOfTarget < 0.925) {
-                    statusText = "Lagging";
-                    statusColor = "bg-red-500/10 text-red-400 border border-red-500/20";
-                } else if (pctOfTarget < 0.975) {
-                    statusText = "Close";
-                    statusColor = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
-                } else if (pctOfTarget <= 1.025) {
-                    statusText = "Perfect";
-                    statusColor = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-                } else if (pctOfTarget <= 1.075) {
-                    statusText = "Strong";
-                    statusColor = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            const GREEN = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            const AMBER = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            const RED = "bg-red-500/10 text-red-400 border border-red-500/20";
+
+            if (current > 0 && hasTarget) {
+                if (isWaist) {
+                    if (pctOfTarget <= 1.025) { statusText = "On Target"; statusColor = GREEN; }
+                    else if (pctOfTarget <= 1.075) { statusText = "Over"; statusColor = AMBER; }
+                    else { statusText = "Excessive"; statusColor = RED; }
                 } else {
-                    statusText = "Excessive";
-                    statusColor = "bg-red-500/10 text-red-400 border border-red-500/20";
+                    if (pctOfTarget < 0.925) { statusText = "Lagging"; statusColor = RED; }
+                    else if (pctOfTarget < 0.975) { statusText = "Close"; statusColor = AMBER; }
+                    else if (pctOfTarget <= 1.025) { statusText = "Perfect"; statusColor = GREEN; }
+                    else if (pctOfTarget <= 1.075) { statusText = "Strong"; statusColor = AMBER; }
+                    else { statusText = "Excessive"; statusColor = RED; }
                 }
 
-                // Map marker position to bar 
                 // Bar View: 80% (0) to 120% (100)
-                // Formula: (pctOfTarget - 0.80) / 0.40 * 100
                 markerPos = ((pctOfTarget - 0.8) / 0.4) * 100;
-                
-                // Clamp
                 if (markerPos < 2) markerPos = 2;
                 if (markerPos > 98) markerPos = 98;
-            } else {
-                markerPos = 0; // Hide or reset
             }
+            const showMarker = current > 0 && hasTarget;
 
-            const html = `
-                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 hover:border-slate-600 transition-colors">
-                    
-                    <div class="flex justify-between items-end mb-3">
-                        <div>
-                            <div class="font-bold text-white text-sm md:text-base">${partName}</div>
-                            <div class="text-[10px] text-slate-500 uppercase tracking-wider">${subtitle}</div>
-                        </div>
-                        <div class="text-center">
-                             <div class="text-2xl md:text-3xl font-bold text-white leading-none mb-1">${current > 0 ? toNearestHalf(current) : '<span class="text-slate-600">-</span>'}</div>
-                             <div class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${statusColor}">${statusText}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-amber-500 font-bold text-lg md:text-xl leading-none brand-font">${toNearestHalf(target)}</div>
-                            <div class="text-[9px] text-slate-500 uppercase font-bold mt-1">Target</div>
-                        </div>
-                    </div>
-
-                    <div class="relative h-5 md:h-6 mt-2 select-none">
-                        <div class="absolute inset-0 flex rounded-md overflow-hidden opacity-90">
-                            <div class="h-full bg-red-900/40 w-[31.25%] border-r border-slate-900/50"></div>
-                            <div class="h-full bg-amber-700/40 w-[12.5%] border-r border-slate-900/50"></div>
-                            <div class="h-full bg-emerald-500/40 w-[12.5%] border-r border-slate-900/50"></div>
-                            <div class="h-full bg-amber-700/40 w-[12.5%] border-r border-slate-900/50"></div>
-                            <div class="h-full bg-red-900/40 w-[31.25%]"></div>
-                        </div>
-                        
-                        <div class="absolute top-[-3px] bottom-[-3px] w-1 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] z-10 marker-transition rounded-full ${current > 0 ? '' : 'hidden'}" style="left: ${markerPos}%"></div>
-                    </div>
-                    
-                    <div class="flex justify-between text-[8px] text-slate-500 mt-1.5 font-bold uppercase tracking-widest px-1 opacity-60">
+            // Bar segments & labels (waist: green up to 102.5%, then amber, then red)
+            const barSegments = isWaist
+                ? ['bg-emerald-500/40', 'bg-emerald-500/40', 'bg-emerald-500/40', 'bg-amber-700/40', 'bg-red-900/40']
+                : ['bg-red-900/40', 'bg-amber-700/40', 'bg-emerald-500/40', 'bg-amber-700/40', 'bg-red-900/40'];
+            const barLabels = isWaist
+                ? `<div class="flex text-[8px] text-slate-500 mt-1 font-bold uppercase tracking-widest opacity-60 text-center">
+                        <span class="w-[56.25%] text-emerald-400">On Target</span>
+                        <span class="w-[12.5%]">Over</span>
+                        <span class="w-[31.25%]">Excessive</span>
+                    </div>`
+                : `<div class="flex justify-between text-[8px] text-slate-500 mt-1 font-bold uppercase tracking-widest px-1 opacity-60">
                         <span>Under</span>
                         <span class="pl-4">Close</span>
                         <span class="text-emerald-400">Perfect</span>
                         <span class="pr-4">Over</span>
                         <span>Limit</span>
+                    </div>`;
+
+            const html = `
+                <div class="bg-slate-800 rounded-lg px-3 py-2.5 border border-slate-700 hover:border-slate-600 transition-colors">
+                    <div class="flex justify-between items-center gap-2 mb-2">
+                        <div class="min-w-0 flex-1">
+                            <div class="font-bold text-white text-sm leading-tight">${partName}</div>
+                            <div class="text-[9px] text-slate-500 uppercase tracking-wider truncate">${subtitle}</div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                             <span class="text-lg md:text-xl font-bold text-white leading-none">${current > 0 ? toNearestHalf(current) : '<span class="text-slate-600">-</span>'}</span>
+                             <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${statusColor}">${statusText}</span>
+                        </div>
+                        <div class="text-right shrink-0 w-12">
+                            <div class="text-amber-500 font-bold text-base leading-none brand-font">${hasTarget ? toNearestHalf(target) : '--'}</div>
+                            <div class="text-[8px] text-slate-500 uppercase font-bold mt-0.5">Target</div>
+                        </div>
                     </div>
 
+                    <div class="relative h-2.5 md:h-3 select-none">
+                        <div class="absolute inset-0 flex rounded-md overflow-hidden opacity-90">
+                            <div class="h-full ${barSegments[0]} w-[31.25%] border-r border-slate-900/50"></div>
+                            <div class="h-full ${barSegments[1]} w-[12.5%] border-r border-slate-900/50"></div>
+                            <div class="h-full ${barSegments[2]} w-[12.5%] border-r border-slate-900/50"></div>
+                            <div class="h-full ${barSegments[3]} w-[12.5%] border-r border-slate-900/50"></div>
+                            <div class="h-full ${barSegments[4]} w-[31.25%]"></div>
+                        </div>
+                        <div class="absolute top-[-2px] bottom-[-2px] w-1 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] z-10 marker-transition rounded-full ${showMarker ? '' : 'hidden'}" style="left: ${markerPos}%"></div>
+                    </div>
+                    ${barLabels}
+                    ${ratio ? `<div class="text-[10px] text-amber-400 mt-1 px-1 font-bold">${ratio}</div>` : ''}
+                    ${note ? `<div class="text-[10px] text-amber-400/80 mt-1 px-1 italic">${note}</div>` : ''}
                 </div>
             `;
             container.innerHTML += html;
         }
 
-        // --- MODERN LOGIC ---
+        // --- COMPETITION LIMITS ---
+        const KG_TO_LB = 2.20462;
+        const IFBB_BOUNDS_CM = [168, 171, 175, 180, 188, 196]; // "up to and including"
+        const NPC_INCHES = [64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
+        const NPC_LBS = [167, 172, 177, 182, 187, 194, 202, 209, 217, 224, 232, 239, 246, 253, 260, 267];
+
+        const divisions = {
+            'ifbb-cp':     { federation: 'IFBB', label: 'IFBB Classic Physique (Senior & Masters)', type: 'ifbb', offsets: [4, 6, 8, 11, 13, 15, 17] },
+            'ifbb-junior': { federation: 'IFBB', label: 'IFBB Junior Classic Physique', type: 'ifbb', offsets: [2, 3, 4, 6, 7, 8, 9] },
+            'ifbb-cb':     { federation: 'IFBB', label: 'IFBB Classic Bodybuilding', type: 'ifbb', offsets: [0, 2, 4, 7, 9, 11, 13] },
+            'npc':         { federation: 'NPC', label: 'NPC Classic Physique', type: 'inch', lbs: NPC_LBS, overLb: 274 },
+            'pro':         { federation: 'IFBB Pro League', label: 'IFBB Pro League Classic Physique', type: 'inch', lbs: NPC_LBS.map(v => v + 10), overLb: 284 }
+        };
+
+        function ifbbMaxKg(heightCm, offsets) {
+            let i = IFBB_BOUNDS_CM.findIndex(b => heightCm <= b);
+            if (i === -1) i = IFBB_BOUNDS_CM.length;
+            return (heightCm - 100) + offsets[i];
+        }
+
+        // Returns { lb, bracketIn } where bracketIn is null for "over 79 in"
+        function inchTableMaxLb(heightIn, lbs, overLb) {
+            for (let i = 0; i < NPC_INCHES.length; i++) {
+                if (heightIn <= NPC_INCHES[i] + 0.05) return { lb: lbs[i], bracketIn: NPC_INCHES[i] };
+            }
+            return { lb: overLb, bracketIn: null };
+        }
+
+        // Pure: cap for a division. Pass both height forms so nothing is rounded through the other unit.
+        function getWeightCap(divisionId, heightCm, heightIn) {
+            const d = divisions[divisionId] || divisions['ifbb-cp'];
+            if (d.type === 'ifbb') {
+                const kg = ifbbMaxKg(heightCm, d.offsets);
+                return { kg, lb: kg * KG_TO_LB, bracketIn: undefined };
+            }
+            const r = inchTableMaxLb(heightIn, d.lbs, d.overLb);
+            return { kg: r.lb / KG_TO_LB, lb: r.lb, bracketIn: r.bracketIn };
+        }
+
+        function fmtNum(v) {
+            const r = Math.round(v * 10) / 10;
+            return Number.isInteger(r) ? String(r) : r.toFixed(1);
+        }
+
+        function fmtFeet(inches) {
+            let ft = Math.floor(inches / 12);
+            let rem = Math.round((inches - ft * 12) * 10) / 10;
+            if (rem >= 12) { ft += 1; rem -= 12; }
+            return `${ft}'${fmtNum(rem)}"`;
+        }
+
+        function setDivision(id) {
+            if (!divisions[id]) return;
+            currentDivision = id;
+            calculateModern(); // also saves state
+        }
+
         function calculateModern() {
-            let height = parseFloat(document.getElementById('input-height').value) || 0;
-            let weight = parseFloat(document.getElementById('input-weight').value) || 0;
-            
+            const height = parseFloat(document.getElementById('input-height').value) || 0;
+            const weight = parseFloat(document.getElementById('input-weight').value) || 0;
+
             // Auto-save
             saveState();
 
-            if (height === 0) return;
+            const select = document.getElementById('select-division');
+            if (select && select.value !== currentDivision) select.value = currentDivision;
 
-            let heightCm = unit === 'cm' ? height : height * 2.54;
-            let maxKg = 0;
+            const statusEl = document.getElementById('modern-status');
+            const displayEl = document.getElementById('modern-result-display');
+            const altEl = document.getElementById('modern-result-alt');
+            const ftEl = document.getElementById('modern-height-ft');
+            const idleStatusCls = "inline-block px-4 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300";
+            const isMetric = unit === 'cm';
+            const massUnit = isMetric ? 'kg' : 'lbs';
 
-            if (heightCm <= 163) maxKg = heightCm - 100;
-            else if (heightCm <= 165) maxKg = heightCm - 100 + 1;
-            else if (heightCm <= 168) maxKg = heightCm - 100 + 2;
-            else if (heightCm <= 170) maxKg = heightCm - 100 + 3;
-            else if (heightCm <= 173) maxKg = heightCm - 100 + 4;
-            else if (heightCm <= 175) maxKg = heightCm - 100 + 6;
-            else if (heightCm <= 178) maxKg = heightCm - 100 + 8;
-            else if (heightCm <= 180) maxKg = heightCm - 100 + 11;
-            else if (heightCm <= 183) maxKg = heightCm - 100 + 13;
-            else if (heightCm <= 185) maxKg = heightCm - 100 + 15;
-            else if (heightCm <= 188) maxKg = heightCm - 100 + 17;
-            else maxKg = heightCm - 100 + 19;
-
-            let displayMax = unit === 'cm' ? maxKg : maxKg * 2.20462;
-            let massUnit = unit === 'cm' ? 'kg' : 'lbs';
-
-            document.getElementById('modern-result-display').innerHTML = `${displayMax.toFixed(1)} <span class="text-2xl text-slate-500">${massUnit}</span>`;
-            
-            if (weight > 0) {
-                let diff = displayMax - (unit === 'cm' ? weight : weight);
-                let statusEl = document.getElementById('modern-status');
-                
-                if (diff < -0.5) {
-                    statusEl.className = "inline-block px-4 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20";
-                    statusEl.innerText = `Over Limit by ${Math.abs(diff).toFixed(1)} ${massUnit}`;
-                } else if (diff > 0.5) {
-                    statusEl.className = "inline-block px-4 py-1 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20";
-                    statusEl.innerText = `${diff.toFixed(1)} ${massUnit} to Limit`;
-                } else {
-                    statusEl.className = "inline-block px-4 py-1 rounded-full text-xs font-bold bg-amber-500 text-slate-900";
-                    statusEl.innerText = "MAXED OUT";
-                }
+            if (height === 0) {
+                // Clear stale results
+                displayEl.innerHTML = `-- <span class="text-xl md:text-2xl text-slate-500 unit-mass">${massUnit}</span>`;
+                altEl.textContent = '';
+                ftEl.textContent = '';
+                statusEl.className = idleStatusCls;
+                statusEl.textContent = 'Enter height';
+                return;
             }
+
+            const heightCm = isMetric ? height : height * 2.54;
+            const heightIn = isMetric ? height / 2.54 : height;
+            const cap = getWeightCap(currentDivision, heightCm, heightIn);
+            const d = divisions[currentDivision];
+
+            const capDisplay = isMetric ? cap.kg : cap.lb;
+            displayEl.innerHTML = `${fmtNum(capDisplay)} <span class="text-xl md:text-2xl text-slate-500 unit-mass">${massUnit}</span>`;
+            altEl.textContent = isMetric ? `≈ ${fmtNum(cap.lb)} lbs` : `≈ ${fmtNum(cap.kg)} kg`;
+
+            if (d.type === 'inch') {
+                const bracket = cap.bracketIn === null ? `over 6'7"` : `up to ${fmtFeet(cap.bracketIn)}`;
+                ftEl.textContent = `Height ${fmtFeet(heightIn)} · ${d.federation} bracket: ${bracket}`;
+            } else {
+                ftEl.textContent = '';
+            }
+
+            if (weight <= 0) {
+                statusEl.className = idleStatusCls;
+                statusEl.textContent = 'Enter weight';
+                return;
+            }
+
+            const diff = capDisplay - weight;
+            if (diff < -0.5) {
+                statusEl.className = "inline-block px-4 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20";
+                statusEl.textContent = `Over Limit by ${Math.abs(diff).toFixed(1)} ${massUnit}`;
+            } else if (diff > 0.5) {
+                statusEl.className = "inline-block px-4 py-1 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20";
+                statusEl.textContent = `${diff.toFixed(1)} ${massUnit} to Limit`;
+            } else {
+                statusEl.className = "inline-block px-4 py-1 rounded-full text-xs font-bold bg-amber-500 text-slate-900";
+                statusEl.textContent = "MAXED OUT";
+            }
+        }
+
+        // --- SELF-TEST (run with ?test in the URL) ---
+        function runSelfTests() {
+            let passed = 0, failed = 0;
+            const check = (name, actual, expected, tol = 0.01) => {
+                const ok = typeof actual === 'number' && Math.abs(actual - expected) <= tol;
+                if (ok) passed++; else failed++;
+                console.log(`${ok ? 'PASS' : 'FAIL'}: ${name} → got ${actual}, expected ${expected}`);
+            };
+
+            // McCallum, wrist 7 in
+            const m = computeIdeals(7, 0, 'mccallum', 1);
+            check('McCallum chest (wrist 7)', m.chest, 45.5);
+            check('McCallum waist', m.waist, 31.85);
+            check('McCallum arm', m.arm, 16.38);
+            check('McCallum forearm', m.forearm, 13.195);
+            check('McCallum thigh', m.thigh, 24.115);
+            check('McCallum calf', m.calf, 15.47);
+            check('McCallum neck', m.neck, 16.835);
+            check('McCallum hips', m.hips, 38.675);
+
+            // IFBB Classic Physique
+            const ifbb = cm => getWeightCap('ifbb-cp', cm, cm / 2.54).kg;
+            check('IFBB CP 170 cm', ifbb(170), 76);
+            check('IFBB CP 186 cm', ifbb(186), 99);
+            check('IFBB CP 197 cm', ifbb(197), 114);
+            check('IFBB CP 168 cm', ifbb(168), 72);
+            check('IFBB CP 169 cm', ifbb(169), 75);
+
+            // NPC
+            check('NPC 67 in', getWeightCap('npc', 67 * 2.54, 67).lb, 182);
+            check('NPC 170.2 cm', getWeightCap('npc', 170.2, 170.2 / 2.54).lb, 182);
+            check('NPC 80 in', getWeightCap('npc', 80 * 2.54, 80).lb, 274);
+
+            // Pro League
+            check('Pro League 67 in', getWeightCap('pro', 67 * 2.54, 67).lb, 192);
+
+            // Unit round trips (same conversion as setUnit)
+            const lenRT = convertForUnit(convertForUnit(17, 1 / 2.54, 'in'), 2.54, 'cm');
+            check('Round trip 17 cm → in → cm', lenRT, 17.0, 0.001);
+            const massRT = convertForUnit(convertForUnit(80, KG_TO_LB, 'in'), 1 / KG_TO_LB, 'cm');
+            check('Round trip 80 kg → lbs → kg', massRT, 80.0, 0.001);
+
+            console.log(`Self-test: ${passed} passed, ${failed} failed`);
+            return failed === 0;
         }
 
         // --- UTILS ---
@@ -504,11 +1111,14 @@
             // Updated to populate values from currentStats object (which might be loaded from storage)
             currentStatsPanel.innerHTML = parts.map(p => {
                 let val = currentStats[p.key];
-                let displayVal = val > 0 ? val : ''; 
+                let displayVal = val > 0 ? parseFloat(val.toFixed(2)) : '';
                 return `
                     <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 focus-within:border-amber-500/50 transition-colors">
-                        <label class="text-[9px] text-slate-400 uppercase font-bold block mb-1 text-center truncate">${p.label}</label>
-                        <input type="number" placeholder="-" value="${displayVal}" oninput="updateCurrent('${p.key}', this.value)" 
+                        <div class="flex items-center justify-center gap-1 mb-1 min-w-0">
+                            <label for="cur-${p.key}" class="text-[9px] text-slate-400 uppercase font-bold truncate">${p.label}</label>
+                            <button type="button" class="tip-btn inline-flex items-center justify-center w-4 h-4 rounded-full border border-slate-600 text-slate-400 hover:text-amber-500 hover:border-amber-500 text-[9px] font-bold leading-none normal-case tracking-normal shrink-0" data-tip="${p.key}" aria-label="How to measure ${p.label}" aria-expanded="false">?</button>
+                        </div>
+                        <input type="number" id="cur-${p.key}" placeholder="-" value="${displayVal}" oninput="updateCurrent('${p.key}', this.value)" 
                             class="w-full bg-slate-900 text-white text-center text-sm font-bold p-2 rounded border border-slate-700 focus:border-amber-500 outline-none transition-colors">
                     </div>
                 `;
@@ -517,8 +1127,7 @@
 
         function updateCurrent(key, val) {
             currentStats[key] = parseFloat(val) || 0;
-            calculateClassic();
-            saveState(); // Save changes
+            calculateClassic(); // also saves state
         }
 
         function toggleCurrentStats() {
@@ -526,47 +1135,64 @@
             currentStatsPanel.style.display = isHidden ? 'grid' : 'none';
         }
 
+        let copyResetTimer = null;
         function copyReport() {
-            reportOutput.select();
-            document.execCommand('copy');
-            alert("Report copied!");
+            const btn = document.getElementById('copy-btn');
+            const showMsg = (msg) => {
+                if (!btn) return;
+                btn.innerText = msg;
+                clearTimeout(copyResetTimer);
+                copyResetTimer = setTimeout(() => { btn.innerText = 'Copy Report'; }, 1500);
+            };
+            if (!navigator.clipboard || !navigator.clipboard.writeText) {
+                showMsg('Copy failed');
+                return;
+            }
+            navigator.clipboard.writeText(reportOutput.value)
+                .then(() => showMsg('Copied!'))
+                .catch(() => showMsg('Copy failed'));
         }
 
         function updateUIForUnit() {
-             if (unit === 'in') {
-                document.querySelectorAll('.unit-dist').forEach(e => e.innerText = 'in');
-                document.querySelectorAll('.unit-mass').forEach(e => e.innerText = 'lbs');
-                document.getElementById('btn-in').className = "px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95";
-                document.getElementById('btn-cm').className = "px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95";
-            } else {
-                document.querySelectorAll('.unit-dist').forEach(e => e.innerText = 'cm');
-                document.querySelectorAll('.unit-mass').forEach(e => e.innerText = 'kg');
-                document.getElementById('btn-cm').className = "px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95";
-                document.getElementById('btn-in').className = "px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95";
-            }
+            const activeCls = "px-3 py-2 md:py-1.5 rounded-md transition-all bg-amber-500 text-slate-900 shadow active:scale-95";
+            const idleCls = "px-3 py-2 md:py-1.5 rounded-md transition-all text-slate-400 hover:text-white active:scale-95";
+            const btnIn = document.getElementById('btn-in');
+            const btnCm = document.getElementById('btn-cm');
+            const isIn = unit === 'in';
+
+            document.querySelectorAll('.unit-dist').forEach(e => e.innerText = isIn ? 'in' : 'cm');
+            document.querySelectorAll('.unit-mass').forEach(e => e.innerText = isIn ? 'lbs' : 'kg');
+            if (btnIn) btnIn.className = isIn ? activeCls : idleCls;
+            if (btnCm) btnCm.className = isIn ? idleCls : activeCls;
+        }
+
+        // Keep 2 decimals in imperial so cm -> in -> cm round-trips cleanly
+        function convertForUnit(value, factor, toUnit) {
+            const decimals = toUnit === 'in' ? 2 : 1;
+            return parseFloat((parseFloat(value) * factor).toFixed(decimals));
         }
 
         function setUnit(newUnit) {
             if (unit === newUnit) return;
-            const factor = newUnit === 'in' ? 0.393701 : 2.54;
-            
-            const w = document.getElementById('input-wrist');
-            const a = document.getElementById('input-ankle');
-            if(w.value) w.value = (w.value * factor).toFixed(1);
-            if(a.value) a.value = (a.value * factor).toFixed(1);
-            
+            const factor = newUnit === 'in' ? 1 / 2.54 : 2.54;
+            const massFactor = newUnit === 'in' ? KG_TO_LB : 1 / KG_TO_LB;
+            const conv = (v, f) => String(convertForUnit(v, f, newUnit));
+
+            ['input-wrist', 'input-ankle', 'input-height'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value) el.value = conv(el.value, factor);
+            });
+            const wt = document.getElementById('input-weight');
+            if (wt && wt.value) wt.value = conv(wt.value, massFactor);
+
             unit = newUnit;
             updateUIForUnit();
-            
-            const inputs = currentStatsPanel.querySelectorAll('input');
-            inputs.forEach((inp, i) => {
-                if(inp.value) {
-                    let val = parseFloat(inp.value);
-                    let newVal = val * factor;
-                    inp.value = newVal.toFixed(1);
-                    currentStats[parts[i].key] = newVal;
-                }
+
+            // Convert stored current measurements at full precision, then re-render inputs
+            parts.forEach(p => {
+                if (currentStats[p.key] > 0) currentStats[p.key] = currentStats[p.key] * factor;
             });
+            renderCurrentStatsInputs();
 
             calculateClassic();
             calculateModern();
@@ -574,6 +1200,8 @@
         }
 
         init();
+
+        if (new URLSearchParams(location.search).has('test')) runSelfTests();
     </script>
 </body>
 </html>
