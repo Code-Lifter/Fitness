@@ -1,716 +1,830 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#ffffff">
-    <title>Exercise Session Plan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
-        section[id] { scroll-margin-top: 5rem; }
-
-        td input, td select {
-            width: 100%;
-            height: 100%;
-            min-height: 2.5rem;
-            padding: 0.5rem 0.625rem;
-            background: transparent;
-            outline: none;
-            border-radius: 0;
-        }
-        td input:focus, td select:focus {
-            background: #eef2ff;
-            box-shadow: inset 0 0 0 2px #6366f1;
-        }
-        td input::placeholder { color: #9ca3af; }
-
-        /* Show a chevron so the tempo picker reads as a dropdown */
-        select.input-tempo {
-            -webkit-appearance: none;
-            appearance: none;
-            cursor: pointer;
-            padding-right: 1.5rem;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.4rem center;
-        }
-
-        table { border-collapse: collapse; }
-        th, td { border: 1px solid #cbd5e1; }
-        thead th { background-color: #f8fafc; font-weight: 600; color: #334155; }
-
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-
-        .tip-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 1.1rem; height: 1.1rem; margin-left: 0.25rem;
-            border-radius: 9999px; background: #2563eb; color: #fff;
-            font-size: 0.65rem; font-weight: 700; line-height: 1;
-            vertical-align: middle; cursor: help;
-        }
-        .tip-btn:focus-visible, .guide-btn:focus-visible { outline: 2px solid #1e3a8a; outline-offset: 2px; }
-
-        /* "Add exercise" rows only exist in the phone layout */
-        .add-row { display: none; }
-
-        /* Mobile actions menu */
-        #mobile-menu summary { list-style: none; }
-        #mobile-menu summary::-webkit-details-marker { display: none; }
-
-        /* Sticky section tabs (phones) */
-        .sec-tab { border-radius: 0.6rem; padding: 0.35rem 0.25rem; transition: background-color .15s, box-shadow .15s; }
-        .sec-tab.is-active { background: #fff; box-shadow: 0 0 0 1px #cbd5e1, 0 1px 2px rgb(0 0 0 / 0.06); }
-
-        /* Guide bottom sheet */
-        #guide-sheet {
-            margin: auto 0 0; width: 100%; max-width: 100%; max-height: 85vh; max-height: 85dvh;
-            border: none; padding: 0; border-radius: 1rem 1rem 0 0; background: #fff; color: #0f172a;
-            overflow: auto; overscroll-behavior: contain;
-        }
-        #guide-sheet::backdrop { background: rgb(15 23 42 / 0.45); }
-        @media (prefers-reduced-motion: no-preference) {
-            #guide-sheet[open] { animation: sheet-up .22s ease-out; }
-            @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        }
-
-        /* ---------- Phone layout: tables become stacked cards ---------- */
-        @media screen and (max-width: 767px) {
-            /* 16px stops iOS zooming in when a field is focused */
-            input, select { font-size: 16px !important; }
-
-            /* Session info: label above each field, inside a card */
-            .info-table, .info-table tbody, .info-table tr, .info-table th, .info-table td { display: block; width: 100% !important; border: none; }
-            .info-table { min-width: 0 !important; }
-            .info-table th { background: none !important; padding: 0.75rem 0 0.3rem !important; font-size: 0.8rem; color: #334155; }
-            .info-wrap {
-                box-shadow: none !important; overflow: visible !important;
-                background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem !important; padding: 0 0.75rem 0.85rem;
-            }
-            .info-table input {
-                height: auto; border: 1px solid #cbd5e1; border-radius: 0.5rem; background: #fff; min-height: 2.75rem;
-                -webkit-appearance: none; appearance: none;
-            }
-            .info-table input::-webkit-date-and-time-value { text-align: left; }
-            .info-table input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #c7d2fe; background: #fff; }
-
-            .table-scroll:not(.info-wrap) { box-shadow: none !important; overflow: visible !important; border-radius: 0 !important; }
-            .plan-table { min-width: 0 !important; text-align: left !important; }
-            .plan-table, .plan-table tbody, .plan-table tfoot { display: block; }
-            .plan-table thead { display: none; }
-            .plan-table td { border: none; }
-
-            /* Subgroup headers (Cardio, Compound…) */
-            .plan-table tbody > tr:not(.calc-row) { display: block; }
-            .plan-table tbody > tr:not(.calc-row) td { display: block; background: none !important; padding: 0.75rem 0 0.4rem !important; }
-
-            /* Each exercise row is a card on a 6-column grid */
-            .plan-table .calc-row {
-                display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.5rem;
-                background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem;
-                padding: 0.75rem; margin-bottom: 0.625rem;
-                box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
-            }
-            .plan-table .calc-row:hover { background: #fff; }
-            .plan-table .calc-row:focus-within { border-color: #a5b4fc; }
-            .plan-table .calc-row.m-collapsed { display: none; }
-            .plan-table .calc-row td { display: block; padding: 0 !important; min-width: 0; }
-            .plan-table .calc-row td::before {
-                content: attr(data-label); display: block; margin-bottom: 0.2rem;
-                font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #64748b;
-            }
-            /* height:auto — the cell also holds the label, so 100% would overflow onto the next row */
-            .plan-table .calc-row input, .plan-table .calc-row select {
-                height: auto; border: 1px solid #cbd5e1; border-radius: 0.5rem; background-color: #fff; min-height: 2.75rem;
-            }
-            .plan-table .calc-row input:focus, .plan-table .calc-row select:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #c7d2fe; background-color: #fff; }
-            .plan-table .calc-row td:first-child input { font-weight: 600; text-align: left; }
-
-            .m-full  { grid-column: span 6; }
-            .m-half  { grid-column: span 3; }
-            .m-third { grid-column: span 2; }
-
-            /* Calculated time sits at the bottom of the card */
-            .plan-table .calc-row td.output-time {
-                grid-column: span 6; order: 99;
-                display: flex; justify-content: space-between; align-items: center;
-                background: #eff6ff !important; border-radius: 0.5rem; padding: 0.5rem 0.75rem !important;
-            }
-            .plan-table .calc-row td.output-time::before { margin: 0; color: #1e40af; }
-
-            /* "+ Add exercise" */
-            .plan-table tbody > tr.add-row td { padding: 0 0 0.5rem !important; }
-            .add-btn {
-                width: 100%; min-height: 2.75rem; border: 1.5px dashed #cbd5e1; border-radius: 0.75rem;
-                color: #4f46e5; font-weight: 600; font-size: 0.9rem; background: transparent;
-            }
-            .add-btn:active { background: #eef2ff; }
-
-            /* Section total */
-            .plan-table tfoot tr { display: flex; justify-content: space-between; align-items: center; background: #e2e8f0; border-radius: 0.5rem; margin-top: 0.25rem; }
-            .plan-table tfoot td { display: block; border: none; }
-            .plan-table tfoot td:empty { display: none; }
-        }
-
-        @media print {
-            @page { margin: 10mm; }
-            .no-print { display: none !important; }
-            body { background: white !important; padding: 0 !important; }
-            .sheet { box-shadow: none !important; max-width: 100% !important; padding: 0 !important; border: none !important; background: white !important; }
-            .table-scroll { overflow: visible !important; }
-            .table-scroll table { min-width: 0 !important; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            html { font-size: 11px; }
-            th, td { border-color: #374151 !important; }
-            input::placeholder { color: transparent !important; }
-            select.input-tempo { background-image: none; }
-            section { break-inside: avoid; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cardio Compass — Evidence into Action</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background:#0b1120; color:#e2e8f0; }
+  .brand { font-family: 'Teko', sans-serif; letter-spacing: .02em; }
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+  input[type=number] { -moz-appearance:textfield; }
+  .card { background:#0f172a; border:1px solid #1e293b; border-radius:1rem; padding:1.25rem; }
+  .lbl { display:block; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#64748b; margin-bottom:.3rem; }
+  .inp { width:100%; background:#020617; border:1px solid #1e293b; border-radius:.75rem; padding:.65rem .8rem; color:#fff; font-weight:700; outline:none; }
+  .inp:focus { border-color:#3b82f6; }
+  .btn { background:#2563eb; color:#fff; font-weight:700; border-radius:.75rem; padding:.7rem 1rem; transition:background .15s; }
+  .btn:hover { background:#3b82f6; }
+  .chip { border:1px solid #334155; background:#1e293b; color:#94a3b8; border-radius:.6rem; padding:.45rem .85rem; font-size:.8rem; font-weight:700; white-space:nowrap; }
+  .chip.on { background:rgba(59,130,246,.18); border-color:#3b82f6; color:#93c5fd; }
+  .tab { color:#94a3b8; padding:.6rem .9rem; border-bottom:2px solid transparent; font-weight:700; font-size:.85rem; white-space:nowrap; }
+  .tab.on { color:#fff; border-color:#3b82f6; }
+  .view { display:none; }
+  .view.on { display:block; animation:fade .25s ease; }
+  @keyframes fade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+  .yn button { border:1px solid #334155; padding:.3rem .8rem; font-size:.75rem; font-weight:700; color:#94a3b8; }
+  .yn button:first-child { border-radius:.5rem 0 0 .5rem; }
+  .yn button:last-child { border-radius:0 .5rem .5rem 0; border-left:none; }
+  .yn button.yes { background:#b91c1c; color:#fff; border-color:#b91c1c; }
+  .yn button.no { background:#047857; color:#fff; border-color:#047857; }
+  .marker { position:absolute; top:-5px; width:4px; height:20px; background:#fff; border-radius:2px; box-shadow:0 0 6px rgba(0,0,0,.6); transform:translateX(-50%); transition:left .5s ease-out; }
+  table.t { width:100%; font-size:.8rem; border-collapse:collapse; }
+  table.t th { text-align:left; color:#64748b; font-size:10px; text-transform:uppercase; letter-spacing:.1em; padding:.5rem; border-bottom:1px solid #1e293b; }
+  table.t td { padding:.55rem .5rem; border-bottom:1px solid #1e293b; vertical-align:top; }
+  details summary { cursor:pointer; list-style:none; }
+  details summary::-webkit-details-marker { display:none; }
+  .no-scrollbar::-webkit-scrollbar { display:none; }
+</style>
 </head>
-<body class="bg-slate-100 text-slate-900 font-sans sm:p-6 md:p-8">
+<body class="min-h-screen pb-24">
 
-    <div class="sheet max-w-[90rem] mx-auto bg-slate-50 md:bg-white sm:shadow-sm sm:ring-1 ring-slate-200 p-4 sm:p-6 min-h-screen sm:min-h-0 sm:rounded-xl">
+<header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-20 backdrop-blur">
+  <div class="max-w-5xl mx-auto px-5 pt-4">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <h1 class="brand text-4xl leading-none text-white">CARDIO <span class="text-blue-500">COMPASS</span></h1>
+        <p class="text-[11px] text-slate-500 uppercase tracking-widest font-bold">Screen · Test · Zone · Plan · Track</p>
+      </div>
+      <div class="text-right text-[11px] text-slate-500 hidden sm:block">Evidence-based cardio, turned into a weekly plan</div>
+    </div>
+    <nav class="flex gap-1 overflow-x-auto no-scrollbar mt-3" id="tabs">
+      <a href="#screen" class="tab" data-v="screen">1 · Screen</a>
+      <a href="#test" class="tab" data-v="test">2 · Test</a>
+      <a href="#zones" class="tab" data-v="zones">3 · Zones</a>
+      <a href="#plan" class="tab" data-v="plan">4 · Plan</a>
+      <a href="#week" class="tab" data-v="week">5 · This week</a>
+      <a href="#evidence" class="tab" data-v="evidence">Evidence</a>
+    </nav>
+  </div>
+</header>
 
-        <!-- Toolbar -->
-        <header class="no-print md:sticky top-0 z-40 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 mb-4 md:mb-5 px-4 sm:px-6 py-1.5 md:py-3 bg-white/95 backdrop-blur border-b border-slate-200 sm:rounded-t-xl">
-            <div class="flex items-center justify-between gap-3">
-                <nav class="flex items-center gap-1 sm:gap-2 text-sm -ml-3 min-w-0">
-                    <a href="/" class="px-3 py-2.5 rounded-md text-slate-700 hover:bg-slate-100 font-medium whitespace-nowrap">&larr; Home</a>
-                    <span class="text-slate-300">/</span>
-                    <a href="health-bench.html" class="px-3 py-2.5 rounded-md text-slate-700 hover:bg-slate-100 font-medium truncate">Health Bench</a>
-                </nav>
+<main class="max-w-5xl mx-auto px-5 mt-6 space-y-6">
 
-                <!-- Desktop / tablet actions -->
-                <div class="hidden md:flex flex-wrap items-center justify-end gap-2">
-                    <span id="save-status-lg" class="text-xs text-slate-500 mr-1">Changes save automatically</span>
-                    <input type="file" id="json-upload" class="hidden" accept=".json,application/json" onchange="importJSON(event)">
-                    <button type="button" onclick="openImport()" class="px-3 py-1.5 text-sm font-medium rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50">Import</button>
-                    <button type="button" onclick="exportJSON()" class="px-3 py-1.5 text-sm font-medium rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50">Export</button>
-                    <button type="button" onclick="window.print()" class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm">Print</button>
-                    <button type="button" onclick="resetPlan()" class="px-3 py-1.5 text-sm font-medium rounded-md text-red-600 hover:bg-red-50">Reset</button>
-                </div>
-
-                <!-- Phone actions -->
-                <details id="mobile-menu" class="md:hidden relative shrink-0">
-                    <summary class="flex items-center justify-center w-11 h-11 -mr-2 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer" aria-label="More actions">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-                    </summary>
-                    <div class="absolute right-0 mt-1 w-52 bg-white rounded-xl shadow-lg ring-1 ring-slate-200 py-1.5 z-50 text-[15px]">
-                        <button type="button" onclick="closeMenu(); openImport()" class="w-full text-left px-4 py-3 hover:bg-slate-50 active:bg-slate-100">Import plan…</button>
-                        <button type="button" onclick="closeMenu(); exportJSON()" class="w-full text-left px-4 py-3 hover:bg-slate-50 active:bg-slate-100">Export plan</button>
-                        <button type="button" onclick="closeMenu(); window.print()" class="w-full text-left px-4 py-3 hover:bg-slate-50 active:bg-slate-100">Print</button>
-                        <div class="my-1 border-t border-slate-100"></div>
-                        <button type="button" onclick="closeMenu(); resetPlan()" class="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 active:bg-red-100">Reset plan</button>
-                    </div>
-                </details>
-            </div>
-        </header>
-
-        <div class="mb-3 md:mb-5">
-            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Exercise Session Plan</h1>
-            <p id="save-status" class="md:hidden text-xs text-slate-500 mt-1" aria-live="polite">Changes save automatically</p>
+  <!-- PROFILE -->
+  <section class="card">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="brand text-2xl text-white">Your profile</h2>
+      <span id="hrmax-pill" class="text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1 rounded-full"></span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div><label class="lbl" for="p-age">Age</label><input class="inp" type="number" id="p-age" min="18" max="95"></div>
+      <div>
+        <span class="lbl">Sex (norms are sex-specific)</span>
+        <div class="flex bg-slate-950 rounded-xl p-1 border border-slate-800">
+          <button id="p-male" class="flex-1 rounded-lg text-sm font-bold py-2" onclick="setSex('male')">Male</button>
+          <button id="p-female" class="flex-1 rounded-lg text-sm font-bold py-2" onclick="setSex('female')">Female</button>
         </div>
+      </div>
+      <div><label class="lbl" for="p-rhr">Resting HR (optional)</label><input class="inp" type="number" id="p-rhr" placeholder="e.g. 60"></div>
+      <div><label class="lbl" for="p-hrmax">Measured max HR (optional)</label><input class="inp" type="number" id="p-hrmax" placeholder="blank = estimate"></div>
+    </div>
+    <p class="text-[11px] text-slate-500 mt-3">Saved in this browser only. Educational tool, not a medical device: field tests and watch estimates can be off by 10–15%.</p>
+  </section>
 
-        <!-- Phone: sticky section tabs with live totals -->
-        <nav id="mobile-tabs" class="no-print md:hidden sticky top-0 z-30 -mx-4 px-3 py-2 mb-4 bg-slate-50/95 backdrop-blur border-b border-slate-200 grid grid-cols-4 gap-1 text-center" aria-label="Sections">
-            <a href="#sec-warmup" data-sec="warmup" class="sec-tab"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-amber-800">Warm up</span><span class="block text-sm font-bold" data-sum="warmup">-</span></a>
-            <a href="#sec-conditioning" data-sec="conditioning" class="sec-tab"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-blue-800">Main</span><span class="block text-sm font-bold" data-sum="conditioning">-</span></a>
-            <a href="#sec-cooldown" data-sec="cooldown" class="sec-tab"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-teal-800">Cool down</span><span class="block text-sm font-bold" data-sum="cooldown">-</span></a>
-            <div class="rounded-[0.6rem] bg-slate-800 text-white py-[0.35rem]"><span class="block text-[0.65rem] font-semibold uppercase tracking-wide text-slate-300">Total</span><span class="block text-sm font-bold" data-sum="total">-</span></div>
-        </nav>
+  <!-- 1. SCREEN -->
+  <section id="v-screen" class="view space-y-6">
+    <div class="card">
+      <h2 class="brand text-2xl text-white">Pre-exercise check</h2>
+      <p class="text-sm text-slate-400 mb-4">Based on the Australian Adult Pre-Exercise Screening System (APSS) Stage 1, paraphrased. With clients, use the <a class="text-blue-400 underline" href="https://ausactive.org.au/wp-content/uploads/2022/02/Adult-Pre-Exercise-Screening-Tool.pdf" target="_blank" rel="noopener">official form</a>.</p>
+      <div id="apss-q" class="space-y-2"></div>
+    </div>
+    <div class="card">
+      <h3 class="brand text-xl text-white mb-1">Your current activity</h3>
+      <p class="text-xs text-slate-400 mb-3">Typical week. APSS counts vigorous minutes double.</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl" for="a-mod">Light/moderate min per week</label><input class="inp" type="number" id="a-mod" placeholder="e.g. 90"></div>
+        <div><label class="lbl" for="a-vig">Vigorous min per week</label><input class="inp" type="number" id="a-vig" placeholder="e.g. 20"></div>
+      </div>
+    </div>
+    <div id="apss-out" class="card" aria-live="polite"></div>
+  </section>
 
-        <!-- Session Info -->
-        <section class="mb-6">
-            <div class="table-scroll info-wrap overflow-x-auto rounded-lg ring-1 ring-slate-300">
-                <table class="info-table w-full min-w-[36rem] text-sm">
-                    <tbody>
-                        <tr>
-                            <th scope="row" class="w-1/4 p-2 text-left bg-slate-50"><label for="session-date">Date of Session</label></th>
-                            <td class="p-0"><input type="text" placeholder="YYYY-MM-DD" id="session-date" autocomplete="off"></td>
-                            <th scope="row" class="w-1/4 p-2 text-left bg-slate-50"><label for="session-type">Assigned Exercise Type</label></th>
-                            <td class="p-0"><input type="text" id="session-type" placeholder="e.g. Full body strength" autocomplete="off" autocapitalize="sentences"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row" class="p-2 text-left bg-slate-50"><label for="session-freq">Session Frequency</label></th>
-                            <td class="p-0"><input type="text" id="session-freq" placeholder="e.g. 3× per week" autocomplete="off"></td>
-                            <th scope="row" class="p-2 text-left bg-slate-50"><label for="session-dur">Session Duration</label></th>
-                            <td class="p-0"><input type="text" id="session-dur" placeholder="e.g. 60 min" autocomplete="off"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Time summary (phones get the sticky tabs instead) -->
-            <dl class="hidden md:grid grid-cols-4 gap-2 mt-3 text-sm">
-                <div class="rounded-lg bg-amber-50 ring-1 ring-amber-200 px-3 py-2"><dt class="text-amber-800 text-xs font-semibold uppercase">Warm Up</dt><dd data-sum="warmup" class="font-bold text-lg">-</dd></div>
-                <div class="rounded-lg bg-blue-50 ring-1 ring-blue-200 px-3 py-2"><dt class="text-blue-800 text-xs font-semibold uppercase">Conditioning</dt><dd data-sum="conditioning" class="font-bold text-lg">-</dd></div>
-                <div class="rounded-lg bg-teal-50 ring-1 ring-teal-200 px-3 py-2"><dt class="text-teal-800 text-xs font-semibold uppercase">Cool Down</dt><dd data-sum="cooldown" class="font-bold text-lg">-</dd></div>
-                <div class="rounded-lg bg-slate-800 text-white px-3 py-2"><dt class="text-slate-300 text-xs font-semibold uppercase">Estimated Total</dt><dd data-sum="total" class="font-bold text-lg">-</dd></div>
-            </dl>
-        </section>
-
-        <!-- WARM UP -->
-        <section id="sec-warmup" class="mb-6">
-            <div class="flex items-center justify-between gap-2 mb-2">
-                <h2 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>Warm Up</h2>
-                <button type="button" class="guide-btn no-print md:hidden inline-flex items-center gap-1 px-3 py-2 -my-1 rounded-full text-xs font-semibold bg-white text-indigo-700 ring-1 ring-indigo-200" data-guide="intensityDetail">ⓘ Guide</button>
-            </div>
-            <div class="table-scroll overflow-x-auto rounded-lg ring-1 ring-slate-300">
-                <table class="plan-table w-full min-w-[56rem] text-center text-sm">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="p-2 w-56 text-left">Exercise</th>
-                            <th colspan="2" class="p-2">Volume</th>
-                            <th rowspan="2" class="p-2 w-32">Tempo<button type="button" class="tip-btn no-print" data-tip="tempo" aria-label="Tempo guide">i</button></th>
-                            <th rowspan="2" class="p-2 w-28">Rest (sec)<button type="button" class="tip-btn no-print" data-tip="rest" aria-label="Rest guide">i</button></th>
-                            <th rowspan="2" class="p-2 w-32">Intensity<button type="button" class="tip-btn no-print" data-tip="intensityDetail" aria-label="Intensity guide">i</button></th>
-                            <th rowspan="2" class="p-2 text-left">Equipment Required</th>
-                            <th rowspan="2" class="p-2 w-24 text-blue-700">Time<br><span class="font-normal text-xs">auto</span></th>
-                        </tr>
-                        <tr><th class="p-2 w-16">Sets</th><th class="p-2 w-16">Reps</th></tr>
-                    </thead>
-                    <tbody class="warmup-body"></tbody>
-                    <tfoot>
-                        <tr class="bg-slate-50"><td colspan="7" class="text-right font-bold p-2 uppercase text-xs tracking-wide">Warm Up Total</td><td id="warmup-total" class="font-bold p-2 text-blue-800">-</td></tr>
-                    </tfoot>
-                </table>
-            </div>
-        </section>
-
-        <!-- CONDITIONING -->
-        <section id="sec-conditioning" class="mb-6">
-            <div class="flex items-center justify-between gap-2 mb-2">
-                <h2 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-blue-800"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>Conditioning</h2>
-                <button type="button" class="guide-btn no-print md:hidden inline-flex items-center gap-1 px-3 py-2 -my-1 rounded-full text-xs font-semibold bg-white text-indigo-700 ring-1 ring-indigo-200" data-guide="intensity">ⓘ Guide</button>
-            </div>
-            <div class="table-scroll overflow-x-auto rounded-lg ring-1 ring-slate-300">
-                <table class="plan-table w-full min-w-[56rem] text-center text-sm">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="p-2 w-56 text-left">Exercise</th>
-                            <th colspan="2" class="p-2">Volume</th>
-                            <th rowspan="2" class="p-2 w-32">Tempo<button type="button" class="tip-btn no-print" data-tip="tempo" aria-label="Tempo guide">i</button></th>
-                            <th rowspan="2" class="p-2 w-24 text-blue-700">Time<br><span class="font-normal text-xs">auto</span></th>
-                            <th rowspan="2" class="p-2 w-32">Intensity<button type="button" class="tip-btn no-print" data-tip="intensity" aria-label="Intensity guide">i</button></th>
-                            <th rowspan="2" class="p-2 w-28">Rest (sec)<button type="button" class="tip-btn no-print" data-tip="rest" aria-label="Rest guide">i</button></th>
-                            <th rowspan="2" class="p-2 text-left">Equipment Required</th>
-                        </tr>
-                        <tr><th class="p-2 w-16">Sets</th><th class="p-2 w-16">Reps</th></tr>
-                    </thead>
-                    <tbody class="conditioning-body"></tbody>
-                    <tfoot>
-                        <tr class="bg-slate-50"><td colspan="4" class="text-right font-bold p-2 uppercase text-xs tracking-wide">Conditioning Total</td><td id="conditioning-total" class="font-bold p-2 text-blue-800">-</td><td colspan="3"></td></tr>
-                    </tfoot>
-                </table>
-            </div>
-        </section>
-
-        <!-- COOL DOWN -->
-        <section id="sec-cooldown" class="mb-2">
-            <div class="flex items-center justify-between gap-2 mb-2">
-                <h2 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-teal-800"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>Cool Down</h2>
-                <button type="button" class="guide-btn no-print md:hidden inline-flex items-center gap-1 px-3 py-2 -my-1 rounded-full text-xs font-semibold bg-white text-indigo-700 ring-1 ring-indigo-200" data-guide="intensity">ⓘ Guide</button>
-            </div>
-            <div class="table-scroll overflow-x-auto rounded-lg ring-1 ring-slate-300">
-                <table class="plan-table w-full min-w-[56rem] text-center text-sm">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="p-2 w-56 text-left">Exercise</th>
-                            <th colspan="2" class="p-2">Volume</th>
-                            <th rowspan="2" class="p-2 w-32">Tempo<button type="button" class="tip-btn no-print" data-tip="tempo" aria-label="Tempo guide">i</button></th>
-                            <th rowspan="2" class="p-2 w-28">Rest (sec)<button type="button" class="tip-btn no-print" data-tip="rest" aria-label="Rest guide">i</button></th>
-                            <th rowspan="2" class="p-2 w-32">Intensity<button type="button" class="tip-btn no-print" data-tip="intensity" aria-label="Intensity guide">i</button></th>
-                            <th rowspan="2" class="p-2 text-left">Equipment Required</th>
-                            <th rowspan="2" class="p-2 w-24 text-blue-700">Time<br><span class="font-normal text-xs">auto</span></th>
-                        </tr>
-                        <tr><th class="p-2 w-16">Sets</th><th class="p-2 w-16">Reps</th></tr>
-                    </thead>
-                    <tbody class="cooldown-body"></tbody>
-                    <tfoot>
-                        <tr class="bg-slate-50"><td colspan="7" class="text-right font-bold p-2 uppercase text-xs tracking-wide">Cool Down Total</td><td id="cooldown-total" class="font-bold p-2 text-blue-800">-</td></tr>
-                    </tfoot>
-                </table>
-            </div>
-        </section>
-
-        <p class="no-print hidden md:block mt-4 text-xs text-slate-500 text-center">Tip: press <kbd class="px-1 rounded bg-slate-100 ring-1 ring-slate-300">Enter</kbd> to jump to the same column in the next row.</p>
+  <!-- 2. TEST -->
+  <section id="v-test" class="view space-y-6">
+    <div class="flex gap-2 overflow-x-auto no-scrollbar" id="test-chips">
+      <button class="chip" data-t="vo2">VO2 max</button>
+      <button class="chip" data-t="step">YMCA step test</button>
+      <button class="chip" data-t="row">2k row</button>
+      <button class="chip" data-t="rhr">Resting HR</button>
+      <button class="chip" data-t="hrr">HR recovery</button>
     </div>
 
-    <!-- Suggestions for the intensity field -->
-    <datalist id="intensity-options">
-        <option value="Low"></option>
-        <option value="Moderate"></option>
-        <option value="High"></option>
-    </datalist>
-
-    <!-- Shared tooltip (fixed-position so scrolling tables never clip it) -->
-    <div id="tooltip" role="tooltip" class="no-print hidden fixed z-50 w-64 bg-slate-900 text-white text-xs rounded-md p-3 shadow-xl text-left pointer-events-none"></div>
-
-    <!-- Phone guide: bottom sheet -->
-    <dialog id="guide-sheet" class="no-print" aria-labelledby="guide-title">
-        <div class="px-5 pt-3" style="padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));">
-            <div class="mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-300" aria-hidden="true"></div>
-            <div class="flex items-center justify-between mb-2">
-                <h3 id="guide-title" class="text-lg font-bold">Quick guide</h3>
-                <button type="button" data-close class="w-10 h-10 -mr-2 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100" aria-label="Close guide">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.3 5.3a1 1 0 0 1 1.4 0L10 8.6l3.3-3.3a1 1 0 1 1 1.4 1.4L11.4 10l3.3 3.3a1 1 0 0 1-1.4 1.4L10 11.4l-3.3 3.3a1 1 0 0 1-1.4-1.4L8.6 10 5.3 6.7a1 1 0 0 1 0-1.4z"/></svg>
-                </button>
-            </div>
-            <div id="guide-body" class="text-sm text-slate-700 space-y-4"></div>
+    <!-- VO2 -->
+    <div class="tpanel card space-y-4" data-t="vo2">
+      <div>
+        <h3 class="brand text-2xl text-white">VO2 max: your longevity number</h3>
+        <p class="text-xs text-slate-400">Graded against FRIEND 2022: 16,278 lab-measured treadmill tests, by age and sex.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-3">
+        <div>
+          <label class="lbl" for="vo2-src">Source</label>
+          <select id="vo2-src" class="inp">
+            <option value="cooper">Cooper run: 1.5 mi (2.414 km)</option>
+            <option value="km24">Run: 2.4 km track</option>
+            <option value="watch">Smartwatch estimate</option>
+            <option value="lab">Lab gas-analysis test</option>
+          </select>
         </div>
-    </dialog>
+        <div id="vo2-time-wrap"><label class="lbl" for="vo2-time">Run time (mm:ss)</label><input class="inp" id="vo2-time" placeholder="12:30"></div>
+        <div id="vo2-val-wrap" class="hidden"><label class="lbl" for="vo2-val">VO2 max (mL/kg/min)</label><input class="inp" type="number" step="0.1" id="vo2-val" placeholder="42"></div>
+      </div>
+      <button class="btn w-full" onclick="analyseVO2()">Analyse VO2 max</button>
+      <div id="vo2-out" aria-live="polite"></div>
+    </div>
 
-    <!-- Toast -->
-    <div id="toast" class="no-print fixed left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm shadow-lg opacity-0 translate-y-2 transition-all pointer-events-none" style="bottom: calc(1rem + env(safe-area-inset-bottom));" aria-live="polite"></div>
+    <!-- STEP -->
+    <div class="tpanel card space-y-4" data-t="step">
+      <div>
+        <h3 class="brand text-2xl text-white">YMCA 3-minute step test</h3>
+        <p class="text-xs text-slate-400">30 cm (12") step, metronome 96 bpm (up-up-down-down), 3 minutes. Sit straight away and count your pulse for one full minute.</p>
+      </div>
+      <div><label class="lbl" for="step-hr">1-minute recovery pulse (bpm)</label><input class="inp text-2xl text-center" type="number" id="step-hr" placeholder="95"></div>
+      <button class="btn w-full" onclick="analyseStep()">Grade step test</button>
+      <div id="step-out" aria-live="polite"></div>
+    </div>
 
-    <script>
-        // ---------- Tooltip content ----------
-        const TIPS = {
-            tempo: `
-                <span class="block mb-1">🎯 <b>Hypertrophy:</b> 3-1-1-0, 4-1-1-0</span>
-                <span class="block mb-1">⚡ <b>Explosive:</b> 2-0-X-0, 1-0-X-0</span>
-                <span class="block mb-1">⏸️ <b>Pause Heavy:</b> 3-3-1-0, 2-2-1-1</span>
-                <span class="block mb-1">🔄 <b>Continuous:</b> 2-0-2-0</span>
-                <span class="block">🔥 <b>Eccentric:</b> 5-0-1-0, 6-1-1-0</span>`,
-            rest: `
-                <span class="block mb-1">⏱️ <b>Power/Strength:</b> 180–300s+</span>
-                <span class="block mb-1">💪 <b>Hypertrophy:</b> 60–120s</span>
-                <span class="block">🏃 <b>Endurance:</b> 30–60s</span>`,
-            intensityDetail: `
-                <span class="block mb-1.5">🟢 <b>Low</b><br>40-60% 1RM (RPE 3-4)<br>Zone 1-2 (50-70% MHR)</span>
-                <span class="block mb-1.5">🟡 <b>Moderate</b><br>60-80% 1RM (RPE 5-7)<br>Zone 3 (70-80% MHR)</span>
-                <span class="block">🔴 <b>High</b><br>80-100% 1RM (RPE 8-10)<br>Zone 4-5 (85-100% MHR)</span>`,
-            intensity: `
-                <span class="block mb-1">🟢 <b>Low:</b> RPE 3-4 (Recovery)</span>
-                <span class="block mb-1">🟡 <b>Moderate:</b> RPE 5-7 (60-75%)</span>
-                <span class="block">🔴 <b>High:</b> RPE 8-10 (80-100%)</span>`
-        };
+    <!-- ROW -->
+    <div class="tpanel card space-y-4" data-t="row">
+      <div>
+        <h3 class="brand text-2xl text-white">Concept2 2000 m row</h3>
+        <p class="text-xs text-slate-400">A performance test, not a health norm. There's no validated 2k-to-VO2 max equation, so this doesn't feed the longevity grading.</p>
+      </div>
+      <div><label class="lbl" for="row-time">2k time (m:ss.t)</label><input class="inp" id="row-time" placeholder="7:38.0"></div>
+      <button class="btn w-full" onclick="analyseRow()">Analyse row</button>
+      <div id="row-out" aria-live="polite"></div>
+    </div>
 
-        // ---------- Row templates ----------
-        const tempoSelectHTML = `
-            <select class="input-tempo text-center text-sm" aria-label="Tempo">
-                <option value="" disabled selected hidden>-</option>
-                <optgroup label="Hypertrophy"><option value="3-1-1-0">3-1-1-0</option><option value="4-1-1-0">4-1-1-0</option></optgroup>
-                <optgroup label="Explosive Power"><option value="2-0-X-0">2-0-X-0</option><option value="1-0-X-0">1-0-X-0</option></optgroup>
-                <optgroup label="Pause Heavy"><option value="3-3-1-0">3-3-1-0</option><option value="2-2-1-1">2-2-1-1</option></optgroup>
-                <optgroup label="Continuous Tension"><option value="2-0-2-0">2-0-2-0</option></optgroup>
-                <optgroup label="Eccentric Overload"><option value="5-0-1-0">5-0-1-0</option><option value="6-1-1-0">6-1-1-0</option></optgroup>
-            </select>`;
+    <!-- RHR -->
+    <div class="tpanel card space-y-4" data-t="rhr">
+      <div>
+        <h3 class="brand text-2xl text-white">Resting heart rate</h3>
+        <p class="text-xs text-slate-400">Each +10 bpm is linked to about 9% higher all-cause mortality (Zhang 2016 meta-analysis). Track the trend, not single days.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl" for="rhr-val">Resting HR (bpm)</label><input class="inp" type="number" id="rhr-val" placeholder="62"></div>
+        <div>
+          <label class="lbl" for="rhr-type">Measured how?</label>
+          <select id="rhr-type" class="inp">
+            <option value="wake">Seated, after 5 min rest (waking)</option>
+            <option value="watch">Watch "resting HR"</option>
+            <option value="sleep">Average sleeping HR</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn w-full" onclick="analyseRHR()">Check resting HR</button>
+      <div id="rhr-out" aria-live="polite"></div>
+    </div>
 
-        const num = (cls, label, ph) => `<input type="number" inputmode="numeric" class="${cls} text-center" min="0" placeholder="${ph}" aria-label="${label}">`;
-        // data-label + m-* classes drive the phone card layout (see CSS)
-        const outCell = `<td class="p-2 bg-blue-50/60 font-semibold text-blue-800 output-time" data-label="Estimated time">-</td>`;
-        const exerciseCell = `<td class="p-0 m-full" data-label="Exercise"><input type="text" placeholder="Exercise name" aria-label="Exercise" autocomplete="off" autocapitalize="words"></td>`;
-        const setsRepsTempo = `
-                <td class="p-0 m-third" data-label="Sets">${num('input-sets', 'Sets', '0')}</td>
-                <td class="p-0 m-third" data-label="Reps">${num('input-reps', 'Reps', '0')}</td>
-                <td class="p-0 m-third" data-label="Tempo">${tempoSelectHTML}</td>`;
-        const restCell = `<td class="p-0 m-half" data-label="Rest (sec)">${num('input-rest', 'Rest in seconds', 'sec')}</td>`;
-        const intensityCell = `<td class="p-0 m-half" data-label="Intensity"><input type="text" class="text-center" placeholder="Low/Mod/High" aria-label="Intensity" list="intensity-options" autocomplete="off" autocapitalize="words"></td>`;
-        const equipmentCell = `<td class="p-0 m-full" data-label="Equipment"><input type="text" placeholder="e.g. Dumbbells" aria-label="Equipment required" autocomplete="off" autocapitalize="sentences"></td>`;
+    <!-- HRR -->
+    <div class="tpanel card space-y-4" data-t="hrr">
+      <div>
+        <h3 class="brand text-2xl text-white">Heart rate recovery</h3>
+        <p class="text-xs text-slate-400">The drop from peak HR after a hard effort. It only means something if the peak was near-maximal (≥85% of max HR).</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-3">
+        <div>
+          <label class="lbl" for="hrr-proto">Protocol</label>
+          <select id="hrr-proto" class="inp">
+            <option value="1a">1 min, walking cool-down (Apple-style)</option>
+            <option value="1s">1 min, seated / stopped</option>
+            <option value="2">2 min drop (Garmin-style)</option>
+          </select>
+        </div>
+        <div><label class="lbl" for="hrr-peak">Peak HR</label><input class="inp" type="number" id="hrr-peak" placeholder="178"></div>
+        <div><label class="lbl" for="hrr-post">HR after recovery</label><input class="inp" type="number" id="hrr-post" placeholder="150"></div>
+      </div>
+      <button class="btn w-full" onclick="analyseHRR()">Check recovery</button>
+      <div id="hrr-out" aria-live="polite"></div>
+    </div>
 
-        // Cell order must stay the same (saved data is keyed by input order)
-        const standardRow = `
-            <tr class="calc-row hover:bg-slate-50 transition-colors">
-                ${exerciseCell}${setsRepsTempo}${restCell}${intensityCell}${equipmentCell}${outCell}
-            </tr>`;
-        const conditioningRow = `
-            <tr class="calc-row hover:bg-slate-50 transition-colors">
-                ${exerciseCell}${setsRepsTempo}${outCell}${intensityCell}${restCell}${equipmentCell}
-            </tr>`;
-        const subHeader = (title) => `<tr><td colspan="8" class="bg-slate-100 font-semibold text-slate-600 uppercase text-xs tracking-wide py-1.5 px-3 text-left">${title}</td></tr>`;
-        // On phones, empty rows fold away behind an "Add exercise" button
-        const addRow = `<tr class="add-row no-print"><td colspan="8"><button type="button" class="add-btn">+ Add exercise</button></td></tr>`;
-        const group = (title, row, n) => subHeader(title) + row.repeat(n) + (n > 1 ? addRow : '');
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="brand text-xl text-white">Test history</h3>
+        <button class="text-xs text-slate-500 hover:text-red-400" onclick="clearHistory()">Clear</button>
+      </div>
+      <div id="history" class="text-sm text-slate-400"></div>
+    </div>
+  </section>
 
-        document.querySelector('.warmup-body').innerHTML = group("Cardio", standardRow, 1) + group("Dynamic Stretching", standardRow, 4);
-        document.querySelector('.conditioning-body').innerHTML = group("Compound", conditioningRow, 4) + group("Isolation", conditioningRow, 4);
-        document.querySelector('.cooldown-body').innerHTML = group("Cardio", standardRow, 1) + group("Static Stretch", standardRow, 8);
+  <!-- 3. ZONES -->
+  <section id="v-zones" class="view space-y-6">
+    <div class="card">
+      <h2 class="brand text-2xl text-white">Heart rate zones</h2>
+      <p id="zones-src" class="text-xs text-slate-400 mb-4"></p>
+      <div class="overflow-x-auto"><table class="t" id="zones-table"></table></div>
+      <p class="text-[11px] text-slate-500 mt-3">Predicted max HR can easily be off by ±10 bpm, so check the numbers against the talk test. If they disagree, go with your breathing.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4" id="key-sessions"></div>
+  </section>
 
-        // IDs are index-based; the order of inputs/selects must stay the same so existing saved data still loads.
-        const allInputs = document.querySelectorAll('input, select');
-        allInputs.forEach((input, index) => {
-            if (!input.id && input.type !== 'file') input.id = 'workout_input_v2_' + index;
-        });
-        const dataInputs = [...allInputs].filter(i => i.type !== 'file');
-        dataInputs.forEach(i => i.setAttribute('enterkeyhint', 'next'));
+  <!-- 4. PLAN -->
+  <section id="v-plan" class="view space-y-6">
+    <div class="card">
+      <h2 class="brand text-2xl text-white">Pick your goal</h2>
+      <div class="flex gap-2 flex-wrap mt-3" id="goal-chips"></div>
+      <p id="goal-why" class="text-sm text-slate-300 mt-4"></p>
+    </div>
+    <div id="plan-banners" class="space-y-3"></div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-7 gap-3" id="plan-grid"></div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card" id="plan-dose"></div>
+      <div class="card" id="plan-notes"></div>
+    </div>
+  </section>
 
-        const isPhone = () => window.matchMedia('(max-width: 767px)').matches;
+  <!-- 5. WEEK -->
+  <section id="v-week" class="view space-y-6">
+    <div class="card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="brand text-2xl text-white">This week's minutes</h2>
+        <button class="text-xs text-slate-500 hover:text-red-400" onclick="resetWeek()">Reset week</button>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Log what you actually did. Moderate = talk-test pace or harder. Vigorous = can only say a few words. "Plan" shows your goal plan's target.</p>
+      <div class="overflow-x-auto"><table class="t" id="week-table"></table></div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card" id="week-dose"></div>
+      <div class="card" id="week-split"></div>
+    </div>
+  </section>
 
-        // ---------- Safe storage ----------
-        const store = {
-            get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-            set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
-            remove(k) { try { localStorage.removeItem(k); } catch {} }
-        };
+  <!-- EVIDENCE -->
+  <section id="v-evidence" class="view space-y-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="stat-tiles"></div>
+    <div class="card">
+      <h2 class="brand text-2xl text-white mb-2">Goal → cardio type → dose</h2>
+      <div class="overflow-x-auto"><table class="t" id="goal-table"></table></div>
+    </div>
+    <div class="card space-y-2" id="myths"></div>
+    <div class="card">
+      <h3 class="brand text-xl text-white mb-2">Sources</h3>
+      <ul class="text-xs space-y-1 text-blue-400" id="sources"></ul>
+    </div>
+  </section>
 
-        // ---------- Date field: native picker when the value fits ----------
-        const dateInput = document.getElementById('session-date');
-        function setDateValue(v) {
-            v = v ?? '';
-            if (v === '' || /^\d{4}-\d{2}-\d{2}$/.test(v)) { dateInput.type = 'date'; dateInput.value = v; }
-            else { dateInput.type = 'text'; dateInput.value = v; } // keep older free-text dates intact
-        }
+  <!-- REPORT -->
+  <section class="card">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="brand text-2xl text-white">Coach's report</h2>
+      <div class="flex items-center gap-3">
+        <span id="copy-msg" class="text-xs text-emerald-400"></span>
+        <button class="btn text-xs py-2" onclick="copyReport()">Copy report</button>
+      </div>
+    </div>
+    <textarea id="report" readonly class="w-full h-56 bg-slate-950 rounded-xl border border-slate-800 p-4 text-slate-300 text-xs font-mono resize-none outline-none"></textarea>
+  </section>
+</main>
 
-        // ---------- Time calculations ----------
-        function formatTime(totalSeconds) {
-            if (totalSeconds <= 0) return "-";
-            const secs = Math.round(totalSeconds);
-            const h = Math.floor(secs / 3600);
-            const m = Math.floor((secs % 3600) / 60);
-            const s = secs % 60;
-            if (h > 0) return `${h}h ${m}m`;
-            return m > 0 ? `${m}m ${s}s` : `${s}s`;
-        }
+<script>
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('cc_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('cc_' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const LEVEL = [
+  { txt: 'text-red-400', bg: 'bg-red-500/15 border-red-500/40' },
+  { txt: 'text-orange-400', bg: 'bg-orange-500/15 border-orange-500/40' },
+  { txt: 'text-yellow-300', bg: 'bg-yellow-500/15 border-yellow-500/40' },
+  { txt: 'text-blue-400', bg: 'bg-blue-500/15 border-blue-500/40' },
+  { txt: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/40' }
+];
+function badge(text, lvl) { return `<span class="inline-block px-3 py-1 rounded-full border text-xs font-bold ${LEVEL[lvl].bg} ${LEVEL[lvl].txt}">${text}</span>`; }
+function box(html, lvl) { return `<div class="rounded-xl border p-3 text-sm ${LEVEL[lvl].bg} text-slate-200">${html}</div>`; }
+function note(html) { return `<div class="rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-400">${html}</div>`; }
+function flag(html) { return `<div class="rounded-xl border border-red-500/60 bg-red-950/50 p-3 text-sm text-red-200">⚠️ ${html}</div>`; }
+function parseTime(str) {
+  str = String(str || '').trim(); if (!str) return null;
+  if (str.includes(':')) { const [m, s] = str.split(':'); const v = parseFloat(m) * 60 + parseFloat(s); return isFinite(v) ? v : null; }
+  const v = parseFloat(str) * 60; return isFinite(v) ? v : null;
+}
+function fmtTime(sec, dp = 0) { const m = Math.floor(sec / 60); let s = (sec - m * 60).toFixed(dp); if (parseFloat(s) < 10) s = '0' + s; return `${m}:${s}`; }
+const today = () => new Date().toLocaleDateString('en-AU');
 
-        function calculateTimes() {
-            const totals = { warmup: 0, conditioning: 0, cooldown: 0 };
+/* ---------- state ---------- */
+const S = Object.assign({ age: 30, sex: 'male', rhr: '', hrmax: '', goal: 'longevity', apss: [null, null, null, null, null, null, null], mod: '', vig: '', baseOverride: null }, store.get('state', {}));
+const R = store.get('results', {});
+let history = store.get('history', []);
+function save() { store.set('state', S); store.set('results', R); store.set('history', history); buildReport(); }
 
-            document.querySelectorAll('.calc-row').forEach(row => {
-                const sets = parseFloat(row.querySelector('.input-sets')?.value) || 0;
-                const reps = parseFloat(row.querySelector('.input-reps')?.value) || 0;
-                const tempo = row.querySelector('.input-tempo')?.value || "";
-                const rest = parseFloat(row.querySelector('.input-rest')?.value) || 0;
-                const output = row.querySelector('.output-time');
-                if (!output) return;
+const tanaka = age => Math.round(208 - 0.7 * age);
+function hrMax() { const m = parseFloat(S.hrmax); return m > 100 && m < 230 ? m : tanaka(S.age); }
+function rhrVal() { const r = parseFloat(S.rhr); return r >= 30 && r <= 120 ? r : null; }
 
-                // Sum tempo segments; "X" (explosive) counts as 1s
-                const tempoSum = (tempo.match(/(\d+(\.\d+)?|[Xx])/g) || [])
-                    .reduce((sum, v) => sum + (v.toUpperCase() === 'X' ? 1 : parseFloat(v)), 0);
+/* ---------- norms (from research report) ---------- */
+// FRIEND 2022 (Kaminsky et al., Mayo Clin Proc 2022;97:285-293) treadmill, percentiles 10..90
+const FRIEND = {
+  male: { "20-29": [28.6,35.2,40.0,43.6,46.5,49.0,51.9,54.5,58.6], "30-39": [24.9,29.8,33.5,37.0,39.7,43.4,46.4,50.0,55.5], "40-49": [22.1,26.7,29.7,32.4,35.3,37.9,40.9,45.2,50.8], "50-59": [18.6,22.2,24.5,26.9,29.2,31.8,34.3,38.3,43.4], "60-69": [15.8,18.5,20.7,22.8,24.6,26.5,28.7,32.0,37.1], "70-79": [13.6,15.9,17.3,19.1,20.6,22.2,23.8,25.9,29.4], "80-89": [12.9,14.8,16.1,16.6,17.6,18.4,20.0,21.4,22.8] },
+  female: { "20-29": [22.5,27.2,30.8,34.0,36.6,39.0,41.8,44.8,49.0], "30-39": [18.6,21.9,24.2,26.4,28.3,31.0,33.6,37.0,42.1], "40-49": [17.2,19.7,21.8,23.9,25.7,27.7,30.0,33.0,37.8], "50-59": [16.5,18.5,20.1,21.5,22.9,24.6,26.3,28.4,32.4], "60-69": [13.4,15.4,17.0,18.3,19.6,20.9,22.4,24.3,27.3], "70-79": [12.3,14.0,15.2,16.2,17.2,18.3,19.6,20.8,22.8], "80-89": [11.4,12.6,13.7,14.7,15.4,16.0,17.3,18.4,20.8] }
+};
+const PCTS = [10,20,30,40,50,60,70,80,90];
+const ageBand = age => { const a = Math.min(Math.max(age, 20), 89); const lo = Math.floor(a / 10) * 10; return `${lo}-${lo + 9}`; };
+function vo2Pct(v, row) {
+  if (v <= row[0]) return Math.max(1, Math.round(10 * v / row[0]));
+  if (v >= row[8]) return 95;
+  for (let i = 0; i < 8; i++) if (v < row[i + 1]) return Math.round(PCTS[i] + 10 * (v - row[i]) / (row[i + 1] - row[i]));
+}
+function vo2AtPct(p, row) { if (p <= 10) return row[0]; if (p >= 90) return row[8]; const i = Math.floor(p / 10) - 1; return row[i] + (p - PCTS[i]) / 10 * (row[i + 1] - row[i]); }
+const VO2_CATS = ['Low (<25th)', 'Below average (25–49th)', 'Above average (50–74th)', 'High (75–89th)', 'Elite (≥90th)'];
+const vo2Level = p => p >= 90 ? 4 : p >= 75 ? 3 : p >= 50 ? 2 : p >= 25 ? 1 : 0;
+function fitnessAge(v, sex) {
+  const mids = [25,35,45,55,65,75,85];
+  const med = Object.values(FRIEND[sex]).map(r => r[4]);
+  if (v >= med[0]) return '≤25';
+  if (v <= med[6]) return '≥85';
+  for (let i = 0; i < 6; i++) if (v <= med[i] && v > med[i + 1]) return Math.round(mids[i] + 10 * (med[i] - v) / (med[i] - med[i + 1]));
+}
+const VO2_CONTEXT = [
+  'In big cohorts, the least-fit group had roughly 4–5× the mortality risk of the fittest (Mandsager 2018; Kokkinos 2022). Moving out of this bottom quarter is the biggest health win there is, and it\'s very achievable.',
+  'Below the median for your age and sex. Climbing even one band is linked to meaningfully lower risk, and you get the steepest returns down here.',
+  'Above the median, a solid base. More fitness keeps paying: no upper limit of benefit has been observed.',
+  'High fitness. Large cohorts link this zone with much lower all-cause mortality than average.',
+  'Top 10% for your age and sex. In Mandsager 2018 the very top ("elite", ≥97.7th) had an adjusted hazard ratio of 0.20 against the least fit, and extreme fitness showed no added risk.'
+];
 
-                const rowSecs = (sets > 0 && reps > 0) ? ((tempoSum * reps) + rest) * sets : 0;
-                output.textContent = formatTime(rowSecs);
+// YMCA 3-min step test: inclusive upper limits [Excellent, Good, Above avg, Average]
+const YMCA = {
+  male: { "18-25": [76,84,94,100], "26-35": [76,85,95,102], "36-45": [76,88,99,105], "46-55": [82,93,102,111], "56-65": [77,94,102,109], "66+": [81,92,103,110] },
+  female: { "18-25": [81,93,102,110], "26-35": [80,92,101,111], "36-45": [84,96,104,119], "46-55": [91,101,110,124], "56-65": [92,103,111,null], "66+": [92,101,111,null] }
+};
+const ymcaBand = a => a <= 25 ? '18-25' : a <= 35 ? '26-35' : a <= 45 ? '36-45' : a <= 55 ? '46-55' : a <= 65 ? '56-65' : '66+';
 
-                if (row.closest('.warmup-body')) totals.warmup += rowSecs;
-                else if (row.closest('.conditioning-body')) totals.conditioning += rowSecs;
-                else if (row.closest('.cooldown-body')) totals.cooldown += rowSecs;
-            });
+// Concept2 2025 rankings snapshot, ages 30-39, all genders & weights (re-check yearly)
+const C2_3039 = [[90, 404.9], [75, 425.8], [50, 458.1], [25, 501.7]];
 
-            const all = { ...totals, total: totals.warmup + totals.conditioning + totals.cooldown };
-            for (const [k, v] of Object.entries(totals)) document.getElementById(`${k}-total`).textContent = formatTime(v);
-            document.querySelectorAll('[data-sum]').forEach(el => { el.textContent = formatTime(all[el.dataset.sum]); });
-        }
+const RHR_BANDS = [
+  { max: 49, lvl: 4, label: 'Very low', txt: 'Typical of endurance-trained people. See a GP if you also get dizziness or fainting.' },
+  { max: 59, lvl: 4, label: 'Low (favourable)', txt: 'Well inside the healthy range.' },
+  { max: 69, lvl: 3, label: 'Normal (favourable)', txt: 'Healthy range. More aerobic volume tends to nudge this down.' },
+  { max: 79, lvl: 2, label: 'Normal', txt: 'Normal (60–100 is the clinical range). Consistent aerobic training usually lowers it over months.' },
+  { max: 89, lvl: 1, label: 'Upper-normal', txt: 'Aerobic training usually lowers this. Also check sleep, stress, caffeine and alcohol.' },
+  { max: 100, lvl: 0, label: 'High-normal', txt: 'Check sleep, stress, alcohol, illness and medications. Mention it at your next GP visit.' },
+  { max: 999, lvl: 0, label: 'Above 100 at rest', txt: 'Resting tachycardia: get a medical review before starting vigorous training.', flag: true }
+];
 
-        // ---------- Phone: fold empty rows ----------
-        const rowHasData = (row) => [...row.querySelectorAll('input, select')].some(i => i.value.trim() !== '');
-        function getGroups() {
-            const groups = [];
-            document.querySelectorAll('.plan-table tbody').forEach(tbody => {
-                let cur = null;
-                [...tbody.rows].forEach(tr => {
-                    if (tr.classList.contains('calc-row')) { if (!cur) groups.push(cur = { rows: [], add: null }); cur.rows.push(tr); }
-                    else if (tr.classList.contains('add-row')) { if (cur) cur.add = tr; cur = null; }
-                    else cur = null; // subheader starts a new group
-                });
-            });
-            return groups;
-        }
-        const GROUPS = getGroups();
-        function updateAddButton(g) {
-            if (g.add) g.add.style.display = g.rows.some(r => r.classList.contains('m-collapsed')) ? '' : 'none';
-        }
-        function refreshCollapse() {
-            GROUPS.forEach(g => {
-                let last = 0;
-                g.rows.forEach((r, i) => { if (rowHasData(r)) last = i; });
-                g.rows.forEach((r, i) => r.classList.toggle('m-collapsed', i > last));
-                updateAddButton(g);
-            });
-        }
-        GROUPS.forEach(g => {
-            g.add?.querySelector('button').addEventListener('click', () => {
-                const next = g.rows.find(r => r.classList.contains('m-collapsed'));
-                if (!next) return;
-                next.classList.remove('m-collapsed');
-                updateAddButton(g);
-                next.querySelector('input')?.focus({ preventScroll: true });
-                next.scrollIntoView({ block: 'center' });
-            });
-        });
+/* ---------- profile ---------- */
+function renderProfile() {
+  $('p-age').value = S.age; $('p-rhr').value = S.rhr; $('p-hrmax').value = S.hrmax;
+  const on = 'flex-1 rounded-lg text-sm font-bold py-2 bg-blue-600 text-white', off = 'flex-1 rounded-lg text-sm font-bold py-2 text-slate-400 hover:text-white';
+  $('p-male').className = S.sex === 'male' ? on : off; $('p-female').className = S.sex === 'female' ? on : off;
+  $('hrmax-pill').textContent = `Max HR ${hrMax()} bpm ${parseFloat(S.hrmax) > 100 ? '(measured)' : '(Tanaka estimate)'}`;
+}
+function setSex(s) { S.sex = s; profileChanged(); }
+function profileChanged() { renderProfile(); renderZones(); renderPlan(); renderWeek(); save(); }
+['p-age', 'p-rhr', 'p-hrmax'].forEach(id => $(id).addEventListener('input', e => {
+  const key = { 'p-age': 'age', 'p-rhr': 'rhr', 'p-hrmax': 'hrmax' }[id];
+  S[key] = key === 'age' ? (parseFloat(e.target.value) || 30) : e.target.value; profileChanged();
+}));
 
-        // ---------- Feedback ----------
-        let toastTimer;
-        function toast(msg) {
-            const el = document.getElementById('toast');
-            el.textContent = msg;
-            el.classList.remove('opacity-0', 'translate-y-2');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => el.classList.add('opacity-0', 'translate-y-2'), 2200);
-        }
-        // Two status labels: one under the title on phones, one in the desktop toolbar
-        function setStatus(text, color) {
-            const sm = document.getElementById('save-status');
-            const lg = document.getElementById('save-status-lg');
-            sm.textContent = lg.textContent = text;
-            sm.className = `md:hidden text-xs mt-1 ${color}`;
-            lg.className = `text-xs mr-1 ${color}`;
-        }
-        function markSaved(ok = true) {
-            if (!ok) return setStatus('⚠ Not saved (storage blocked)', 'text-red-600');
-            const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            setStatus(`✓ Saved ${t}`, 'text-emerald-600');
-        }
+/* ---------- 1. screening ---------- */
+const APSS_Q = [
+  'Has a doctor ever told you that you have a heart condition, or have you had a stroke?',
+  'Do you get unexplained pain or discomfort in your chest, at rest or during exercise?',
+  'Do you ever feel faint or dizzy, or lose your balance, during exercise?',
+  'Have you had an asthma attack that needed immediate medical attention in the last 12 months?',
+  'If you have diabetes, have you had trouble controlling your blood glucose in the last 3 months?',
+  'Do you have a diagnosed muscle, bone, tendon, ligament or joint problem that exercise could make worse?',
+  'Do you have any other medical condition that could make exercise dangerous for you?'
+];
+function renderAPSS() {
+  $('apss-q').innerHTML = APSS_Q.map((q, i) => `
+    <div class="flex items-center justify-between gap-4 bg-slate-950 border border-slate-800 rounded-xl p-3">
+      <span class="text-sm text-slate-300"><b class="text-slate-500 mr-1">${i + 1}.</b>${q}</span>
+      <span class="yn flex shrink-0">
+        <button class="${S.apss[i] === true ? 'yes' : ''}" onclick="setAPSS(${i},true)">Yes</button>
+        <button class="${S.apss[i] === false ? 'no' : ''}" onclick="setAPSS(${i},false)">No</button>
+      </span>
+    </div>`).join('');
+  $('a-mod').value = S.mod; $('a-vig').value = S.vig;
+  const answered = S.apss.every(a => a !== null), flagged = apssFlag();
+  const w = weighted();
+  let html = '<h3 class="brand text-xl text-white mb-2">Result</h3>';
+  if (flagged) html += flag('<b>Get guidance first.</b> You answered YES to at least one question. Check with your GP or an appropriate allied health professional (e.g. an Accredited Exercise Physiologist) before vigorous exercise. The plans below put interval sessions on hold until then.');
+  else if (!answered) html += note('Answer all 7 questions to unlock interval prescriptions.');
+  else html += box('<b>No red flags.</b> You can move on to testing and planning. Build intensity up gradually.', 4);
+  if (w !== null) {
+    const ok = w >= 150;
+    html += `<div class="mt-3">${box(`Weighted activity: <b>${w} min/week</b> (light/moderate + 2 × vigorous). ` + (ok ? 'You\'re already at or above 150, so progressing to harder sessions is reasonable.' : 'Under 150: start with light-to-moderate work and progress slowly. The plan will open with a 4-week base phase.'), ok ? 3 : 1)}</div>`;
+  }
+  $('apss-out').innerHTML = html;
+}
+function setAPSS(i, v) { S.apss[i] = v; renderAPSS(); renderPlan(); save(); }
+const apssFlag = () => S.apss.some(a => a === true);
+const apssClear = () => S.apss.every(a => a === false);
+function weighted() { const m = parseFloat(S.mod), v = parseFloat(S.vig); if (isNaN(m) && isNaN(v)) return null; return Math.round((m || 0) + 2 * (v || 0)); }
+['a-mod', 'a-vig'].forEach(id => $(id).addEventListener('input', e => { S[id === 'a-mod' ? 'mod' : 'vig'] = e.target.value; renderAPSS(); renderPlan(); save(); }));
 
-        // ---------- Data management ----------
-        function initStorage() {
-            dataInputs.forEach(input => {
-                const saved = store.get(input.id);
-                if (input === dateInput) setDateValue(saved);
-                else if (saved !== null) input.value = saved;
-                const handler = () => { markSaved(store.set(input.id, input.value)); calculateTimes(); };
-                input.addEventListener('input', handler);
-                if (input.tagName === 'SELECT' || input === dateInput) input.addEventListener('change', handler);
-            });
-            calculateTimes();
-            refreshCollapse();
-        }
+/* ---------- 2. tests ---------- */
+let currentTest = 'vo2';
+function showTest(t) {
+  currentTest = t;
+  document.querySelectorAll('#test-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.t === t));
+  document.querySelectorAll('.tpanel').forEach(p => p.style.display = p.dataset.t === t ? 'block' : 'none');
+}
+document.querySelectorAll('#test-chips .chip').forEach(c => c.onclick = () => showTest(c.dataset.t));
+$('vo2-src').addEventListener('change', () => {
+  const run = ['cooper', 'km24'].includes($('vo2-src').value);
+  $('vo2-time-wrap').classList.toggle('hidden', !run); $('vo2-val-wrap').classList.toggle('hidden', run);
+});
 
-        function openImport() { document.getElementById('json-upload').click(); }
+function logHistory(test, summary, value) {
+  history.unshift({ date: today(), test, summary, value }); history = history.slice(0, 40); renderHistory();
+}
+function renderHistory() {
+  if (!history.length) { $('history').innerHTML = '<p class="text-xs text-slate-500">No tests yet. Results are saved here so you can see change over time. Retest VO2 and field tests every 6–8 weeks.</p>'; return; }
+  $('history').innerHTML = '<table class="t"><tr><th>Date</th><th>Test</th><th>Result</th></tr>' + history.map(h => `<tr><td class="text-slate-500">${h.date}</td><td class="text-slate-300 font-bold">${h.test}</td><td>${h.summary}</td></tr>`).join('') + '</table>';
+}
+function clearHistory() { history = []; renderHistory(); save(); }
 
-        function exportJSON() {
-            const data = {};
-            dataInputs.forEach(input => { data[input.id] = input.value; });
-            const date = dateInput.value.trim().replace(/[^\w-]+/g, '_');
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = date ? `workout_plan_${date}.json` : 'workout_plan_data.json';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-            toast('Plan exported');
-        }
+function rankBar(pct, lvl) {
+  const seg = [[25, 'bg-red-500/50'], [25, 'bg-orange-500/50'], [25, 'bg-yellow-500/50'], [15, 'bg-blue-500/50'], [10, 'bg-emerald-500/50']];
+  return `<div class="relative pt-3 px-1">
+    <div class="flex h-3 rounded-full overflow-hidden">${seg.map(s => `<div class="${s[1]}" style="width:${s[0]}%"></div>`).join('')}</div>
+    <div class="marker" style="left:calc(${Math.min(99, Math.max(1, pct))}% )"></div>
+    <div class="flex text-[9px] font-bold uppercase text-slate-500 mt-1"><span style="width:25%">Low</span><span style="width:25%">Below avg</span><span style="width:25%">Above avg</span><span style="width:15%">High</span><span style="width:10%">Elite</span></div>
+  </div>`;
+}
 
-        function importJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    let count = 0;
-                    dataInputs.forEach(input => {
-                        if (data[input.id] !== undefined) {
-                            if (input === dateInput) setDateValue(data[input.id]);
-                            else input.value = data[input.id];
-                            store.set(input.id, data[input.id]);
-                            count++;
-                        }
-                    });
-                    calculateTimes();
-                    refreshCollapse();
-                    markSaved();
-                    toast(count ? `Imported ${file.name}` : 'No matching fields found in that file');
-                } catch {
-                    toast('That file isn\'t valid JSON');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
+function analyseVO2() {
+  const out = $('vo2-out'), src = $('vo2-src').value;
+  let vo2, err, srcLabel;
+  if (src === 'cooper' || src === 'km24') {
+    const t = parseTime($('vo2-time').value);
+    if (!t) { out.innerHTML = note('Enter your time as mm:ss, e.g. 12:30.'); return; }
+    let min = t / 60; if (src === 'km24') min = min * 2.414 / 2.4;
+    if (min < 7 || min > 40) { out.innerHTML = note('That time is outside the 7–40 minute range. Check your entry.'); return; }
+    vo2 = 483 / min + 3.5; err = 4; srcLabel = src === 'cooper' ? `1.5 mi run ${fmtTime(t)}` : `2.4 km run ${fmtTime(t)} (scaled to 1.5 mi)`;
+  } else {
+    vo2 = parseFloat($('vo2-val').value);
+    if (!(vo2 >= 8 && vo2 <= 95)) { out.innerHTML = note('Enter a VO2 max between 8 and 95 mL/kg/min.'); return; }
+    err = src === 'watch' ? vo2 * 0.13 : 1.5; srcLabel = src === 'watch' ? 'Smartwatch estimate' : 'Lab test';
+  }
+  if (S.age > 89) { out.innerHTML = note('FRIEND norms only go up to age 89.'); return; }
+  const row = FRIEND[S.sex][ageBand(S.age)];
+  const p = vo2Pct(vo2, row), lvl = vo2Level(p);
+  const pLo = vo2Pct(Math.max(5, vo2 - err), row), pHi = vo2Pct(vo2 + err, row);
+  const fa = fitnessAge(vo2, S.sex);
+  const mets = vo2 / 3.5;
+  const nextP = [25, 50, 75, 90][lvl];
+  let nextHtml = '';
+  if (nextP) {
+    const target = vo2AtPct(nextP, row), gap = target - vo2;
+    nextHtml = `<div class="bg-slate-950 rounded-xl border border-slate-800 p-3"><div class="lbl">Next band</div><div class="text-white font-bold">${VO2_CATS[lvl + 1]}</div><div class="text-xs text-slate-400">Target ≈ ${target.toFixed(1)} (+${gap.toFixed(1)} mL/kg/min ≈ +${(gap / 3.5).toFixed(1)} MET). Each +1 MET is linked to ~13% lower all-cause mortality (Kodama 2009).</div></div>`;
+  } else {
+    nextHtml = `<div class="bg-slate-950 rounded-xl border border-slate-800 p-3"><div class="lbl">Next band</div><div class="text-white font-bold">Stay here</div><div class="text-xs text-slate-400">You're above the table's 90th percentile. Focus on keeping it as you age (fitness drops ~1%/yr after 30 without training).</div></div>`;
+  }
+  const watchWarn = src === 'watch' ? note('⌚ Watch VO2 estimates have a typical error of about 13–16% in validation studies (Apple Watch tends to <b>under</b>-read in fit people). Treat this as a trend tracker, not a grade. Your true band could sit anywhere in the range shown.') : '';
+  const ageWarn = S.age < 20 ? note('FRIEND norms start at age 20, so the 20–29 band is used here.') : '';
+  out.innerHTML = `
+    <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 space-y-4">
+      <div class="text-center">
+        <div class="lbl">VO2 max · ${srcLabel}</div>
+        <div class="brand text-6xl text-white leading-none">${vo2.toFixed(1)}</div>
+        <div class="text-xs text-slate-400 mb-2">mL/kg/min · ${mets.toFixed(1)} METs · ±${err.toFixed(1)}</div>
+        ${badge(VO2_CATS[lvl], lvl)}
+        <div class="text-sm text-slate-300 mt-2">≈ <b>${p >= 95 ? '>90th' : p + 'th'}</b> percentile for ${S.sex === 'male' ? 'men' : 'women'} aged ${ageBand(S.age)} <span class="text-slate-500">(likely range ${pLo}–${pHi >= 95 ? '90+' : pHi})</span></div>
+      </div>
+      ${rankBar(p, lvl)}
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div class="bg-slate-950 rounded-xl border border-slate-800 p-3"><div class="lbl">Fitness age (FRIEND median)</div><div class="brand text-4xl text-white leading-none">${fa}</div><div class="text-xs text-slate-400">The age at which your VO2 is the average for your sex. Your real age is ${S.age}.</div></div>
+        ${nextHtml}
+      </div>
+      ${box(VO2_CONTEXT[lvl] + ' <span class="text-slate-400">(These are associations from observational studies, not destiny.)</span>', lvl)}
+      ${watchWarn}${ageWarn}
+      <div class="flex gap-2 flex-wrap"><a href="#plan" class="btn text-xs py-2">Build my plan →</a><a href="#zones" class="chip">See my zones</a></div>
+    </div>`;
+  R.vo2 = { vo2: +vo2.toFixed(1), p, lvl, cat: VO2_CATS[lvl], fa, src: srcLabel, date: today() };
+  logHistory('VO2 max', `${vo2.toFixed(1)} · ${VO2_CATS[lvl]} · fitness age ${fa}`, vo2);
+  renderPlan(); save();
+}
 
-        function resetPlan() {
-            if (!confirm("Clear every field on this plan? Export first if you want a backup.")) return;
-            // Only remove this page's keys, not everything else stored on the site
-            dataInputs.forEach(input => { store.remove(input.id); input.value = ''; });
-            setDateValue('');
-            calculateTimes();
-            refreshCollapse();
-            setStatus('Plan cleared', 'text-slate-500');
-            toast('Plan cleared');
-        }
+function analyseStep() {
+  const out = $('step-out'), hr = parseFloat($('step-hr').value);
+  if (!(hr >= 50 && hr <= 200)) { out.innerHTML = note('Enter your 1-minute pulse count (50–200 bpm).'); return; }
+  if (S.age < 18) { out.innerHTML = note('YMCA norms are for adults aged 18 and over.'); return; }
+  const band = ymcaBand(S.age), cut = YMCA[S.sex][band];
+  const names = ['Excellent', 'Good', 'Above average', 'Average'];
+  let idx = cut.findIndex(c => c !== null && hr <= c), label, lvl;
+  if (idx === -1) { label = cut[3] === null ? 'Average or below' : 'Below average / Poor'; lvl = cut[3] === null ? 1 : 0; }
+  else { label = names[idx]; lvl = [4, 3, 2, 1][idx]; }
+  const rows = names.map((n, i) => `<tr class="${i === idx ? 'bg-blue-500/10' : ''}"><td>${n}</td><td>${cut[i] === null ? '<span class="text-slate-500">check manual</span>' : '≤ ' + cut[i] + ' bpm'}</td></tr>`).join('') + `<tr class="${idx === -1 ? 'bg-blue-500/10' : ''}"><td>Below average / Poor</td><td>${cut[3] === null ? '—' : '> ' + cut[3] + ' bpm'}</td></tr>`;
+  out.innerHTML = `
+    <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 space-y-4">
+      <div class="text-center"><div class="lbl">Recovery pulse</div><div class="brand text-6xl text-white leading-none">${hr}</div><div class="mt-2">${badge(label, lvl)}</div></div>
+      <table class="t"><tr><th>YMCA band · ${S.sex}, ${band}</th><th>1-min pulse</th></tr>${rows}</table>
+      ${note('Lower is better. If you land in "Excellent", the step test has hit its ceiling, so switch to the run or row to keep tracking progress.')}
+    </div>`;
+  R.step = { hr, label, date: today() };
+  logHistory('YMCA step', `${hr} bpm · ${label}`, hr); save();
+}
 
-        // ---------- Mobile menu ----------
-        const menu = document.getElementById('mobile-menu');
-        function closeMenu() { menu.open = false; }
-        document.addEventListener('click', (e) => { if (menu.open && !menu.contains(e.target)) closeMenu(); });
+function analyseRow() {
+  const out = $('row-out'), t = parseTime($('row-time').value);
+  if (!t || t < 330 || t > 900) { out.innerHTML = note('Enter a 2k time between 5:30 and 15:00, e.g. 7:38.0.'); return; }
+  const split = t / 4, watts = 2.80 / Math.pow(t / 2000, 3);
+  let compare = '';
+  if (S.age >= 30 && S.age <= 39) {
+    const better = C2_3039.find(([pc, s]) => t <= s);
+    const txt = better ? `faster than about <b>${better[0]}%</b> of Concept2 loggers aged 30–39` : 'outside the top 75% of Concept2 loggers aged 30–39';
+    compare = box(`Your time is ${txt} (2025 snapshot, all genders and weights). Loggers are a trained, self-selected group, so a middling rank here can still be well above the general public.`, better ? (better[0] >= 75 ? 4 : 3) : 2);
+  } else {
+    compare = note('For a fair comparison, check the Concept2 online rankings filtered by your age, sex and weight class. They publish 25th/50th/75th/90th percentiles.');
+  }
+  out.innerHTML = `
+    <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 space-y-4">
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div><div class="lbl">Time</div><div class="brand text-4xl text-white">${fmtTime(t, 1)}</div></div>
+        <div><div class="lbl">/500 m split</div><div class="brand text-4xl text-white">${fmtTime(split, 1)}</div></div>
+        <div><div class="lbl">Avg watts</div><div class="brand text-4xl text-white">${Math.round(watts)}</div></div>
+      </div>
+      ${compare}
+      <a class="text-xs text-blue-400 underline" href="https://log.concept2.com/rankings" target="_blank" rel="noopener">Open Concept2 rankings ↗</a>
+    </div>`;
+  R.row = { time: fmtTime(t, 1), split: fmtTime(split, 1), watts: Math.round(watts), date: today() };
+  logHistory('2k row', `${fmtTime(t, 1)} · ${fmtTime(split, 1)}/500 m · ${Math.round(watts)} W`, t); save();
+}
 
-        // ---------- Enter key ----------
-        // Desktop: spreadsheet style (same column, next row). Phone: next field on screen.
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || e.target.type === 'file') return;
-            if (isPhone()) {
-                e.preventDefault();
-                const visible = dataInputs.filter(i => i.offsetParent !== null);
-                const next = visible[visible.indexOf(e.target) + 1];
-                if (next) { next.focus({ preventScroll: true }); next.scrollIntoView({ block: 'nearest' }); }
-                else e.target.blur();
-                return;
-            }
-            const td = e.target.closest('td');
-            const row = e.target.closest('.calc-row');
-            if (!td || !row) return;
-            e.preventDefault();
-            const rows = [...row.closest('tbody').querySelectorAll('.calc-row')];
-            const next = rows[rows.indexOf(row) + (e.shiftKey ? -1 : 1)];
-            next?.cells[td.cellIndex]?.querySelector('input, select')?.focus();
-        });
+function analyseRHR() {
+  const out = $('rhr-out'), v = parseFloat($('rhr-val').value), type = $('rhr-type').value;
+  if (!(v >= 30 && v <= 150)) { out.innerHTML = note('Enter a resting HR between 30 and 150 bpm.'); return; }
+  const b = RHR_BANDS.find(x => v <= x.max);
+  if (type !== 'sleep') { S.rhr = String(v); renderProfile(); renderZones(); }
+  out.innerHTML = `
+    <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 space-y-3">
+      <div class="text-center"><div class="lbl">Resting HR</div><div class="brand text-6xl text-white leading-none">${v}</div><div class="mt-2">${badge(b.label, b.lvl)}</div></div>
+      ${b.flag ? flag(b.txt) : box(b.txt, b.lvl)}
+      ${type === 'sleep' ? note('Sleeping HR usually runs a few bpm below waking resting HR, and these bands are for waking. Your result probably looks a little better than it would on a waking reading. It hasn\'t been used for your zones.') : note('Saved to your profile and used for heart-rate-reserve (Karvonen) zones.')}
+      ${note('Women average a few bpm higher than men. Watch the 2–4 week trend: a jump of 5+ bpm over your normal often means poor sleep, illness, alcohol or overreaching.')}
+    </div>`;
+  R.rhr = { v, label: b.label, type, date: today() };
+  logHistory('Resting HR', `${v} bpm · ${b.label}${type === 'sleep' ? ' (sleeping)' : ''}`, v); save();
+}
 
-        // ---------- Tooltips (desktop headers): hover, keyboard focus and tap ----------
-        const tooltip = document.getElementById('tooltip');
-        let pinned = null;
-        function showTip(btn) {
-            tooltip.innerHTML = TIPS[btn.dataset.tip] || '';
-            tooltip.classList.remove('hidden');
-            const r = btn.getBoundingClientRect();
-            const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
-            let left = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 8);
-            let top = r.bottom + 8;
-            if (top + th > window.innerHeight - 8) top = r.top - th - 8;
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
-        }
-        function hideTip() { tooltip.classList.add('hidden'); pinned = null; }
+function analyseHRR() {
+  const out = $('hrr-out'), proto = $('hrr-proto').value;
+  const peak = parseFloat($('hrr-peak').value), post = parseFloat($('hrr-post').value);
+  if (!(peak > 80 && post > 40 && peak > post)) { out.innerHTML = note('Enter a peak HR and a lower recovery HR.'); return; }
+  const drop = peak - post, peakPct = peak / hrMax();
+  let label, lvl, isFlag = false, txt;
+  if (proto === '2') {
+    if (drop < 22) { label = 'Abnormal (clinical threshold)'; lvl = 0; isFlag = true; }
+    else if (drop < 35) { label = 'Above clinical threshold'; lvl = 2; }
+    else { label = 'Strong'; lvl = 4; }
+    txt = 'A 2-minute drop under 22 bpm has been linked with higher mortality (Shetler 2001). Bands above that are rough guides, not published norms.';
+  } else {
+    if (drop <= 12) { label = 'Abnormal (clinical flag)'; lvl = 0; isFlag = true; }
+    else if (drop <= 20) { label = 'Below typical'; lvl = 1; }
+    else if (drop <= 30) { label = 'Typical / good'; lvl = 3; }
+    else { label = 'Strong'; lvl = 4; }
+    txt = 'In Cole 1999 (NEJM), a 1-minute drop of 12 bpm or less after a walking cool-down was linked to about 2× higher adjusted 6-year mortality. Bands above that are heuristics.';
+  }
+  let warn = '';
+  if (peakPct < 0.85) warn += note(`Your peak (${peak}) is only ${Math.round(peakPct * 100)}% of your max HR (${hrMax()}). Recovery numbers are only meaningful after a near-maximal effort (≥85%), so treat this one loosely.`);
+  if (proto === '1s') warn += note('Stopping or sitting produces bigger drops than a walking cool-down, so the clinical cut-off of 12 bpm is more lenient here than it looks. Use a walking cool-down for comparisons.');
+  out.innerHTML = `
+    <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 space-y-3">
+      <div class="text-center"><div class="lbl">Drop</div><div class="brand text-6xl text-white leading-none">−${drop}</div><div class="text-xs text-slate-400 mb-2">${proto === '2' ? '2 min' : '1 min'} · peak ${peak} → ${post}</div>${badge(label, lvl)}</div>
+      ${isFlag ? flag('Recovery this slow, measured properly after a hard effort, is worth discussing with your GP before you start high-intensity training. A single home reading isn\'t a diagnosis.') : box('Fast recovery fits with good aerobic fitness. Overall aerobic training (easy volume plus intervals) improves it over months.', lvl)}
+      ${note(txt)}${warn}
+    </div>`;
+  R.hrr = { drop, label, proto, date: today() };
+  logHistory('HR recovery', `−${drop} bpm (${proto === '2' ? '2 min' : '1 min'}) · ${label}`, drop); save();
+}
 
-        document.querySelectorAll('[data-tip]').forEach(btn => {
-            btn.addEventListener('mouseenter', () => showTip(btn));
-            btn.addEventListener('mouseleave', () => { if (pinned !== btn) hideTip(); });
-            btn.addEventListener('focus', () => showTip(btn));
-            btn.addEventListener('blur', hideTip);
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (pinned === btn) hideTip(); else { showTip(btn); pinned = btn; }
-            });
-        });
-        document.addEventListener('click', hideTip);
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip(); });
-        window.addEventListener('scroll', hideTip, true);
-        window.addEventListener('resize', hideTip);
+/* ---------- 3. zones ---------- */
+const ZONES = [
+  { z: 'Z1', name: 'Recovery', lo: .50, hi: .60, hrr: [.30, .45], talk: 'Chatting easily', rpe: '1–2', use: 'Warm-ups, cool-downs, recovery days' },
+  { z: 'Z2', name: 'Easy / aerobic base', lo: .60, hi: .70, hrr: [.50, .65], talk: 'Full sentences, breathing noticeably up', rpe: '3–4', use: 'Most of your volume; longevity base' },
+  { z: 'Z3', name: 'Steady / tempo', lo: .70, hi: .80, hrr: [.65, .75], talk: 'Short sentences', rpe: '5–6', use: 'Use sparingly ("grey zone")' },
+  { z: 'Z4', name: 'Threshold', lo: .80, hi: .90, hrr: [.75, .88], talk: 'A few words', rpe: '7–8', use: 'Race-specific / tempo work' },
+  { z: 'Z5', name: 'VO2 max', lo: .90, hi: .95, hrr: [.88, .95], talk: 'Can\'t talk', rpe: '8–9', use: '4×4 work intervals' }
+];
+function zoneHR(z) { const m = hrMax(); return `${Math.round(m * z.lo)}–${Math.round(m * z.hi)}`; }
+function zoneHRR(z) { const r = rhrVal(); if (!r) return null; const m = hrMax(); return `${Math.round(r + z.hrr[0] * (m - r))}–${Math.round(r + z.hrr[1] * (m - r))}`; }
+function renderZones() {
+  const r = rhrVal();
+  $('zones-src').innerHTML = `Max HR <b class="text-white">${hrMax()} bpm</b> ${parseFloat(S.hrmax) > 100 ? '(measured)' : '(Tanaka: 208 − 0.7 × age)'}${r ? ` · Resting HR <b class="text-white">${r}</b>, so heart-rate-reserve (Karvonen) zones are shown too` : ' · Add your resting HR to the profile for Karvonen zones'}.`;
+  $('zones-table').innerHTML = `<tr><th>Zone</th><th>% max HR</th>${r ? '<th>Karvonen</th>' : ''}<th>Talk test</th><th>RPE /10</th><th>Use it for</th></tr>` +
+    ZONES.map(z => `<tr class="${z.z === 'Z2' ? 'bg-blue-500/10' : z.z === 'Z5' ? 'bg-red-500/10' : ''}"><td class="font-bold text-white">${z.z} <span class="text-slate-400 font-normal">${z.name}</span></td><td class="font-bold">${zoneHR(z)}</td>${r ? `<td class="font-bold">${zoneHRR(z)}</td>` : ''}<td class="text-slate-400">${z.talk}</td><td>${z.rpe}</td><td class="text-slate-400">${z.use}</td></tr>`).join('');
+  const m = hrMax(), z2 = ZONES[1];
+  const sessions = [
+    { t: 'Easy / Zone 2', c: 'blue', hr: (r ? zoneHRR(z2) : zoneHR(z2)) + ' bpm', d: '30–90 min walking, cycling, rowing or jogging. Nasal breathing just about possible. Builds the base safely. It isn\'t magic, but it\'s the easiest way to stack up minutes.' },
+    { t: 'Norwegian 4×4', c: 'red', hr: `${Math.round(m * .90)}–${Math.round(m * .95)} bpm work`, d: `10 min warm-up → 4 × 4 min hard (RPE 8–9) with 3 min easy at ~${Math.round(m * .70)} bpm → 5 min cool-down. About 38 min in total. +7.2% VO2 max in 8 weeks (Helgerud 2007).` },
+    { t: '30/30s', c: 'amber', hr: 'Hard / easy alternation', d: '10–20 × 30 s hard / 30 s easy. Heart rate creeps up across the set, so judge by effort, not by watch. A good intro to intervals and a 4×4 alternative.' }
+  ];
+  $('key-sessions').innerHTML = sessions.map(s => `<div class="card border-${s.c}-500/40"><div class="lbl">${s.t}</div><div class="brand text-3xl text-white leading-none mb-2">${s.hr}</div><p class="text-xs text-slate-400">${s.d}</p></div>`).join('');
+}
 
-        // ---------- Phone guide (bottom sheet) ----------
-        const sheet = document.getElementById('guide-sheet');
-        const guideSection = (title, sub, html) =>
-            `<div><h4 class="font-semibold text-slate-900">${title}</h4>${sub ? `<p class="text-xs text-slate-500 mb-1.5">${sub}</p>` : ''}<div class="leading-relaxed">${html}</div></div>`;
-        document.querySelectorAll('[data-guide]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById('guide-body').innerHTML =
-                    guideSection('Tempo', 'Seconds for lower – pause – lift – pause. X = as fast as possible.', TIPS.tempo) +
-                    guideSection('Rest', 'Between sets, in seconds.', TIPS.rest) +
-                    guideSection('Intensity', '', TIPS[btn.dataset.guide]);
-                if (sheet.showModal) sheet.showModal(); else sheet.setAttribute('open', '');
-            });
-        });
-        sheet.querySelector('[data-close]').addEventListener('click', () => sheet.close());
-        sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); }); // tap backdrop
+/* ---------- 4. plans ---------- */
+const E = (min, name) => ({ t: 'easy', name: name || `Easy ${min} min`, mod: min, vig: 0 });
+const L = (min, name) => ({ t: 'long', name, mod: min, vig: 0 });
+const ST = (name, mod = 0) => ({ t: 'strength', name, mod, vig: 0 });
+const I = name => ({ t: 'hard', name: name || '4×4 intervals', mod: 22, vig: 16 });
+const H = (name, mod, vig) => ({ t: 'hard', name, mod, vig });
+const REST = name => ({ t: 'rest', name: name || 'Rest / mobility', mod: 0, vig: 0 });
+const PLANS = {
+  longevity: { label: 'Longevity & health', icon: '❤️',
+    why: 'Raise VO2 max and hit the guideline dose: 150–300 min moderate or 75–150 min vigorous a week, plus strength twice a week. The mortality benefit nearly plateaus at about 150–300 min vigorous or 300–600 min moderate (Lee 2022).',
+    days: [E(40, 'Easy 40 min walk / cycle'), ST('Full-body strength'), I(), E(40), ST('Full-body strength'), L(75, 'Long walk / hike / ride 60–90 min'), REST()],
+    notes: ['The biggest gain comes from getting out of the bottom 25% for fitness.', 'One weekly 4×4 makes the plan time-efficient: vigorous minutes count double.', 'Retest VO2 every 8 weeks.'] },
+  vo2: { label: 'Maximise VO2 max', icon: '🫁',
+    why: 'Intervals at 90–95% of max HR raise VO2 max more per minute than anything else. 2–3 hard sessions a week, 48 h apart, on top of easy volume, for an 8-week block.',
+    days: [I(), E(45), ST('Strength (upper-body bias)'), I('4×4 (or 6×3 min)'), E(35, 'Easy 30–40 min'), H('30/30 × 10–20, or 60–75 min easy', 15, 10), REST()],
+    notes: ['Progress by adding a 5th rep or more speed/watts at the same HR, not by adding hard days.', 'Keep easy days genuinely easy so the hard days can be hard.', 'Retest at 8 weeks. Gains were measured at 8 weeks in Helgerud 2007.'] },
+  fatloss: { label: 'Fat loss', icon: '🔥',
+    why: 'HIIT and steady cardio cause the same fat loss per kg. HIIT just takes about 40% less time (Wewege 2017). Total energy burned, diet and keeping muscle through strength work matter far more than the type.',
+    days: [ST('Strength + 20 min easy', 20), E(40, 'Easy 30–45 min'), H('Strength + HIIT 8–10 × 1 min hard / 1 min easy', 20, 9), E(40, 'Easy 30–45 min'), ST('Strength'), L(60, 'Long easy session 60 min'), REST('Rest: 8–10k steps')],
+    notes: ['Choose the cardio you\'ll actually keep doing. Consistency beats modality.', 'Daily steps are a big, low-fatigue lever.', 'Exercise alone gives modest fat loss. Pair it with an energy deficit.'] },
+  endurance: { label: 'Endurance performance', icon: '🏃',
+    why: 'A polarised ~80/20 split: most sessions easy, 1–2 truly hard, little in the middle. In trained athletes this beat threshold-heavy or high-volume-only training (Stöggl & Sperlich 2014).',
+    days: [ST('Rest or strength'), I('Intervals: 4×4 or 5 × 1 km'), E(50, 'Easy 45–60 min'), E(40, 'Easy 40 min + strides'), ST('Strength'), H('Tempo / race-specific, or easy', 25, 20), L(100, 'Long easy run 75–120 min')],
+    notes: ['About 80% of running time easy, about 20% hard.', 'Grow the long run first, then the intervals.', 'Long-term endurance athletes with palpitations should get checked (higher AF risk at very high fitness).'] },
+  strength: { label: 'Strength-first + cardio', icon: '🏋️',
+    why: 'Concurrent training barely dents hypertrophy or max strength (Schumann 2022). It mainly blunts explosive gains when cardio and lifting share a session. Prefer cycling or rowing, and keep hard cardio away from heavy leg days.',
+    days: [ST('Lower-body strength'), ST('Upper-body strength + 30 min easy bike', 30), I('4×4 on bike / rower (own day or ≥6 h from lifting)'), ST('Lower-body strength'), ST('Upper-body strength'), E(50, 'Easy 45–60 min'), REST()],
+    notes: ['Cycling interferes less than running with leg hypertrophy.', 'Never let cardio wreck the quality of your heavy sessions.', 'Two to three cardio sessions a week is enough to move VO2 max.'] }
+};
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const TSTYLE = { easy: ['Easy', 'border-blue-500/50', 'text-blue-300'], long: ['Long', 'border-cyan-500/50', 'text-cyan-300'], hard: ['Hard', 'border-red-500/60', 'text-red-300'], strength: ['Strength', 'border-violet-500/50', 'text-violet-300'], rest: ['Rest', 'border-slate-700', 'text-slate-500'] };
 
-        // ---------- Phone: highlight the section you're in ----------
-        const tabs = document.querySelectorAll('#mobile-tabs [data-sec]');
-        let tabTick = false;
-        function updateActiveTab() {
-            tabTick = false;
-            let current = 'warmup';
-            for (const k of ['warmup', 'conditioning', 'cooldown']) {
-                if (document.getElementById('sec-' + k).getBoundingClientRect().top < 140) current = k;
-            }
-            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = 'cooldown';
-            tabs.forEach(t => t.classList.toggle('is-active', t.dataset.sec === current));
-        }
-        window.addEventListener('scroll', () => { if (!tabTick) { tabTick = true; requestAnimationFrame(updateActiveTab); } }, { passive: true });
+function basePhase() {
+  if (S.baseOverride !== null) return S.baseOverride;
+  const w = weighted();
+  return (R.vo2 && R.vo2.lvl === 0) || (w !== null && w < 150);
+}
+function effectivePlan() {
+  const p = PLANS[S.goal], hold = apssFlag(), base = basePhase();
+  return p.days.map(d => {
+    if (d.t !== 'hard') return d;
+    if (hold) return { t: 'easy', name: 'Easy 30 min (intervals on hold)', mod: 30, vig: 0, swapped: 'hold' };
+    if (base) return { t: 'easy', name: 'Easy 25–30 min (base phase)', mod: 30, vig: 0, swapped: 'base' };
+    return d;
+  });
+}
+function renderPlan() {
+  $('goal-chips').innerHTML = Object.entries(PLANS).map(([k, p]) => `<button class="chip ${S.goal === k ? 'on' : ''}" onclick="setGoal('${k}')">${p.icon} ${p.label}</button>`).join('');
+  const p = PLANS[S.goal];
+  $('goal-why').textContent = p.why;
+  const hold = apssFlag(), base = basePhase();
+  let banners = '';
+  if (hold) banners += flag('Your screening flagged something, so interval sessions are swapped for easy work until a GP or allied health professional clears you.');
+  else if (!apssClear()) banners += note('Finish the 1 · Screen tab to confirm intervals are appropriate for you.');
+  if (!hold) banners += `<div class="card flex items-center justify-between gap-4 !p-4"><div class="text-sm"><b class="text-white">Base phase (weeks 1–4)</b><div class="text-xs text-slate-400">${base ? 'On: hard sessions become easy ones. From week 5, add one interval session, then build to the full plan.' : 'Off: full plan. Turn this on if you\'re new to training or coming back from a break.'}</div></div><button class="chip ${base ? 'on' : ''}" onclick="toggleBase()">${base ? 'On' : 'Off'}</button></div>`;
+  $('plan-banners').innerHTML = banners;
 
-        initStorage();
-        updateActiveTab();
-    </script>
+  const plan = effectivePlan(), m = hrMax(), r = rhrVal(), z2 = ZONES[1];
+  const easyHR = (r ? zoneHRR(z2) : zoneHR(z2)) + ' bpm';
+  $('plan-grid').innerHTML = plan.map((d, i) => {
+    const st = TSTYLE[d.t];
+    const hr = d.t === 'easy' || d.t === 'long' ? easyHR : d.t === 'hard' ? `${Math.round(m * .9)}–${Math.round(m * .95)} bpm work` : '';
+    return `<div class="card !p-3 border-2 ${st[1]} flex flex-col gap-1">
+      <div class="flex justify-between items-center"><span class="brand text-xl text-white">${DAYS[i]}</span><span class="text-[10px] font-bold uppercase ${st[2]}">${st[0]}</span></div>
+      <div class="text-xs text-slate-200 font-semibold leading-snug">${d.name}</div>
+      ${hr ? `<div class="text-[11px] text-slate-400 mt-auto pt-1">${hr}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  const mod = plan.reduce((a, d) => a + d.mod, 0), vig = plan.reduce((a, d) => a + d.vig, 0), w = mod + 2 * vig;
+  $('plan-dose').innerHTML = `<h3 class="brand text-xl text-white mb-2">Weekly dose</h3>
+    <div class="grid grid-cols-3 gap-2 text-center mb-3">
+      <div><div class="lbl">Moderate</div><div class="brand text-3xl text-white">${mod}</div></div>
+      <div><div class="lbl">Vigorous</div><div class="brand text-3xl text-white">${vig}</div></div>
+      <div><div class="lbl">Weighted</div><div class="brand text-3xl text-blue-400">${w}</div></div>
+    </div>
+    ${doseBar(w)}
+    <p class="text-[11px] text-slate-500 mt-2">Approximate minutes. Warm-ups and recoveries are counted as moderate.</p>`;
+  $('plan-notes').innerHTML = `<h3 class="brand text-xl text-white mb-2">Coaching notes</h3><ul class="text-sm text-slate-300 space-y-2 list-disc pl-5">${p.notes.map(n => `<li>${n}</li>`).join('')}</ul>`;
+  renderWeek(); buildReport();
+}
+function doseBar(w) {
+  const pct = Math.min(100, w / 600 * 100);
+  const msg = w >= 300 ? 'Upper guideline reached: near-maximal mortality benefit range.' : w >= 150 ? 'Meets the minimum guideline (150 weighted min).' : `${150 - w} weighted min short of the 150 minimum.`;
+  return `<div class="relative h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800"><div class="h-full ${w >= 300 ? 'bg-emerald-500' : w >= 150 ? 'bg-blue-500' : 'bg-amber-500'}" style="width:${pct}%"></div>
+    <div class="absolute top-0 h-full border-l border-white/60" style="left:25%"></div><div class="absolute top-0 h-full border-l border-white/60" style="left:50%"></div></div>
+    <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase mt-1"><span>0</span><span style="margin-left:18%">150</span><span>300</span><span>600</span></div>
+    <p class="text-xs text-slate-300 mt-2">${msg}</p>`;
+}
+function setGoal(k) { S.goal = k; renderPlan(); save(); }
+function toggleBase() { S.baseOverride = !basePhase(); renderPlan(); save(); }
+
+/* ---------- 5. week tracker ---------- */
+let WK = store.get('week', { mod: Array(7).fill(''), vig: Array(7).fill(''), str: Array(7).fill(false) });
+function renderWeek() {
+  const plan = effectivePlan();
+  $('week-table').innerHTML = '<tr><th>Day</th><th>Plan</th><th>Moderate min</th><th>Vigorous min</th><th>Strength</th></tr>' + DAYS.map((d, i) => `
+    <tr><td class="font-bold text-white">${d}</td><td class="text-xs text-slate-400">${plan[i].name}</td>
+    <td><input class="inp !py-1.5 w-20" type="number" min="0" value="${WK.mod[i]}" oninput="wk('mod',${i},this.value)"></td>
+    <td><input class="inp !py-1.5 w-20" type="number" min="0" value="${WK.vig[i]}" oninput="wk('vig',${i},this.value)"></td>
+    <td><input type="checkbox" class="w-5 h-5 accent-violet-500" ${WK.str[i] ? 'checked' : ''} onchange="wk('str',${i},this.checked)"></td></tr>`).join('');
+  weekTotals();
+}
+function wk(k, i, v) { WK[k][i] = v; store.set('week', WK); weekTotals(); buildReport(); }
+function weekTotals() {
+  const mod = WK.mod.reduce((a, v) => a + (parseFloat(v) || 0), 0), vig = WK.vig.reduce((a, v) => a + (parseFloat(v) || 0), 0), str = WK.str.filter(Boolean).length;
+  const w = mod + 2 * vig, total = mod + vig, hardShare = total ? Math.round(vig / total * 100) : 0;
+  $('week-dose').innerHTML = `<h3 class="brand text-xl text-white mb-2">Guideline progress</h3>
+    <div class="grid grid-cols-3 gap-2 text-center mb-3"><div><div class="lbl">Moderate</div><div class="brand text-3xl text-white">${mod}</div></div><div><div class="lbl">Vigorous</div><div class="brand text-3xl text-white">${vig}</div></div><div><div class="lbl">Weighted</div><div class="brand text-3xl text-blue-400">${w}</div></div></div>
+    ${doseBar(w)}
+    <p class="text-xs mt-2 ${str >= 2 ? 'text-emerald-400' : 'text-slate-400'}">Strength days: ${str}/2 ${str >= 2 ? '✓ guideline met' : '(guideline: 2+ per week)'}</p>`;
+  $('week-split').innerHTML = `<h3 class="brand text-xl text-white mb-2">Easy / hard split</h3>
+    <div class="flex h-4 rounded-full overflow-hidden border border-slate-800 bg-slate-950">${total ? `<div class="bg-blue-500" style="width:${100 - hardShare}%"></div><div class="bg-red-500" style="width:${hardShare}%"></div>` : ''}</div>
+    <div class="flex justify-between text-xs mt-1"><span class="text-blue-300">Easy/moderate ${total ? 100 - hardShare : 0}%</span><span class="text-red-300">Vigorous ${hardShare}%</span></div>
+    <p class="text-xs text-slate-400 mt-3">${!total ? 'Log some sessions to see your split.' : hardShare > 30 ? 'Heavy on hard work. Make sure easy days are truly easy, or recovery will suffer.' : hardShare < 5 ? 'Almost all easy. Adding one interval session is the fastest way to lift VO2 max.' : 'In the right range. Roughly 80/20 easy/hard suits most goals.'}</p>`;
+}
+function resetWeek() { WK = { mod: Array(7).fill(''), vig: Array(7).fill(''), str: Array(7).fill(false) }; store.set('week', WK); renderWeek(); buildReport(); }
+
+/* ---------- evidence ---------- */
+function renderEvidence() {
+  const tiles = [
+    ['~13%', 'lower all-cause mortality per +1 MET of fitness', 'Kodama 2009, 102,980 people'],
+    ['~4×', 'mortality risk, least fit vs extremely fit', 'Kokkinos 2022, 750,302 veterans'],
+    ['+7.2%', 'VO2 max in 8 weeks from 4×4 intervals', 'Helgerud 2007'],
+    ['−40%', 'time needed for the same fat loss with HIIT', 'Wewege 2017'],
+    ['150–300', 'vigorous min/wk: near-maximal mortality benefit', 'Lee 2022, 116,221 adults'],
+    ['−8/−4', 'mmHg BP from isometric training (best of all modes)', 'Edwards 2023, 270 RCTs'],
+    ['+9%', 'mortality per +10 bpm resting HR', 'Zhang 2016 meta-analysis'],
+    ['≤12', 'bpm 1-min HR recovery = clinical flag', 'Cole 1999, NEJM']
+  ];
+  $('stat-tiles').innerHTML = tiles.map(t => `<div class="card !p-4"><div class="brand text-4xl text-blue-400 leading-none">${t[0]}</div><div class="text-xs text-slate-300 mt-1">${t[1]}</div><div class="text-[10px] text-slate-500 mt-1">${t[2]}</div></div>`).join('');
+  const rows = [
+    ['Longevity', 'Any moderate–vigorous aerobic work; raise VO2 max', '150–300 min moderate or 75–150 vigorous, + strength 2×', 'Strong'],
+    ['Max VO2', '4×4 at 90–95% max HR', '2–3 interval sessions + easy volume, 8+ wks', 'Strong'],
+    ['Aerobic base', 'Easy / Zone 2 plus some high intensity', '2–5 × 30–90 min', 'Moderate'],
+    ['Endurance', 'Polarised ~80/20', '5–10+ sessions', 'Moderate'],
+    ['Fat loss', 'Whatever you\'ll sustain; HIIT if time-poor', '150–300+ min + energy deficit + strength', 'Strong (HIIT ≈ steady)'],
+    ['Blood pressure', 'Aerobic, resistance, isometric (wall squat, handgrip)', 'Aerobic most days; isometric 3×/wk', 'Strong'],
+    ['Resting HR / recovery', 'Aerobic volume over months', '≥150 min/wk', 'Moderate'],
+    ['Metabolic health', 'HIIT and steady both; post-meal walks', 'Most days', 'Moderate–strong'],
+    ['Mental health', 'Regular moderate–vigorous', '150+ min/wk (benefits start lower)', 'Strong'],
+    ['Strength-first', 'Low-impact cardio away from heavy legs', '2–3 sessions/wk', 'Moderate']
+  ];
+  $('goal-table').innerHTML = '<tr><th>Goal</th><th>Cardio type</th><th>Weekly dose</th><th>Evidence</th></tr>' + rows.map(r => `<tr><td class="font-bold text-white">${r[0]}</td><td>${r[1]}</td><td class="text-slate-300">${r[2]}</td><td class="text-slate-400">${r[3]}</td></tr>`).join('');
+  const myths = [
+    ['"Zone 2 is the best intensity for mitochondria and fat burning"', 'Not supported. A 2025 review by Storoschuk, Gibala and colleagues found no evidence that Zone 2 is optimal. Higher intensities matter most when weekly time is limited. Zone 2 is a great, safe base, but it shouldn\'t be your whole plan if you train ~3 h a week.'],
+    ['"Too much cardio shortens your life"', 'Mortality data show no U-curve. There was no harm at more than 4× the guidelines (Lee 2022) and no extra risk at extreme fitness (Kokkinos 2022). The real caveats are overuse injuries and a higher rate of atrial fibrillation at very high fitness (>10 METs in UK Biobank).'],
+    ['"You need HIIT to lose fat"', 'HIIT and steady cardio give the same fat loss. HIIT simply takes about 40% less time. Diet and total energy burned are the main drivers.'],
+    ['"Cardio kills gains"', 'Meta-analysis shows essentially no blunting of hypertrophy or max strength. Explosive power suffers a bit, mainly when both are done in the same session. Cycling interferes less than running.'],
+    ['"My watch says my VO2 max is X"', 'Validation studies put watch estimates around 13–16% off for Apple Watch (usually reading low in fit people). Garmin\'s own figure is ~5%, but there are fewer independent checks. Use watch values for trends, not grades.'],
+    ['"Average is bad"', 'Average means the median. The big risk sits in the bottom quarter, and that\'s where training pays off most.']
+  ];
+  $('myths').innerHTML = '<h2 class="brand text-2xl text-white mb-1">Myth vs evidence</h2>' + myths.map(m => `<details class="bg-slate-950 border border-slate-800 rounded-xl p-3"><summary class="text-sm font-bold text-slate-200 flex justify-between gap-3">${m[0]}<span class="text-slate-500">+</span></summary><p class="text-sm text-slate-400 mt-2">${m[1]}</p></details>`).join('');
+  const src = [
+    ['Kodama 2009, JAMA: fitness and mortality meta-analysis', 'https://jamanetwork.com/journals/jama/fullarticle/1108396'],
+    ['Mandsager 2018, JAMA Netw Open: 122,007 treadmill tests', 'https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2707428'],
+    ['Kokkinos 2022, JACC: 750,302 veterans', 'https://www.jacc.org/doi/10.1016/j.jacc.2022.05.030'],
+    ['Lee 2022, Circulation: long-term activity dose', 'https://www.ahajournals.org/doi/10.1161/CIRCULATIONAHA.121.058162'],
+    ['Storoschuk 2025: "Much Ado About Zone 2"', 'https://www.semanticscholar.org/paper/Much-Ado-About-Zone-2:-A-Narrative-Review-Assessing-Storoschuk-Moran-MacDonald/dd6f533104749fcf08efa219f01c2dea0868f61f'],
+    ['Milanović 2015, Sports Med: HIIT vs continuous training', 'https://link.springer.com/article/10.1007/s40279-015-0365-0'],
+    ['Stöggl & Sperlich 2014: polarised training', 'https://frontiersin.org/articles/10.3389/fphys.2014.00033/full'],
+    ['Zhang 2016, CMAJ: resting HR and mortality', 'https://www.cmaj.ca/content/188/3/E53'],
+    ['Lambe 2025, PLOS ONE: Apple Watch VO2 validation', 'https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0323741'],
+    ['Concept2 2k rankings', 'https://log.concept2.com/rankings/2025/rower/2000?age=30-39'],
+    ['APSS: Adult Pre-Exercise Screening Tool (AUSactive)', 'https://ausactive.org.au/wp-content/uploads/2022/02/Adult-Pre-Exercise-Screening-Tool.pdf'],
+    ['NTNU CERG fitness calculator', 'https://www.ntnu.edu/cerg/vo2max']
+  ];
+  $('sources').innerHTML = src.map(s => `<li><a class="underline hover:text-blue-300" href="${s[1]}" target="_blank" rel="noopener">${s[0]}</a></li>`).join('') + '<li class="text-slate-500 no-underline">VO2 norms: FRIEND 2022 (Kaminsky et al., Mayo Clin Proc 97:285–293). Step test: YMCA Fitness Testing & Assessment Manual (Golding).</li>';
+}
+
+/* ---------- report ---------- */
+function buildReport() {
+  const L = [`CARDIO COMPASS REPORT (${today()})`, '------------------------------', `Profile: ${S.age} y, ${S.sex}, max HR ${hrMax()}${rhrVal() ? ', resting HR ' + rhrVal() : ''}`];
+  L.push(`Screening: ${apssFlag() ? 'FLAGGED: seek GP/allied health guidance before vigorous exercise' : apssClear() ? 'No red flags (APSS stage 1)' : 'Incomplete'}${weighted() !== null ? ` · current weighted activity ${weighted()} min/wk` : ''}`);
+  L.push('');
+  if (R.vo2) L.push(`VO2 max: ${R.vo2.vo2} mL/kg/min (${R.vo2.src}), ${R.vo2.cat}, ~${R.vo2.p >= 95 ? '>90' : R.vo2.p}th percentile (FRIEND 2022), fitness age ${R.vo2.fa}`);
+  if (R.step) L.push(`YMCA step test: ${R.step.hr} bpm, ${R.step.label}`);
+  if (R.row) L.push(`2k row: ${R.row.time} (${R.row.split}/500 m, ${R.row.watts} W)`);
+  if (R.rhr) L.push(`Resting HR: ${R.rhr.v} bpm, ${R.rhr.label}${R.rhr.type === 'sleep' ? ' (sleeping)' : ''}`);
+  if (R.hrr) L.push(`HR recovery: -${R.hrr.drop} bpm (${R.hrr.proto === '2' ? '2 min' : '1 min'}), ${R.hrr.label}`);
+  const z2 = ZONES[1];
+  L.push('', `Zones: Easy/Z2 ${rhrVal() ? zoneHRR(z2) : zoneHR(z2)} bpm · 4x4 work ${Math.round(hrMax() * .9)}-${Math.round(hrMax() * .95)} bpm`);
+  const plan = effectivePlan();
+  L.push('', `Goal: ${PLANS[S.goal].label}${apssFlag() ? ' (intervals on hold)' : basePhase() ? ' (base phase, weeks 1-4)' : ''}`);
+  plan.forEach((d, i) => L.push(`  ${DAYS[i]}: ${d.name}`));
+  const mod = WK.mod.reduce((a, v) => a + (parseFloat(v) || 0), 0), vig = WK.vig.reduce((a, v) => a + (parseFloat(v) || 0), 0);
+  if (mod || vig) L.push('', `This week logged: ${mod} moderate + ${vig} vigorous = ${mod + 2 * vig} weighted min`);
+  L.push('', '------------------------------', 'Retest VO2/field tests in 6-8 weeks. Educational tool, not medical advice.');
+  $('report').value = L.join('\n');
+}
+async function copyReport() {
+  const t = $('report').value;
+  try { await navigator.clipboard.writeText(t); $('copy-msg').textContent = 'Copied ✓'; }
+  catch (e) { $('report').select(); try { document.execCommand('copy'); $('copy-msg').textContent = 'Copied ✓'; } catch (e2) { $('copy-msg').textContent = 'Selected: press Ctrl/Cmd+C'; } }
+  setTimeout(() => $('copy-msg').textContent = '', 2500);
+}
+
+/* ---------- routing ---------- */
+const VIEWS = ['screen', 'test', 'zones', 'plan', 'week', 'evidence'];
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'screen';
+  VIEWS.forEach(x => $('v-' + x).classList.toggle('on', x === v));
+  document.querySelectorAll('#tabs .tab').forEach(t => t.classList.toggle('on', t.dataset.v === v));
+}
+window.addEventListener('hashchange', () => { route(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+/* ---------- init ---------- */
+renderProfile(); renderAPSS(); showTest('vo2'); renderHistory(); renderZones(); renderPlan(); renderEvidence(); buildReport(); route();
+</script>
 </body>
 </html>
