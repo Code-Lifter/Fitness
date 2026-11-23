@@ -14,6 +14,7 @@ https://code-lifter.github.io/Fitness/
 
 - `index.html` – the hub page: a grid of cards linking to each tool. **Whenever a tool is added, renamed or removed, update its card here.**
 - `nav.html` – shared navbar fragment. Tool pages load it at runtime with `fetch('nav.html')` into a `#nav-placeholder` element. Edit it once to change the nav everywhere.
+- `share-qr.js` – shared full-screen "share this page" QR overlay. The Share button in `nav.html` loads it on first tap (so tool pages don't need to include it); `index.html` includes it directly with `<script src="share-qr.js" defer></script>` and calls `openShareQR(url, title)`. Both share `https://code-lifter.github.io/Fitness/`. The QR library loads from jsDelivr (with an SRI hash) only when opened.
 - Tool pages (one file each): `1-rep-max.html`, `1rm-working-sets.html`, `body-ratio.html`, `breathing.html`, `cardio.html`, `dorian.html`, `drop-set.html`, `health-bench.html`, `heart.html`, `hypertrophy-plan.html`, `rack-master.html`, `rpe.html`, `strength-test.html`, `stretching.html`, `tempo.html`, `timer.html`, `workout-sheet.html`.
 - The hub also links to a separate repo/site: `https://code-lifter.github.io/Food-Calculator-/`.
 
