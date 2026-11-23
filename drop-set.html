@@ -4,363 +4,389 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>1RM & Drop Set Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=Teko:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #060a10;
+      --surface: #0d1420;
+      --border: #1a2336;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Syne', system-ui, sans-serif; background: var(--bg); color: #e2e8f0; min-height: 100vh; padding-bottom: 60px; }
+    .mono { font-family: 'DM Mono', 'Courier New', monospace; }
+    .brand-font { font-family: 'Teko', sans-serif; }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .content { position: relative; z-index: 1; }
+    #nav-placeholder { position: relative; z-index: 2; }
+  </style>
 </head>
-  <!-- Navbar -->
+<body class="selection:bg-amber-500 selection:text-slate-900">
+
+<!-- Navbar -->
 <div id="nav-placeholder"></div>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8 font-sans">
-  <div class="max-w-4xl mx-auto space-y-6">
-    
-    <!-- Header -->
-    <header class="border-b border-slate-800 pb-4">
-      <h1 class="text-3xl font-bold tracking-tight text-emerald-400">1RM & Drop Set Engine</h1>
-      <p class="text-slate-400 text-sm mt-1">Smart weight snapping, dynamic rep targets, and focused drop sets.</p>
+
+<div class="content max-w-3xl mx-auto px-4 mt-6">
+  <div class="space-y-6">
+
+    <!-- TITLE -->
+    <header>
+      <h1 class="text-white text-4xl uppercase tracking-wide brand-font leading-none">1RM &amp; Drop Set <span class="text-amber-500">Engine</span></h1>
+      <p class="text-[11px] text-slate-500 mt-1">Smart weight snapping, dynamic rep targets, and focused drop sets.</p>
     </header>
 
-    <!-- Tempo Callout Banner -->
-    <div class="bg-slate-800/90 border-l-4 border-emerald-500 rounded-r-xl p-4 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+    <!-- TEMPO RULE -->
+    <div class="bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500 rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
       <div>
-        <span class="text-xs uppercase tracking-wider text-emerald-400 font-bold block">Execution Tempo Rule</span>
-        <span class="text-xl font-extrabold text-slate-100 font-mono">3 - 0 - 1 - 0</span>
+        <span class="text-[10px] uppercase tracking-widest text-amber-500 font-bold block">Execution Tempo Rule</span>
+        <span class="text-2xl font-medium text-white mono">3-0-1-0</span>
       </div>
-      <p class="text-xs text-slate-300 max-w-md">
-        <strong class="text-slate-100">3s</strong> lowering &bull; 
-        <strong class="text-slate-100">0s</strong> pause bottom &bull; 
-        <strong class="text-slate-100">1s</strong> press &bull; 
-        <strong class="text-slate-100">0s</strong> pause top
+      <p class="text-[11px] text-slate-400 max-w-md">
+        <strong class="text-slate-200">3s</strong> lowering &bull;
+        <strong class="text-slate-200">0s</strong> pause bottom &bull;
+        <strong class="text-slate-200">1s</strong> press &bull;
+        <strong class="text-slate-200">0s</strong> pause top
       </p>
     </div>
 
-    <!-- Machine Hardware Settings (Interval Snapping) -->
-    <section class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 shadow-md space-y-3">
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Gym Hardware Settings</span>
-        <span class="text-xs text-slate-400">Snap ideal math to real machine pin steps</span>
+    <!-- 1. 1RM INPUT -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <h2 class="text-white text-lg uppercase tracking-wide brand-font flex items-center gap-2 mb-3">
+        <span class="text-amber-500">1.</span> Your 1 Rep Max
+      </h2>
+
+      <!-- Mode switch: highlight slides between the two halves -->
+      <div class="relative grid grid-cols-2 bg-slate-950 rounded-lg p-1 border border-slate-800 mb-4">
+        <span id="mode-slider" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-md bg-slate-800 transition-transform duration-200 ease-out"></span>
+        <button id="mode1rmBtn" onclick="setMode('1rm')" class="relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors text-slate-200">1RM Input</button>
+        <button id="modeRepsBtn" onclick="setMode('reps')" class="relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors text-slate-500 hover:text-slate-300">Reps + Weight</button>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Stack Step Interval (kg)</label>
-          <input type="number" id="stackInterval" value="5" step="0.5" oninput="runCalculation()"
-            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
-        </div>
-        <div class="flex items-center pt-5">
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="snapToggle" checked onchange="runCalculation()" class="sr-only peer">
-            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-            <span class="ml-3 text-xs font-medium text-slate-300">Snap outputs to nearest step</span>
-          </label>
+
+      <!-- Mode A: Direct 1RM -->
+      <div id="panel1RM">
+        <div class="relative w-full">
+          <input type="number" id="direct1RM" inputmode="decimal" placeholder="70" step="0.5" oninput="runCalculation()"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-4xl font-black mono focus:border-amber-500 outline-none transition-all text-white text-center">
+          <span class="absolute right-4 top-5 text-slate-600 text-xs font-bold uppercase">KG</span>
         </div>
       </div>
-    </section>
 
-    <!-- Calculation Engine Main Card -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      <!-- Dynamic Input Panel -->
-      <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-6 shadow-xl space-y-4 flex flex-col">
-        
-        <!-- Mode Switch Toggle -->
-        <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-700/80 flex items-center justify-between mb-2">
-          <button id="mode1rmBtn" onclick="setMode('1rm')" 
-            class="flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-emerald-600 text-slate-950 shadow">
-            1RM Input
-          </button>
-          <button id="modeRepsBtn" onclick="setMode('reps')" 
-            class="flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200">
-            Reps + Weight
-          </button>
-        </div>
-
-        <!-- Mode A: Direct 1RM -->
-        <div id="panel1RM" class="space-y-4 flex-grow">
-          <div>
-            <label class="block text-sm font-medium text-slate-300 mb-1">Your 1RM Baseline (kg)</label>
-            <input type="number" id="direct1RM" placeholder="e.g. 70" step="0.5" oninput="runCalculation()"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500 text-lg font-semibold">
+      <!-- Mode B: Reps & Weight -->
+      <div id="panelReps" class="hidden">
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Weight (kg)</label>
+            <input type="number" id="inputWeight" inputmode="decimal" placeholder="55" step="0.5" oninput="runCalculation()"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-amber-500 outline-none text-white text-center">
+          </div>
+          <div class="flex-1">
+            <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Reps</label>
+            <input type="number" id="inputReps" inputmode="numeric" placeholder="8" step="1" oninput="runCalculation()"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-2xl font-black mono focus:border-amber-500 outline-none text-white text-center">
           </div>
         </div>
+      </div>
 
-        <!-- Mode B: Reps & Weight Calc -->
-        <div id="panelReps" class="space-y-4 hidden flex-grow">
-          <div>
-            <label class="block text-sm font-medium text-slate-300 mb-1">Weight Lifted (kg)</label>
-            <input type="number" id="inputWeight" placeholder="e.g. 55" step="0.5" oninput="runCalculation()"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-300 mb-1">Reps Completed</label>
-            <input type="number" id="inputReps" placeholder="e.g. 8" step="1" oninput="runCalculation()"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500">
-          </div>
-        </div>
-
-        <button onclick="logCurrentSet()" 
-          class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-lg transition-colors shadow-lg mt-auto">
+      <div class="flex items-center justify-between mt-4 gap-3">
+        <span id="display1RM" class="mono text-sm font-medium text-amber-400 bg-amber-900/10 border border-amber-900/30 px-3 py-1.5 rounded-lg">1RM: 0.0 kg</span>
+        <button onclick="logCurrentSet()"
+          class="h-10 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-lg bg-amber-500 hover:bg-amber-400 text-slate-900 shadow-amber-500/20">
           Log Performance Set
         </button>
-      </section>
-
-      <!-- Dynamic Focused Output Display -->
-      <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-6 shadow-xl flex flex-col justify-between">
-        
-        <div>
-          <div class="flex justify-between items-end mb-3">
-            <h2 class="text-xl font-semibold text-slate-200">Focused Working Target</h2>
-            <span id="display1RM" class="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">1RM: 0.0 kg</span>
-          </div>
-          
-          <!-- Zone Pill Slider -->
-          <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-700/80 flex items-center justify-between mb-4">
-            <button id="zone85Btn" onclick="setZone('85')" 
-              class="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200">
-              Heavy (85%)
-            </button>
-            <button id="zone75Btn" onclick="setZone('75')" 
-              class="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-600 text-slate-950 shadow">
-              Hypertrophy (75%)
-            </button>
-            <button id="zone65Btn" onclick="setZone('65')" 
-              class="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200">
-              Endurance (65%)
-            </button>
-          </div>
-
-          <!-- Master Target Display -->
-          <div class="mt-2 p-6 bg-slate-900/80 rounded-lg border border-slate-700/50 text-center shadow-inner">
-            <span id="activeZoneLabel" class="text-xs uppercase tracking-wider text-slate-400 block mb-2">Hypertrophy Target Load</span>
-            <span id="masterTargetWeight" class="text-5xl font-extrabold text-emerald-400 block mb-2">0.0 kg</span>
-            <span id="masterTargetReps" class="text-sm font-semibold text-slate-300">Target: ~8 reps</span>
-          </div>
-        </div>
-      </section>
-
+      </div>
     </div>
 
-    <!-- NEW: Warm-Up Sequence (Yellow) -->
-    <section class="bg-slate-800 border-t-[3px] border-yellow-500/80 rounded-xl p-6 shadow-xl space-y-3">
-      <div class="flex justify-between items-end mb-2">
-        <h2 class="text-xl font-semibold text-yellow-400">Warm-Up Progression</h2>
-        <span class="text-xs text-slate-400">Ramps up to your working target</span>
+    <!-- 2. MACHINE SETTINGS -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+      <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800">
+        <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+          <span class="text-amber-500">2.</span> Gym Hardware
+        </h3>
+        <p class="text-[10px] text-slate-500 mt-0.5">Snap ideal math to real machine pin steps.</p>
       </div>
-      
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <!-- Set 1 -->
-        <div class="p-3 bg-slate-900/60 rounded-lg border border-yellow-500/20 relative">
-          <div class="absolute top-0 right-0 bg-yellow-500/20 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded-bl-lg">40%</div>
-          <span class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Set 1</span>
-          <span id="wu1Weight" class="text-xl font-bold text-slate-200">0 kg</span>
-          <span class="text-xs text-yellow-500/80 block mt-1">10 reps</span>
+      <div class="p-4 sm:p-5 grid grid-cols-2 gap-3 items-end">
+        <div>
+          <label class="block text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Stack Step (kg)</label>
+          <input type="number" id="stackInterval" inputmode="decimal" value="5" step="0.5" oninput="runCalculation()"
+            class="w-full bg-slate-950 text-center text-white text-sm font-bold rounded-lg border border-slate-700 outline-none focus:border-amber-500 h-9 px-1 transition-colors">
         </div>
-        <!-- Set 2 -->
-        <div class="p-3 bg-slate-900/60 rounded-lg border border-yellow-500/30 relative">
-          <div class="absolute top-0 right-0 bg-yellow-500/20 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded-bl-lg">60%</div>
-          <span class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Set 2</span>
-          <span id="wu2Weight" class="text-xl font-bold text-slate-200">0 kg</span>
-          <span class="text-xs text-yellow-500/80 block mt-1">6 reps</span>
-        </div>
-        <!-- Set 3 -->
-        <div class="p-3 bg-slate-900/60 rounded-lg border border-yellow-500/40 relative">
-          <div class="absolute top-0 right-0 bg-yellow-500/20 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded-bl-lg">80%</div>
-          <span class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Set 3</span>
-          <span id="wu3Weight" class="text-xl font-bold text-slate-200">0 kg</span>
-          <span class="text-xs text-yellow-500/80 block mt-1">3 reps</span>
-        </div>
-        <!-- Set 4 -->
-        <div class="p-3 bg-slate-900/60 rounded-lg border border-yellow-500/60 relative">
-          <div class="absolute top-0 right-0 bg-yellow-500/20 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded-bl-lg">90%</div>
-          <span class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Primer</span>
-          <span id="wu4Weight" class="text-xl font-bold text-slate-200">0 kg</span>
-          <span class="text-xs text-yellow-500/80 block mt-1">1 rep</span>
-        </div>
+        <label class="flex items-center justify-between gap-3 h-9 px-3 bg-slate-950 rounded-lg border border-slate-700 cursor-pointer">
+          <span class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Snap to step</span>
+          <span class="relative inline-flex items-center">
+            <input type="checkbox" id="snapToggle" checked onchange="runCalculation()" class="sr-only peer">
+            <span class="w-9 h-5 bg-slate-700 rounded-full peer-checked:bg-amber-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></span>
+          </span>
+        </label>
       </div>
-    </section>
+    </div>
 
-    <!-- Drop Set Sequence Generator -->
-    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-6 shadow-xl space-y-3">
-      <div class="flex justify-between items-end">
-        <h2 class="text-xl font-semibold text-slate-200">Execution Sequence</h2>
-        <span id="dropSetSourceLabel" class="text-xs text-slate-400">Based on Hypertrophy (75%)</span>
+    <!-- 3. WORKING TARGET -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+      <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800">
+        <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+          <span class="text-amber-500">3.</span> Working Target
+        </h3>
       </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-2">
-        <div class="p-4 bg-emerald-900/10 rounded-lg border border-emerald-500/30">
-          <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wide block mb-1">Main Working Set</span>
-          <span id="dsWorking" class="text-2xl font-bold text-slate-100">0 kg</span>
-          <span id="dsWorkingReps" class="text-xs text-slate-400 block mt-1">To failure</span>
+      <div class="p-4 sm:p-5 space-y-4">
+        <!-- Zone switch: highlight slides between the three thirds -->
+        <div class="relative grid grid-cols-3 bg-slate-950 rounded-lg p-1 border border-slate-800">
+          <span id="zone-slider" class="absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.67px)] rounded-md bg-slate-800 transition-transform duration-200 ease-out"></span>
+          <button id="zone85Btn" onclick="setZone('85')" class="relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors text-slate-500 hover:text-slate-300">Heavy <span class="mono normal-case tracking-normal">85%</span></button>
+          <button id="zone75Btn" onclick="setZone('75')" class="relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors text-slate-200">Hypertrophy <span class="mono normal-case tracking-normal">75%</span></button>
+          <button id="zone65Btn" onclick="setZone('65')" class="relative z-10 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors text-slate-500 hover:text-slate-300">Endurance <span class="mono normal-case tracking-normal">65%</span></button>
         </div>
-        <div class="p-4 bg-slate-900/60 rounded-lg border border-slate-700/40 relative overflow-hidden">
-          <div class="absolute top-0 right-0 bg-emerald-500/20 text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-bl-lg">-20%</div>
-          <span class="text-xs text-slate-400 block mb-1">Drop Set 1</span>
-          <span id="dsDrop1" class="text-2xl font-bold text-emerald-400">0 kg</span>
-          <span class="text-xs text-slate-500 block mt-1">To failure</span>
-        </div>
-        <div class="p-4 bg-slate-900/60 rounded-lg border border-slate-700/40 relative overflow-hidden">
-          <div class="absolute top-0 right-0 bg-emerald-500/10 text-emerald-400/70 text-[10px] px-1.5 py-0.5 rounded-bl-lg">-20%</div>
-          <span class="text-xs text-slate-400 block mb-1">Drop Set 2</span>
-          <span id="dsDrop2" class="text-2xl font-bold text-emerald-400/80">0 kg</span>
-          <span class="text-xs text-slate-500 block mt-1">To failure</span>
+
+        <div class="p-6 bg-slate-950 rounded-xl border border-slate-800 text-center">
+          <span id="activeZoneLabel" class="text-[10px] uppercase tracking-widest font-bold text-slate-500 block mb-2">Hypertrophy Target Load</span>
+          <span id="masterTargetWeight" class="text-5xl font-black mono text-amber-400 block mb-2">0.0 kg</span>
+          <span id="masterTargetReps" class="text-xs font-bold uppercase tracking-wider text-slate-400">Target: ~8 reps</span>
         </div>
       </div>
-    </section>
+    </div>
+
+    <!-- 4. WARM-UP -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+      <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-end justify-between gap-3">
+        <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+          <span class="text-amber-500">4.</span> Warm-Up Progression
+        </h3>
+        <p class="text-[10px] text-slate-500">Ramps up to your working target</p>
+      </div>
+      <div class="flex flex-col divide-y divide-slate-800/60">
+        <div class="flex items-center justify-between px-4 sm:px-5 py-3">
+          <div class="flex items-center gap-3">
+            <span class="mono text-[10px] text-slate-500 w-9">40%</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Set 1</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="mono text-xs text-slate-500">10 reps</span>
+            <span id="wu1Weight" class="mono text-xl font-medium text-white w-24 text-right">0 kg</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between px-4 sm:px-5 py-3">
+          <div class="flex items-center gap-3">
+            <span class="mono text-[10px] text-slate-500 w-9">60%</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Set 2</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="mono text-xs text-slate-500">6 reps</span>
+            <span id="wu2Weight" class="mono text-xl font-medium text-white w-24 text-right">0 kg</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between px-4 sm:px-5 py-3">
+          <div class="flex items-center gap-3">
+            <span class="mono text-[10px] text-slate-500 w-9">80%</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Set 3</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="mono text-xs text-slate-500">3 reps</span>
+            <span id="wu3Weight" class="mono text-xl font-medium text-white w-24 text-right">0 kg</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between px-4 sm:px-5 py-3 bg-amber-900/5">
+          <div class="flex items-center gap-3">
+            <span class="mono text-[10px] text-amber-500/80 w-9">90%</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Primer</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="mono text-xs text-slate-500">1 rep</span>
+            <span id="wu4Weight" class="mono text-xl font-medium text-amber-400 w-24 text-right">0 kg</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. DROP SET SEQUENCE -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+      <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-end justify-between gap-3">
+        <h3 class="text-white font-bold brand-font text-xl flex items-center gap-2">
+          <span class="text-amber-500">5.</span> Execution Sequence
+        </h3>
+        <p id="dropSetSourceLabel" class="text-[10px] text-slate-500">Based on Hypertrophy (75%)</p>
+      </div>
+      <div class="p-4 sm:p-5 grid grid-cols-3 gap-2 sm:gap-3 text-center">
+        <div class="p-3 sm:p-4 bg-amber-900/10 rounded-xl border border-amber-500/40">
+          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-amber-500 block mb-1">Working Set</span>
+          <span id="dsWorking" class="mono text-lg sm:text-2xl font-medium text-white block">0 kg</span>
+          <span id="dsWorkingReps" class="text-[10px] text-slate-500 block mt-1">To failure</span>
+        </div>
+        <div class="p-3 sm:p-4 bg-slate-950 rounded-xl border border-slate-800 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-400 mono text-[9px] px-1.5 py-0.5 rounded-bl-lg">-20%</div>
+          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">Drop 1</span>
+          <span id="dsDrop1" class="mono text-lg sm:text-2xl font-medium text-amber-400 block">0 kg</span>
+          <span class="text-[10px] text-slate-500 block mt-1">To failure</span>
+        </div>
+        <div class="p-3 sm:p-4 bg-slate-950 rounded-xl border border-slate-800 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-amber-500/10 text-amber-400/70 mono text-[9px] px-1.5 py-0.5 rounded-bl-lg">-20%</div>
+          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">Drop 2</span>
+          <span id="dsDrop2" class="mono text-lg sm:text-2xl font-medium text-amber-400/80 block">0 kg</span>
+          <span class="text-[10px] text-slate-500 block mt-1">To failure</span>
+        </div>
+      </div>
+    </div>
 
   </div>
+</div>
 
-  <script>
-
-    // --- Navbar ---
+<script>
+  // --- Navbar ---
   fetch('nav.html')
     .then(response => response.text())
     .then(data => {
       document.getElementById('nav-placeholder').innerHTML = data;
     });
-    
-    let activeMode = '1rm'; 
-    let activeZone = '75'; // default to Hypertrophy
-    let setCounter = 0;
 
-    function setMode(mode) {
-      activeMode = mode;
-      const btn1rm = document.getElementById('mode1rmBtn');
-      const btnReps = document.getElementById('modeRepsBtn');
-      const p1 = document.getElementById('panel1RM');
-      const pR = document.getElementById('panelReps');
+  let activeMode = '1rm';
+  let activeZone = '75'; // default to Hypertrophy
+  let setCounter = 0;
 
-      if (mode === '1rm') {
-        btn1rm.className = 'flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-emerald-600 text-slate-950 shadow';
-        btnReps.className = 'flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200';
-        p1.classList.remove('hidden');
-        pR.classList.add('hidden');
-      } else {
-        btnReps.className = 'flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-emerald-600 text-slate-950 shadow';
-        btn1rm.className = 'flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200';
-        pR.classList.remove('hidden');
-        p1.classList.add('hidden');
+  const SEG_ON = 'text-slate-200';
+  const SEG_OFF = ['text-slate-500', 'hover:text-slate-300'];
+
+  function setSeg(btn, on) {
+    btn.classList.toggle(SEG_ON, on);
+    SEG_OFF.forEach(c => btn.classList.toggle(c, !on));
+  }
+
+  function setMode(mode) {
+    activeMode = mode;
+    const is1rm = mode === '1rm';
+    setSeg(document.getElementById('mode1rmBtn'), is1rm);
+    setSeg(document.getElementById('modeRepsBtn'), !is1rm);
+    document.getElementById('mode-slider').style.transform = is1rm ? 'translateX(0)' : 'translateX(100%)';
+    document.getElementById('panel1RM').classList.toggle('hidden', !is1rm);
+    document.getElementById('panelReps').classList.toggle('hidden', is1rm);
+    runCalculation();
+  }
+
+  function setZone(zone) {
+    activeZone = zone;
+    const order = ['85', '75', '65'];
+    order.forEach(z => setSeg(document.getElementById('zone' + z + 'Btn'), z === zone));
+    document.getElementById('zone-slider').style.transform = `translateX(${order.indexOf(zone) * 100}%)`;
+
+    const labels = {
+      '85': 'Heavy Target Load',
+      '75': 'Hypertrophy Target Load',
+      '65': 'Endurance Target Load'
+    };
+    const sourceLabels = {
+      '85': 'Based on Heavy (85%)',
+      '75': 'Based on Hypertrophy (75%)',
+      '65': 'Based on Endurance (65%)'
+    };
+
+    document.getElementById('activeZoneLabel').innerText = labels[zone];
+    document.getElementById('dropSetSourceLabel').innerText = sourceLabels[zone];
+
+    runCalculation();
+  }
+
+  function snapToInterval(weight, step) {
+    if (!step || step <= 0) return weight;
+    return Math.round(weight / step) * step;
+  }
+
+  function calculateRepsForWeight(oneRm, weight) {
+    if (weight >= oneRm) return 1;
+    const reps = Math.round(30 * ((oneRm / weight) - 1));
+    return Math.max(1, reps);
+  }
+
+  function runCalculation() {
+    let calculated1RM = 0;
+    const interval = parseFloat(document.getElementById('stackInterval').value) || 5;
+    const doSnap = document.getElementById('snapToggle').checked;
+
+    if (activeMode === '1rm') {
+      calculated1RM = parseFloat(document.getElementById('direct1RM').value) || 0;
+    } else {
+      const w = parseFloat(document.getElementById('inputWeight').value) || 0;
+      const r = parseInt(document.getElementById('inputReps').value) || 0;
+      if (w > 0 && r > 0) {
+        calculated1RM = r === 1 ? w : w * (1 + r / 30);
       }
-      runCalculation();
     }
 
-    function setZone(zone) {
-      activeZone = zone;
-      const btn85 = document.getElementById('zone85Btn');
-      const btn75 = document.getElementById('zone75Btn');
-      const btn65 = document.getElementById('zone65Btn');
+    document.getElementById('display1RM').innerText = `1RM: ${calculated1RM.toFixed(1)} kg`;
 
-      // Reset all to unselected
-      [btn85, btn75, btn65].forEach(btn => {
-        btn.className = 'flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200';
-      });
-
-      // Apply selected style
-      const activeBtnClass = 'flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-600 text-slate-950 shadow';
-      if (zone === '85') btn85.className = activeBtnClass;
-      if (zone === '75') btn75.className = activeBtnClass;
-      if (zone === '65') btn65.className = activeBtnClass;
-
-      // Update Labels
-      const labels = {
-        '85': 'Heavy Target Load',
-        '75': 'Hypertrophy Target Load',
-        '65': 'Endurance Target Load'
-      };
-      const sourceLabels = {
-        '85': 'Based on Heavy (85%)',
-        '75': 'Based on Hypertrophy (75%)',
-        '65': 'Based on Endurance (65%)'
-      };
-      
-      document.getElementById('activeZoneLabel').innerText = labels[zone];
-      document.getElementById('dropSetSourceLabel').innerText = sourceLabels[zone];
-
-      runCalculation();
+    if (calculated1RM <= 0) {
+      updateFocusUI(0, 0);
+      updateWarmUps(0, interval, doSnap);
+      updateDropSet(0, interval, doSnap);
+      return;
     }
 
-    function snapToInterval(weight, step) {
-      if (!step || step <= 0) return weight;
-      return Math.round(weight / step) * step;
+    // Determine active multiplier
+    const multiplier = parseInt(activeZone) / 100;
+    const rawTarget = calculated1RM * multiplier;
+    const finalTarget = doSnap ? snapToInterval(rawTarget, interval) : rawTarget;
+
+    // Calculate specific reps for this snapped target
+    let targetReps = 0;
+    if (doSnap) {
+      targetReps = calculateRepsForWeight(calculated1RM, finalTarget);
+    } else {
+      targetReps = activeZone === '85' ? 5 : activeZone === '75' ? 8 : 12;
     }
 
-    function calculateRepsForWeight(oneRm, weight) {
-      if (weight >= oneRm) return 1;
-      const reps = Math.round(30 * ((oneRm / weight) - 1));
-      return Math.max(1, reps);
-    }
+    updateFocusUI(finalTarget, targetReps);
+    updateWarmUps(finalTarget, interval, doSnap);
+    updateDropSet(finalTarget, interval, doSnap, targetReps);
+  }
 
-    function runCalculation() {
-      let calculated1RM = 0;
-      const interval = parseFloat(document.getElementById('stackInterval').value) || 5;
-      const doSnap = document.getElementById('snapToggle').checked;
+  function updateWarmUps(targetWeight, interval, doSnap) {
+    const p1 = targetWeight * 0.40;
+    const p2 = targetWeight * 0.60;
+    const p3 = targetWeight * 0.80;
+    const p4 = targetWeight * 0.90;
 
-      if (activeMode === '1rm') {
-        calculated1RM = parseFloat(document.getElementById('direct1RM').value) || 0;
-      } else {
-        const w = parseFloat(document.getElementById('inputWeight').value) || 0;
-        const r = parseInt(document.getElementById('inputReps').value) || 0;
-        if (w > 0 && r > 0) {
-          calculated1RM = r === 1 ? w : w * (1 + r / 30);
-        }
-      }
+    const w1 = doSnap ? snapToInterval(p1, interval) : p1;
+    const w2 = doSnap ? snapToInterval(p2, interval) : p2;
+    const w3 = doSnap ? snapToInterval(p3, interval) : p3;
+    const w4 = doSnap ? snapToInterval(p4, interval) : p4;
 
-      document.getElementById('display1RM').innerText = `1RM: ${calculated1RM.toFixed(1)} kg`;
+    document.getElementById('wu1Weight').innerText = `${w1.toFixed(1)} kg`;
+    document.getElementById('wu2Weight').innerText = `${w2.toFixed(1)} kg`;
+    document.getElementById('wu3Weight').innerText = `${w3.toFixed(1)} kg`;
+    document.getElementById('wu4Weight').innerText = `${w4.toFixed(1)} kg`;
+  }
 
-      if (calculated1RM <= 0) {
-        updateFocusUI(0, 0);
-        updateWarmUps(0, interval, doSnap);
-        updateDropSet(0, interval, doSnap);
-        return;
-      }
+  function updateFocusUI(weight, reps) {
+    document.getElementById('masterTargetWeight').innerText = `${weight.toFixed(1)} kg`;
+    document.getElementById('masterTargetReps').innerText = `Target: ~${reps} reps`;
+  }
 
-      // Determine active multiplier
-      const multiplier = parseInt(activeZone) / 100;
-      const rawTarget = calculated1RM * multiplier;
-      const finalTarget = doSnap ? snapToInterval(rawTarget, interval) : rawTarget;
-      
-      // Calculate specific reps for this snapped target
-      let targetReps = 0;
-      if (doSnap) {
-        targetReps = calculateRepsForWeight(calculated1RM, finalTarget);
-      } else {
-        targetReps = activeZone === '85' ? 5 : activeZone === '75' ? 8 : 12;
-      }
+  function updateDropSet(baseWeight, interval, doSnap, targetReps = 0) {
+    const rawD1 = baseWeight * 0.80;
+    const rawD2 = rawD1 * 0.80;
 
-      updateFocusUI(finalTarget, targetReps);
-      updateWarmUps(finalTarget, interval, doSnap);
-      updateDropSet(finalTarget, interval, doSnap, targetReps);
-    }
+    const d1 = doSnap ? snapToInterval(rawD1, interval) : rawD1;
+    const d2 = doSnap ? snapToInterval(rawD2, interval) : rawD2;
 
-    function updateWarmUps(targetWeight, interval, doSnap) {
-      const p1 = targetWeight * 0.40;
-      const p2 = targetWeight * 0.60;
-      const p3 = targetWeight * 0.80;
-      const p4 = targetWeight * 0.90;
+    document.getElementById('dsWorking').innerText = `${baseWeight.toFixed(1)} kg`;
+    document.getElementById('dsWorkingReps').innerText = `Target: ~${targetReps} reps`;
+    document.getElementById('dsDrop1').innerText = `${d1.toFixed(1)} kg`;
+    document.getElementById('dsDrop2').innerText = `${d2.toFixed(1)} kg`;
+  }
 
-      const w1 = doSnap ? snapToInterval(p1, interval) : p1;
-      const w2 = doSnap ? snapToInterval(p2, interval) : p2;
-      const w3 = doSnap ? snapToInterval(p3, interval) : p3;
-      const w4 = doSnap ? snapToInterval(p4, interval) : p4;
-
-      document.getElementById('wu1Weight').innerText = `${w1.toFixed(1)} kg`;
-      document.getElementById('wu2Weight').innerText = `${w2.toFixed(1)} kg`;
-      document.getElementById('wu3Weight').innerText = `${w3.toFixed(1)} kg`;
-      document.getElementById('wu4Weight').innerText = `${w4.toFixed(1)} kg`;
-    }
-
-    function updateFocusUI(weight, reps) {
-      document.getElementById('masterTargetWeight').innerText = `${weight.toFixed(1)} kg`;
-      document.getElementById('masterTargetReps').innerText = `Target: ~${reps} reps`;
-    }
-
-    function updateDropSet(baseWeight, interval, doSnap, targetReps = 0) {
-      const rawD1 = baseWeight * 0.80;
-      const rawD2 = rawD1 * 0.80;
-
-      const d1 = doSnap ? snapToInterval(rawD1, interval) : rawD1;
-      const d2 = doSnap ? snapToInterval(rawD2, interval) : rawD2;
-
-      document.getElementById('dsWorking').innerText = `${baseWeight.toFixed(1)} kg`;
-      document.getElementById('dsWorkingReps').innerText = `Target: ~${targetReps} reps`;
-      document.getElementById('dsDrop1').innerText = `${d1.toFixed(1)} kg`;
-      document.getElementById('dsDrop2').innerText = `${d2.toFixed(1)} kg`;
-    }
-  </script>
+  // Start the zone slider on the default (Hypertrophy, middle)
+  document.getElementById('zone-slider').style.transform = 'translateX(100%)';
+</script>
 </body>
 </html>
