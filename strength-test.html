@@ -47,9 +47,14 @@
                     <h2 class="text-xl font-bold text-white mb-1">Personalize Your Standards</h2>
                     <p class="text-sm text-gray-400">Enter your details. We'll highlight your current level in the tables.</p>
                 </div>
-                <button id="reset-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-semibold rounded-lg transition-colors w-full sm:w-auto">
-                    Reset All
-                </button>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button id="json-btn" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors">
+                        JSON
+                    </button>
+                    <button id="reset-btn" class="flex-1 sm:flex-none px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-semibold rounded-lg transition-colors">
+                        Reset All
+                    </button>
+                </div>
             </div>
             
             <div class="flex flex-col sm:flex-row gap-8 mb-6 border-b border-gray-700 pb-6">
@@ -160,6 +165,52 @@
         </section>
 
     </main>
+
+    <!-- JSON Save / Load Modal -->
+    <div id="json-modal" class="hidden fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="json-modal-title">
+        <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90dvh] overflow-y-auto">
+            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-700">
+                <h2 id="json-modal-title" class="text-xl font-bold text-white">Save / Load JSON</h2>
+                <button id="json-close-btn" class="text-gray-400 hover:text-white text-2xl leading-none px-2" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="p-6 space-y-8">
+                <!-- Save -->
+                <div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                        <div>
+                            <h3 class="font-bold text-white">Save</h3>
+                            <p class="text-sm text-gray-400">Your current inputs as JSON. Copy it or download a file to keep.</p>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button id="json-copy-btn" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors">Copy</button>
+                            <button id="json-download-btn" class="flex-1 sm:flex-none px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-semibold rounded-lg transition-colors">Download</button>
+                        </div>
+                    </div>
+                    <textarea id="json-export" readonly class="w-full h-40 bg-gray-900 border-gray-700 border rounded-lg p-4 text-gray-300 font-mono text-xs outline-none resize-none"></textarea>
+                </div>
+
+                <!-- Load -->
+                <div>
+                    <h3 class="font-bold text-white">Load</h3>
+                    <p class="text-sm text-gray-400 mb-3">Drop a .json file, choose one, or paste JSON below. This replaces your current inputs.</p>
+
+                    <label id="json-drop-zone" for="json-file-input" class="flex flex-col items-center justify-center gap-1 w-full h-28 mb-3 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer text-gray-400 hover:border-blue-500 hover:text-gray-200 transition-colors">
+                        <span class="text-2xl">📄</span>
+                        <span class="text-sm font-semibold">Drag &amp; drop a .json file here, or tap to choose</span>
+                    </label>
+                    <input type="file" id="json-file-input" accept=".json,application/json" class="sr-only">
+
+                    <textarea id="json-import" placeholder='Paste JSON here, e.g. {"bw": 80, "reps": 1, "isFemale": false, "lifts": {"Squat": 140}}' class="w-full h-32 bg-gray-900 border-gray-700 border rounded-lg p-4 text-gray-300 font-mono text-xs focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-3">
+                        <p id="json-status" class="text-sm min-h-[1.25rem]"></p>
+                        <button id="json-load-btn" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold rounded-lg transition-colors">Load JSON</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
 
@@ -434,8 +485,146 @@
             renderAllTables();
         }
 
+        // ---------- JSON Save / Load ----------
+        function buildExportJSON() {
+            const { bw, reps, isFemale, lifts } = getUserData();
+            return JSON.stringify({
+                app: 'strength-test',
+                version: 1,
+                savedAt: new Date().toISOString(),
+                bw, reps, isFemale, lifts
+            }, null, 2);
+        }
+
+        function setJsonStatus(msg, ok) {
+            const el = document.getElementById('json-status');
+            el.textContent = msg;
+            el.className = 'text-sm min-h-[1.25rem] ' + (ok ? 'text-green-400' : 'text-red-400');
+        }
+
+        // Validate parsed JSON and fill the inputs. Returns number of lifts loaded.
+        function applyImportedData(data) {
+            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                throw new Error('JSON must be an object like {"bw": 80, "lifts": {...}}');
+            }
+            const num = v => (v === null || v === '' || v === undefined) ? null : Number(v);
+            const bw = num(data.bw);
+            const reps = num(data.reps);
+            if (bw !== null && (isNaN(bw) || bw < 0)) throw new Error('"bw" must be a positive number');
+            if (reps !== null && (isNaN(reps) || reps < 1)) throw new Error('"reps" must be a number of 1 or more');
+            if (data.lifts !== undefined && (typeof data.lifts !== 'object' || data.lifts === null || Array.isArray(data.lifts))) {
+                throw new Error('"lifts" must be an object, e.g. {"Squat": 140}');
+            }
+
+            document.getElementById('bw-input').value = bw ?? '';
+            document.getElementById('reps-input').value = reps ?? 1;
+            document.getElementById('gender-toggle').checked = data.isFemale === true;
+
+            const lifts = data.lifts || {};
+            let count = 0;
+            document.querySelectorAll('.lift-input').forEach(input => {
+                const v = num(lifts[input.getAttribute('data-lift')]);
+                if (v !== null && !isNaN(v)) { input.value = v; count++; }
+                else input.value = '';
+            });
+
+            saveToStorage(); // persists + re-renders tables
+            document.getElementById('json-export').value = buildExportJSON();
+            return count;
+        }
+
+        function importJSONText(text) {
+            try {
+                const count = applyImportedData(JSON.parse(text));
+                setJsonStatus(`Loaded ✓ (${count} lift${count === 1 ? '' : 's'})`, true);
+            } catch (e) {
+                setJsonStatus(e instanceof SyntaxError ? 'Invalid JSON: ' + e.message : e.message, false);
+            }
+        }
+
+        function readJSONFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                document.getElementById('json-import').value = reader.result;
+                importJSONText(reader.result);
+            };
+            reader.onerror = () => setJsonStatus('Could not read file', false);
+            reader.readAsText(file);
+        }
+
+        function openJsonModal() {
+            document.getElementById('json-export').value = buildExportJSON();
+            setJsonStatus('', true);
+            document.getElementById('json-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeJsonModal() {
+            document.getElementById('json-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function flashButton(btn, text) {
+            const orig = btn.innerText;
+            btn.innerText = text;
+            setTimeout(() => { btn.innerText = orig; }, 1500);
+        }
+
+        function initJsonModal() {
+            const modal = document.getElementById('json-modal');
+            const dropZone = document.getElementById('json-drop-zone');
+            const fileInput = document.getElementById('json-file-input');
+
+            document.getElementById('json-btn').addEventListener('click', openJsonModal);
+            document.getElementById('json-close-btn').addEventListener('click', closeJsonModal);
+            modal.addEventListener('click', e => { if (e.target === modal) closeJsonModal(); });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeJsonModal();
+            });
+
+            document.getElementById('json-copy-btn').addEventListener('click', e => {
+                const text = document.getElementById('json-export').value;
+                navigator.clipboard.writeText(text)
+                    .then(() => flashButton(e.target, 'Copied!'))
+                    .catch(() => { document.getElementById('json-export').select(); flashButton(e.target, 'Press Ctrl/⌘+C'); });
+            });
+
+            document.getElementById('json-download-btn').addEventListener('click', () => {
+                const blob = new Blob([buildExportJSON()], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `strength-test-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            });
+
+            document.getElementById('json-load-btn').addEventListener('click', () => {
+                const text = document.getElementById('json-import').value.trim();
+                if (!text) return setJsonStatus('Paste some JSON or drop a file first', false);
+                importJSONText(text);
+            });
+
+            fileInput.addEventListener('change', () => { readJSONFile(fileInput.files[0]); fileInput.value = ''; });
+
+            const highlight = on => {
+                dropZone.classList.toggle('border-blue-500', on);
+                dropZone.classList.toggle('bg-blue-500/10', on);
+            };
+            ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); highlight(true); }));
+            ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); highlight(false); }));
+            dropZone.addEventListener('drop', e => readJSONFile(e.dataTransfer.files[0]));
+
+            // Stop the browser opening the file if it's dropped just outside the zone
+            modal.addEventListener('dragover', e => e.preventDefault());
+            modal.addEventListener('drop', e => e.preventDefault());
+        }
+
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
+            initJsonModal();
             loadFromStorage();
             
             document.getElementById('bw-input').addEventListener('input', saveToStorage);
