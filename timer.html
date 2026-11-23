@@ -180,6 +180,14 @@
 </div>
 
 <script>
+  // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+</script>
+<script>
     // --- STATE ---
     let timerInterval = null;
     let state = 'IDLE'; // IDLE, WARMUP, WORK, REST, FINISHED

@@ -17,8 +17,20 @@
         .progression-block { background-color: #f8f9fa; border-left: 3px solid #0d6efd; padding: 0.75rem; margin-top: 0.5rem; border-radius: 0 4px 4px 0; font-family: monospace; font-size: 0.9rem;}
         .deload-row { color: #6c757d; font-style: italic; }
     </style>
+    <!-- Tailwind for the shared navbar only (scoped so it doesn't clash with Bootstrap) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { important: '#nav-placeholder', corePlugins: { preflight: false, container: false } };
+    </script>
+    <style>
+        #nav-placeholder a { text-decoration: none; }
+        @media print { #nav-placeholder { display: none; } }
+    </style>
 </head>
 <body>
+
+<div id="nav-placeholder" style="margin: -2rem -2rem 2rem;"></div>
+
 
 <div class="container app-container">
     <div class="row mb-4">
@@ -108,6 +120,14 @@
     </div>
 </div>
 
+<script>
+  // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+</script>
 <script>
 // THE BRAIN (Weekly Volume Data)
 const brainJSON = {

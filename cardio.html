@@ -40,6 +40,9 @@
 </head>
 <body class="min-h-screen pb-24">
 
+<div id="nav-placeholder"></div>
+
+
 <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-20 backdrop-blur">
   <div class="max-w-5xl mx-auto px-5 pt-4">
     <div class="flex items-end justify-between gap-4">
@@ -277,6 +280,14 @@
   </section>
 </main>
 
+<script>
+  // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+</script>
 <script>
 /* ---------- helpers ---------- */
 const $ = id => document.getElementById(id);

@@ -172,6 +172,9 @@
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans sm:p-6 md:p-8">
 
+<div id="nav-placeholder" class="no-print sm:-mx-6 sm:-mt-6 sm:mb-6 md:-mx-8 md:-mt-8 md:mb-8"></div>
+
+
     <div class="sheet max-w-[90rem] mx-auto bg-slate-50 md:bg-white sm:shadow-sm sm:ring-1 ring-slate-200 p-4 sm:p-6 min-h-screen sm:min-h-0 sm:rounded-xl">
 
         <!-- Toolbar -->
@@ -367,6 +370,14 @@
     <div id="toast" class="no-print fixed left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm shadow-lg opacity-0 translate-y-2 transition-all pointer-events-none" style="bottom: calc(1rem + env(safe-area-inset-bottom));" aria-live="polite"></div>
 
     <script>
+  // --- Navbar ---
+  fetch('nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('nav-placeholder').innerHTML = data;
+    });
+</script>
+<script>
         // ---------- Tooltip content ----------
         const TIPS = {
             tempo: `
